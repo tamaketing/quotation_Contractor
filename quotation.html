@@ -303,13 +303,13 @@ tr:hover .row-del{display:inline-block;vertical-align:middle}
 
 <!-- Date picker popup + settings modal → assets/thai.js, assets/profile.js -->
 
+<script src="assets/api.js"></script>
 <script src="assets/thai.js"></script>
 <script src="assets/docnum.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-<script src="assets/gate.js"></script>
 <script src="assets/profile.js"></script>
 <script src="assets/archive.js"></script>
-<script src="assets/docs.js"></script>
+<script src="assets/docs-api.js"></script>
 <script>
 const $=id=>document.getElementById(id);
 const fmt=THAI.fmt;
@@ -454,16 +454,23 @@ function importJSON(el){
   r.readAsText(f);el.value='';
 }
 
-/* เลขที่ถัดไป: PCC-2569-007 (กรองตามปี พ.ศ. + กันเลขที่เคยลบถูกนำกลับมาใช้) */
-function nextQuoteNo(){
-  return DOCNUM.next('PCC',()=>docs?docs.list():[],r=>r.data.quoteNo);
+/* เลขที่ถัดไป: PCC-2569-007 (Cloud D1 counter ต่อบริษัท) */
+async function nextQuoteNo(){
+  try {
+    const t = THAI.todayParts();
+    const r = await API.nextDocNo('PCC', String(t.y));
+    return r.number;
+  } catch (e) {
+    console.error(e);
+    return 'PCC-' + String(THAI.todayParts().y) + '-001';
+  }
 }
-function blankDoc(){
+async function blankDoc(){
   const p=PROFILE.get();
   const t=THAI.todayParts();
   return {
     custTitle:'ช่างต่อ', cusName:'', cusAddr:'', prjName:'',
-    quoteNo:nextQuoteNo(), quoteDate:THAI.fmtDateBE(t.y,t.m,t.d),
+    quoteNo:await nextQuoteNo(), quoteDate:THAI.fmtDateBE(t.y,t.m,t.d),
     sellerName:p.sellerName||'', sellerPhone:p.sellerPhone||p.coPhone||'', validDays:p.validDays||'15วัน',
     vatR:p.vatRate||7,
     terms:'ราคานี้มีอายุตามระบุด้านบน และรวมภาษีมูลค่าเพิ่มตามที่ระบุ',
@@ -488,16 +495,34 @@ function docForDisk(){const d=collect();return{base:diskName(d),data:d};}
 
 /* init */
 (function(){
+  // Auth gate: redirect to home if not logged in
+  if (!API.isLoggedIn()) { window.location.replace('/'); return; }
+
   PROFILE.apply();
   PROFILE.mountButton(document.querySelector('.toolbar'));
 
+  // Load profile from Cloud
+  API.getProfile().then(p => {
+    if (p && p.company) {
+      const c = p.company;
+      if (typeof PROFILE !== 'undefined' && PROFILE.set) {
+        PROFILE.set({
+          coName: c.name || '', coNameEn: c.name_en || '', coBranch: c.branch || '',
+          coTax: c.tax_id || '', coAddr: c.address || '', coPhone: c.phone || '',
+          coEmail: c.email || '', bankInfo: c.bank_info || ''
+        });
+      }
+      PROFILE.apply();
+    }
+  }).catch(() => {});
+
   docs=DOCS.mount({
-    mountEl:$('docsMount'), key:'quota_quotes_v1', curKey:'quota_quote_cur',
+    mountEl:$('docsMount'), apiType:'quotations', prefix:'PCC', noField:'quoteNo',
     title:'ใบเสนอราคา',
     collect, load, blank:blankDoc,
     summary:summaryOf,
     searchText:rec=>{const d=rec.data||{};return[(d.quoteNo||''),(d.cusName||''),(d.prjName||''),(d.cusAddr||'')].join(' ');},
-    nextNo:()=>nextQuoteNo(),
+    nextNo:nextQuoteNo,
     setNo:(d,n)=>{d.quoteNo=n},
     addOne:d=>{
       const rec={id:'d'+Date.now().toString(36)+Math.random().toString(36).slice(2,4),updatedAt:Date.now(),data:d};
@@ -528,8 +553,6 @@ function docForDisk(){const d=collect();return{base:diskName(d),data:d};}
     calc();
     if(docs)docs.scheduleSave();
   });
-
-  GATE.init();
 })();
 </script>
 </body>
