@@ -7,12 +7,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link href="assets/app.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="assets/api.js"></script>
 <script src="assets/thai.js"></script>
 <script src="assets/docnum.js"></script>
-<script src="assets/gate.js"></script>
 <script src="assets/profile.js"></script>
 <script src="assets/archive.js"></script>
-<script src="assets/docs.js"></script>
+<script src="assets/docs-api.js"></script>
 <style>
   :root{
     --dark:#0f172a;--accent:#0f766e;--accent2:#115e59;--accent-soft:#ecfdf5;
@@ -637,16 +637,25 @@ function load(o) {
 }
 
 /* ── Numbering ── */
-function nextReceiptNo() {
-  return DOCNUM.next('RC', () => docs ? docs.list() : [], r => r.data.docNo);
+async function nextReceiptNo() {
+  try {
+    const t = THAI.todayParts();
+    const beYear = String(THAI.BE + t.y);
+    const r = await API.nextDocNo('RC', beYear);
+    return r.number;
+  } catch (e) {
+    console.error(e);
+    const t = THAI.todayParts();
+    return 'RC-' + String(THAI.BE + t.y) + '-001';
+  }
 }
 
-function blankDoc() {
+async function blankDoc() {
   const p = PROFILE.get();
   const t = THAI.todayParts();
   const today = THAI.fmtDateBE(t.y, t.m, t.d);
   return {
-    docNo: nextReceiptNo(), bookNo: '1', copyType: 'ต้นฉบับ', issueDate: today,
+    docNo: await nextReceiptNo(), bookNo: '1', copyType: 'ต้นฉบับ', issueDate: today,
     refInvNo: '', refInvDate: '',
     sellerBranch: p.coBranch || 'สำนักงานใหญ่',
     buyerName: '', buyerAddr: '', buyerTax: '', buyerBranch: 'สำนักงานใหญ่', buyerContact: '',
@@ -779,11 +788,27 @@ function fillFromInvoice(inv) {
   $('note').addEventListener('input', fitNote);
   document.querySelectorAll('.card textarea,.co-addr').forEach(ta => ta.addEventListener('input', fitCardText));
 
+  if (!API.isLoggedIn()) { window.location.replace('/'); return; }
+
   PROFILE.apply();
   PROFILE.mountButton(document.querySelector('.toolbar'));
 
+  API.getProfile().then(p => {
+    if (p && p.company) {
+      const c = p.company;
+      if (typeof PROFILE !== 'undefined' && PROFILE.set) {
+        PROFILE.set({
+          coName: c.name || '', coNameEn: c.name_en || '', coBranch: c.branch || '',
+          coTax: c.tax_id || '', coAddr: c.address || '', coPhone: c.phone || '',
+          coEmail: c.email || '', bankInfo: c.bank_info || ''
+        });
+      }
+      PROFILE.apply();
+    }
+  }).catch(() => {});
+
   docs = DOCS.mount({
-    mountEl: $('docsMount'), key: 'quota_receipts_v1', curKey: 'quota_receipt_cur',
+    mountEl: $('docsMount'), apiType: 'receipts', prefix: 'RC', noField: 'docNo',
     title: 'ใบเสร็จรับเงิน',
     collect, load, blank: blankDoc,
     summary: summaryOf,
@@ -791,7 +816,7 @@ function fillFromInvoice(inv) {
       const d = rec.data || {};
       return [(d.docNo || ''), (d.buyerName || ''), (d.prjName || ''), (d.refInvNo || '')].join(' ');
     },
-    nextNo: () => nextReceiptNo(),
+    nextNo: nextReceiptNo,
     setNo: (d, n) => { d.docNo = n; },
     archive: () => ARCHIVE.pick(docForDisk),
     onSaved: rec => ARCHIVE.scheduleWrite(diskName(rec.data), rec.data)
@@ -813,7 +838,36 @@ function fillFromInvoice(inv) {
     if (p.vatRate != null && p.vatRate !== '') $('vatR').value = p.vatRate;
     fitCardText(); calc(); scheduleSave();
   });
-  GATE.init();
+
+  /* Toast */
+  const toast = document.createElement('div');
+  toast.id = 'saveToast';
+  toast.style.cssText = 'position:fixed;bottom:20px;right:20px;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;color:#fff;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9999;';
+  document.body.appendChild(toast);
+  let toastTimer = null;
+  window.addEventListener('doc:saved', e => {
+    const ok = e.detail && e.detail.ok;
+    toast.textContent = ok ? '✅ บันทึกแล้ว' : ('❌ บันทึกไม่สำเร็จ: ' + (e.detail && e.detail.msg || ''));
+    toast.style.background = ok ? '#059669' : '#dc2626';
+    toast.style.opacity = '1';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { toast.style.opacity = '0'; }, 2000);
+  });
+
+  /* Toast */
+  const toast = document.createElement('div');
+  toast.id = 'saveToast';
+  toast.style.cssText = 'position:fixed;bottom:20px;right:20px;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;color:#fff;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9999;';
+  document.body.appendChild(toast);
+  let toastTimer = null;
+  window.addEventListener('doc:saved', e => {
+    const ok = e.detail && e.detail.ok;
+    toast.textContent = ok ? '✅ บันทึกแล้ว' : ('❌ บันทึกไม่สำเร็จ: ' + (e.detail && e.detail.msg || ''));
+    toast.style.background = ok ? '#059669' : '#dc2626';
+    toast.style.opacity = '1';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { toast.style.opacity = '0'; }, 2000);
+  });
 
   document.querySelectorAll('#tbody .desc').forEach(ta => {
     ta.addEventListener('input', function () {

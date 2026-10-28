@@ -200,12 +200,12 @@
   <div class="footer"><span data-profile="coNameEn"></span> — หนังสือส่งมอบงานจ้าง — <span class="ed" data-k="invNo"></span></div>
 </div>
 
+<script src="assets/api.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script src="assets/thai.js"></script>
-<script src="assets/gate.js"></script>
 <script src="assets/profile.js"></script>
 <script src="assets/archive.js"></script>
-<script src="assets/docs.js"></script>
+<script src="assets/docs-api.js"></script>
 <script>
 const $ = id => document.getElementById(id);
 const fmt = THAI.fmt;
@@ -415,10 +415,28 @@ function docForDisk() { const d = collect(); return { base: diskName(d), data: d
 
 /* ── init ── */
 (function () {
+  if (!API.isLoggedIn()) { window.location.replace('/'); return; }
+
   PROFILE.apply();
   PROFILE.mountButton(document.querySelector('.toolbar'));
+
+  API.getProfile().then(p => {
+    if (p && p.company) {
+      const c = p.company;
+      if (typeof PROFILE !== 'undefined' && PROFILE.set) {
+        PROFILE.set({
+          coName: c.name || '', coNameEn: c.name_en || '', coBranch: c.branch || '',
+          coTax: c.tax_id || '', coAddr: c.address || '', coPhone: c.phone || '',
+          coEmail: c.email || '', bankInfo: c.bank_info || ''
+        });
+      }
+      PROFILE.apply();
+      renderText();
+    }
+  }).catch(() => {});
+
   docs = DOCS.mount({
-    mountEl: $('docsMount'), key: 'quota_letters_v1', curKey: 'quota_letter_cur',
+    mountEl: $('docsMount'), apiType: 'delivery-letters', prefix: '', noField: 'invNo',
     title: 'หนังสือส่งมอบ',
     collect, load, blank: blankDoc,
     summary: summaryOf,
@@ -435,7 +453,21 @@ function docForDisk() { const d = collect(); return { base: diskName(d), data: d
   THAI.init(scheduleSave);
   renderText();
   document.addEventListener('profile:updated', () => { renderText(); scheduleSave(); });
-  GATE.init();
+
+  /* Toast */
+  const toast = document.createElement('div');
+  toast.id = 'saveToast';
+  toast.style.cssText = 'position:fixed;bottom:20px;right:20px;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;color:#fff;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9999;';
+  document.body.appendChild(toast);
+  let toastTimer = null;
+  window.addEventListener('doc:saved', e => {
+    const ok = e.detail && e.detail.ok;
+    toast.textContent = ok ? '✅ บันทึกแล้ว' : ('❌ บันทึกไม่สำเร็จ: ' + (e.detail && e.detail.msg || ''));
+    toast.style.background = ok ? '#059669' : '#dc2626';
+    toast.style.opacity = '1';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { toast.style.opacity = '0'; }, 2000);
+  });
 })();
 </script>
 </body>
