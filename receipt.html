@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ใบเสร็จรับเงิน / ใบกำกับภาษี — Receipt / Tax Invoice</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="assets/app.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="assets/thai.js"></script>
+<script src="assets/docnum.js"></script>
+<script src="assets/gate.js"></script>
+<script src="assets/profile.js"></script>
+<script src="assets/archive.js"></script>
+<script src="assets/docs.js"></script>
+<style>
+  :root{
+    --dark:#0f172a;--accent:#0f766e;--accent2:#115e59;--accent-soft:#ecfdf5;
+    --border:#e2e8f0;--border2:#cbd5e1;--text:#111827;--text2:#4b5563;--text3:#94a3b8;
+    --red:#dc2626;--gold:#b45309;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:"Sarabun",sans-serif;background:#eef2f7;color:var(--text);padding:28px;line-height:1.45;font-size:13px}
+  input,textarea,select{font-family:inherit}
+
+  /* ── Toolbar ── */
+  .toolbar{max-width:960px;margin:0 auto 12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;background:#fff;border:1px solid var(--border);border-radius:10px;padding:8px 12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .toolbar .brand{font-weight:700;font-size:13px;color:var(--dark);margin-right:auto;display:flex;align-items:center;gap:7px}
+  .toolbar .brand i{width:7px;height:7px;border-radius:50%;background:var(--accent);display:inline-block}
+  .toolbar button{appearance:none;border:1px solid var(--border);cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:500;padding:7px 12px;border-radius:7px;background:#fff;color:var(--text2);display:inline-flex;align-items:center;gap:5px;transition:.12s}
+  .toolbar button:hover{background:#f8fafc;border-color:var(--border2)}
+  .toolbar button.pri{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .toolbar button.pri:hover{background:var(--accent2)}
+  .toolbar button.ok{background:#059669;color:#fff;border-color:#059669}
+  .toolbar button.ok:hover{background:#047857}
+  .toolbar input[type=file]{display:none}
+
+  .wrap{max-width:960px;margin:0 auto 12px}
+
+  /* ── Paper ── */
+  .paper{max-width:960px;margin:0 auto;background:#fff;border:1px solid #dbe2ea;border-radius:6px;box-shadow:0 12px 35px rgba(15,23,42,.09);overflow:hidden;position:relative}
+  .accentbar{height:6px;background:linear-gradient(90deg,#0f766e 0%,#14b8a6 55%,#f59e0b 100%)}
+
+  /* ── Header ── */
+  .hdr{display:flex;justify-content:space-between;gap:34px;padding:26px 36px 20px;border-bottom:1px solid var(--border)}
+  .hdr-left{flex:1.2;min-width:0}
+  .brand-block{display:flex;gap:14px;align-items:flex-start}
+  #logoImg{width:74px;height:74px;object-fit:contain;flex-shrink:0}
+  .brand-info{flex:1;min-width:0}
+  .co-name{font-size:19.5px;font-weight:700;color:var(--dark);margin:0 0 3px;line-height:1.3;width:100%;border:0;border-bottom:1px dashed transparent;background:transparent;padding:0}
+  .co-addr{font-size:11.5px;color:var(--text2);line-height:1.55;padding:0;width:100%;border:0;background:transparent;resize:none;margin:0}
+  .co-taxline{display:flex;flex-wrap:wrap;gap:5px;align-items:center;font-size:10.5px;color:var(--text3);margin-top:6px}
+  .co-taxline .tag{font-size:8.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;background:#f1f5f9;border:1px solid var(--border);padding:1px 6px;border-radius:4px;color:var(--text2)}
+  .co-taxline input{border:0;border-bottom:1px dashed var(--border2);background:transparent;font-size:10.5px;padding:0 2px;color:var(--text);width:132px}
+  .co-taxline input.branch{width:120px}
+  .co-contact{font-size:10.5px;color:var(--text2);margin-top:5px;display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+  .co-contact input{border:0;border-bottom:1px dashed var(--border2);background:transparent;font-size:10.5px;padding:0 2px;color:var(--text2)}
+
+  .hdr-right{flex:1;min-width:318px;text-align:right}
+  .doc-title{font-size:35px;font-weight:700;line-height:1;letter-spacing:.01em;color:var(--dark)}
+  .doc-sub{font-size:15.5px;font-weight:700;color:var(--accent);margin-top:5px}
+  .doc-en{font-size:9px;font-weight:600;letter-spacing:.16em;color:var(--text3);text-transform:uppercase;margin-top:4px}
+  .meta{margin:12px 0 0 auto;width:100%;max-width:336px;border:1px solid var(--border);border-radius:7px;overflow:hidden;border-collapse:collapse;text-align:left}
+  .meta td{padding:3.5px 9px;font-size:11px;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+  .meta tr:last-child td{border-bottom:0}
+  .meta td:first-child{background:#f8fafc;color:#64748b;font-size:10px;font-weight:600;white-space:nowrap;width:116px}
+  .meta input{border:0;background:transparent;font-size:11px;padding:0;width:100%;color:var(--text);font-weight:600}
+  .meta input.plain{font-weight:400}
+  .meta select{border:0;background:transparent;font-size:11px;padding:0;width:100%;color:var(--text);font-weight:600;appearance:none;-webkit-appearance:none;cursor:pointer}
+  .meta .dpick{font-size:11px;min-width:72px;font-weight:600}
+  .meta input:focus,.meta select:focus,.co-name:focus,.co-addr:focus{outline:0;background:#f0fdfa;border-bottom-color:var(--accent)}
+
+  /* ── Sections ── */
+  .section{padding:0 36px;margin-top:18px}
+  .grid2{display:grid;grid-template-columns:1.15fr .85fr;gap:14px}
+  .card{border:1px solid var(--border);border-radius:8px;padding:12px 15px 14px;background:#fff}
+  .section-title{font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--dark);margin:0 0 8px;padding-bottom:7px;border-bottom:2px solid var(--accent);display:flex;align-items:center;gap:7px}
+  .section-title i{width:17px;height:17px;border-radius:4px;background:var(--accent);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-style:normal;font-size:8px;font-weight:700}
+  .section-title.gold{border-bottom-color:#f59e0b}
+  .section-title.gold i{background:#b45309}
+  .field-label{font-size:9.5px;font-weight:600;color:var(--text3);letter-spacing:.04em;text-transform:uppercase;margin:6px 0 1px}
+  .field-label:first-of-type{margin-top:0}
+  .card input,.card textarea{width:100%;border:0;border-bottom:1px dashed var(--border2);background:transparent;padding:2px 1px;font-size:12px;color:var(--text);transition:.12s}
+  .card input:focus,.card textarea:focus{outline:0;background:#f0fdfa;border-bottom-color:var(--accent)}
+  .card textarea{resize:none;line-height:1.45;overflow:hidden}
+  .card .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+  /* ── Items table ── */
+  .tbl-wrap{margin:18px 36px 0;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+  table.tb{width:100%;border-collapse:collapse;font-size:12px}
+  .tb thead th{background:var(--accent-soft);color:#134e4a;font-weight:700;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;padding:9px 8px;text-align:left;border-right:1px solid #ccfbf1;border-bottom:2px solid #99f6e4}
+  .tb thead th:last-child{border-right:0}
+  .tb thead th.r{text-align:right}
+  .tb thead th.c{text-align:center}
+  .tb tbody td{padding:6px 8px;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+  .tb tbody tr:last-child td{border-bottom:0}
+  .tb tbody tr:nth-child(even) td{background:#fbfdfd}
+  .tb tbody tr:hover td{background:#f0fdfa}
+  .tb td.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .tb td.c{text-align:center}
+  .tb .no{width:32px;text-align:center;color:var(--text3);font-weight:600;font-size:11px}
+  .tb .desc-cell{padding:3px 6px}
+  .tb textarea.desc{width:100%;border:0;background:transparent;font-size:12px;line-height:1.4;padding:3px 2px;resize:none;overflow:hidden;min-height:22px;color:var(--text)}
+  .tb textarea.desc:focus{outline:0;background:#f0fdfa}
+  .tb input{border:0;background:transparent;width:100%;font-size:12px;padding:2px 1px;color:var(--text)}
+  .tb input:focus{outline:0;background:#f0fdfa}
+  .tb input.num{text-align:right;font-variant-numeric:tabular-nums}
+  .tb input.unit{text-align:center}
+  .tb .line{font-weight:600;color:var(--dark)}
+  .tb .delcol{width:30px;text-align:center;border-bottom:0}
+  .tb .del{border:1px solid #fecaca;background:#fff;color:var(--red);border-radius:5px;cursor:pointer;font-size:11px;line-height:1;padding:3px 6px}
+  .tb .del:hover{background:#fef2f2}
+  .add-row{text-align:center;padding:7px;background:#fbfdfd;border-top:1px dashed var(--border)}
+  .add-row button{border:1px dashed var(--border2);background:#fff;color:var(--text2);padding:5px 14px;border-radius:7px;font-size:11.5px;font-weight:500;cursor:pointer;font-family:inherit}
+  .add-row button:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+
+  /* ── Totals ── */
+  .totals-row{margin:14px 36px 0;display:grid;grid-template-columns:1fr 342px;gap:18px;align-items:start}
+  .words{padding:11px 13px;background:#f0fdfa;border:1px solid #ccfbf1;border-radius:8px;min-height:64px}
+  .words .lbl{font-size:9px;font-weight:700;color:var(--accent);letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:4px}
+  .words .val{font-weight:700;color:#134e4a;font-size:12.5px;line-height:1.5;display:block}
+  .words .paid{margin-top:7px;font-size:10px;color:#0f766e;display:flex;align-items:center;gap:5px}
+  .words .paid b{font-weight:700}
+  .sum{border:1px solid var(--border);border-radius:8px;overflow:hidden;font-size:11.5px}
+  .sum table{width:100%;border-collapse:collapse}
+  .sum table td{padding:4px 11px;background:#fff;border-bottom:1px solid #f1f5f9;font-size:11.5px}
+  .sum table tr:last-child td{border-bottom:0}
+  .sum table td:first-child{color:var(--text2);text-align:right;padding-right:10px}
+  .sum table td:last-child{font-weight:600;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;min-width:96px}
+  .sum tr.sep td{border-top:1px solid var(--border)}
+  .sum tr.grand td{background:#f0fdfa;font-weight:700;border-top:1px solid #99f6e4;padding-top:6px;padding-bottom:6px}
+  .sum tr.grand td:last-child{color:#0f766e;font-size:13px}
+  .sum tr.net td{background:var(--accent);color:#fff;font-weight:700;font-size:12.5px;padding:8px 11px}
+  .sum tr.net td:first-child{color:#fff}
+  .sum tr.net td:last-child{font-size:14px}
+  .sum input[type=number]{width:42px;padding:1px 3px;font-size:10.5px;border:1px solid var(--border);border-radius:4px;display:inline-block;vertical-align:middle;text-align:center;background:#fff;color:var(--text)}
+  .sum input.money{width:64px;padding:1px 4px;font-size:10.5px;border:1px solid var(--border);border-radius:4px;display:inline-block;vertical-align:middle;text-align:right;background:#fff;color:var(--text);font-variant-numeric:tabular-nums}
+
+  /* ── Payment + notes ── */
+  .pay{margin:14px 36px 0;border:1px solid var(--border);border-radius:8px;padding:11px 14px}
+  .pay-hd{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  .pay-hd i{width:16px;height:16px;border-radius:4px;background:var(--accent);color:#fff;font-style:normal;font-size:8px;display:inline-flex;align-items:center;justify-content:center}
+  .pay-grid{display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:10px 16px}
+  .pay-grid .wide{grid-column:span 2}
+  .pay-grid label{display:block;font-size:9px;font-weight:600;color:var(--text3);letter-spacing:.04em;text-transform:uppercase;margin-bottom:1px}
+  .pay-grid input,.pay-grid select{width:100%;border:0;border-bottom:1px dashed var(--border2);background:transparent;padding:2px 1px;font-size:12px;color:var(--text)}
+  .pay-grid input:focus,.pay-grid select:focus{outline:0;background:#f0fdfa;border-bottom-color:var(--accent)}
+  .pay-grid .dpick{font-size:12px;min-width:80px;font-weight:600;padding:2px 2px}
+
+  .note{margin:12px 36px 0;padding:10px 14px;background:#fafbfc;border:1px solid var(--border);border-radius:8px}
+  .note label{display:block;font-size:9px;font-weight:700;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px}
+  .note textarea{width:100%;border:0;background:transparent;font-size:11px;color:var(--text2);line-height:1.6;resize:none;overflow:hidden;padding:0;min-height:46px}
+  .note textarea:focus{outline:0;background:#fff}
+  .legal{margin:8px 36px 0;font-size:9px;color:var(--text3);line-height:1.6;text-align:center}
+
+  /* ── Signature ── */
+  .sign{display:grid;grid-template-columns:1fr 1fr;gap:46px;margin:24px 36px 0;text-align:center;font-size:11px;color:var(--text2)}
+  .sign-box{position:relative;padding-top:6px}
+  .sign .stamp{position:absolute;right:8px;top:-4px;width:86px;height:86px;border:1px dashed #cbd5e1;border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;font-size:8px;line-height:1.4;color:#cbd5e1;padding:8px}
+  .sign .line{border-top:1px solid var(--border2);margin-top:44px;padding-top:5px}
+  .sign .role{font-weight:700;color:var(--dark);font-size:11px}
+  .sign .name{margin-top:2px;color:var(--text2);font-size:10.5px}
+  .sign .date{font-size:9.5px;color:var(--text3);margin-top:3px}
+
+  /* ── Footer ── */
+  .footer{margin-top:18px;padding:8px 36px 12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;gap:14px;font-size:9px;color:var(--text3)}
+
+  /* ── Print ── */
+  @media print{
+    body{background:#fff;padding:0;font-size:11px;color:#000;line-height:1.4}
+    .toolbar,.wrap,.add-row,.delcol,.del{display:none!important}
+    .paper{border:0;border-radius:0;box-shadow:none;max-width:100%}
+    .accentbar{height:4px}
+    .hdr{padding:10px 20px 8px;gap:18px}
+    .hdr-left{flex:1.35}
+    .hdr-right{min-width:280px}
+    .brand-block{gap:10px}
+    #logoImg{width:52px;height:52px}
+    .co-name{font-size:16px}
+    .co-addr{font-size:10px;line-height:1.35}
+    .co-taxline,.co-contact{font-size:9px;margin-top:2px;gap:4px}
+    .co-taxline input,.co-contact input{font-size:9px;border-bottom:0!important;background:transparent!important}
+    .co-taxline input{width:auto;min-width:80px}
+    .co-taxline input.branch{min-width:74px}
+    .doc-title{font-size:25px}
+    .doc-sub{font-size:12px}
+    .doc-en{font-size:8px;margin-top:2px}
+    .meta{margin-top:6px}
+    .meta td{padding:1.5px 7px;font-size:9.5px}
+    .meta td:first-child{font-size:9px;width:100px}
+    .meta input,.meta select,.meta .dpick{font-size:9.5px}
+    .section{margin-top:8px;padding:0 20px}
+    .grid2{gap:10px}
+    .card{padding:6px 9px 7px}
+    .section-title{font-size:8.5px;margin-bottom:4px;padding-bottom:3px}
+    .section-title i{width:14px;height:14px;font-size:7px}
+    .field-label{font-size:8.5px;margin:2px 0 0}
+    .card input,.card textarea{font-size:10px}
+    input,textarea,select{border:0!important;background:transparent!important;box-shadow:none!important;outline:0!important;color:#000!important;appearance:none;-webkit-appearance:none}
+    .tbl-wrap{margin:8px 20px 0}
+    .tb thead{display:table-header-group}
+    .tb tr,.card,.totals-row,.pay,.note,.sign{break-inside:avoid;page-break-inside:avoid}
+    .tb thead th{padding:4px 6px;font-size:8.5px}
+    .tb tbody td{padding:3px 6px;font-size:10px}
+    .tb textarea.desc{font-size:10px;min-height:15px;padding:1px 0}
+    .tb input{font-size:10px}
+    .tb .desc-print{font-size:10px;line-height:1.3;white-space:pre-wrap;word-break:break-word;min-height:15px;padding:1px 0}
+    .totals-row{margin:7px 20px 0;grid-template-columns:1fr 300px;gap:12px}
+    .words{padding:6px 9px;min-height:44px}
+    .words .lbl{font-size:8px}
+    .words .val{font-size:10.5px}
+    .words .paid{font-size:9px;margin-top:4px}
+    .sum{font-size:10px}
+    .sum td{white-space:nowrap}
+    .sum table td{padding:2px 8px;font-size:10px}
+    .sum tr.grand td{padding-top:4px;padding-bottom:4px}
+    .sum tr.grand td:last-child{font-size:11.5px}
+    .sum tr.net td{font-size:11px;padding:5px 8px}
+    .sum tr.net td:last-child{font-size:12.5px}
+    .sum tr.zero{display:none}
+    .sum input[type=number],.sum input.money{border:0!important;padding:0!important;background:transparent!important}
+    .sum input[type=number]{width:24px;text-align:center}
+    .sum input.money{width:48px;text-align:right}
+    .pay{margin:7px 20px 0;padding:6px 9px}
+    .pay-hd{font-size:8.5px;margin-bottom:3px}
+    .pay-grid{gap:4px 10px}
+    .pay-grid label{font-size:8px}
+    .pay-grid input,.pay-grid select,.pay-grid .dpick{font-size:9.5px;border-bottom:0!important}
+    .note{margin:6px 20px 0;padding:5px 9px}
+    .note label{font-size:8px}
+    .note textarea{font-size:9.5px;min-height:30px;line-height:1.45}
+    .legal{margin:4px 20px 0;font-size:8px}
+    .sign{margin:10px 20px 0;gap:30px;font-size:10px}
+    .sign .line{margin-top:28px;padding-top:3px}
+    .sign .stamp{width:60px;height:60px;font-size:7px}
+    .sign .role{font-size:9.5px}
+    .sign .name{font-size:9px}
+    .sign .date{font-size:8.5px}
+    .footer{margin-top:7px;padding:5px 20px 6px;font-size:8px}
+    .r{text-align:right!important}
+    .c{text-align:center!important}
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none!important;margin:0!important}
+    input[type=number]{-moz-appearance:textfield!important;appearance:textfield!important}
+    .dpick::after{display:none!important}
+    input::placeholder,textarea::placeholder{color:transparent!important;-webkit-text-fill-color:transparent!important}
+    @page{size:A4;margin:8mm 10mm}
+    *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  }
+
+  @media screen and (max-width:820px){
+    body{padding:10px}
+    .hdr{flex-direction:column;gap:14px;padding:20px}
+    .hdr-right{min-width:0;text-align:left}
+    .meta{margin-left:0}
+    .grid2{grid-template-columns:1fr}
+    .section,.tbl-wrap,.totals-row,.pay,.note,.legal,.sign,.footer{padding-left:18px;padding-right:18px}
+    .section,.pay,.note,.legal{margin-left:0;margin-right:0}
+    .totals-row{grid-template-columns:1fr;margin-left:0;margin-right:0;padding:0 18px}
+    .sum{width:100%}
+    .pay-grid{grid-template-columns:1fr 1fr}
+    .pay-grid .wide{grid-column:span 2}
+    .sign{grid-template-columns:1fr;gap:24px}
+    .tbl-wrap{margin-left:0;margin-right:0}
+    .sign .stamp{display:none}
+  }
+</style>
+</head>
+<body>
+
+<!-- Toolbar -->
+<div class="toolbar">
+  <div class="brand"><i></i> ใบเสร็จรับเงิน / ใบกำกับภาษี <span style="font-weight:500;color:#94a3b8;font-size:10.5px">v1.0</span></div>
+  <button onclick="addRow()">+ รายการ</button>
+  <button onclick="document.getElementById('fiInv').click()">นำเข้าจากใบแจ้งหนี้</button>
+  <button class="ok" onclick="saveNow()">บันทึก</button>
+  <button onclick="exportJSON()">Export</button>
+  <button onclick="document.getElementById('fi').click()">Import</button>
+  <button class="pri" onclick="window.print()">🖨 พิมพ์ / PDF</button>
+  <input type="file" id="fi" accept=".json" onchange="importJSON(this)">
+  <input type="file" id="fiInv" accept=".json" onchange="importInvoiceFile(this)">
+</div>
+
+<!-- Document list -->
+<div class="wrap"><div id="docsMount"></div></div>
+
+<!-- Paper -->
+<div class="paper" id="paper">
+  <div class="accentbar"></div>
+
+  <!-- Header -->
+  <div class="hdr">
+    <div class="hdr-left">
+      <div class="brand-block">
+        <img id="logoImg" data-profile-logo alt="logo">
+        <div class="brand-info">
+          <input id="coName" data-profile="coName" placeholder="ชื่อบริษัทผู้ขาย" class="co-name">
+          <textarea id="coAddr" data-profile="coAddr" rows="2" class="co-addr" placeholder="ที่อยู่ผู้ขาย โทร อีเมล"></textarea>
+          <div class="co-taxline">
+            <span class="tag">Tax ID</span>
+            <input id="coTax" data-profile="coTax" placeholder="เลขประจำตัวผู้เสียภาษี">
+            <span class="tag">สาขา</span>
+            <input id="sellerBranch" data-profile="coBranch" class="branch" value="สำนักงานใหญ่" placeholder="สำนักงานใหญ่ / สาขาที่ ...">
+          </div>
+          <div class="co-contact">
+            <span>โทร</span><input data-profile="coPhone" placeholder="0xx-xxx-xxxx" style="width:92px">
+            <span>·</span><span>อีเมล</span><input data-profile="coEmail" placeholder="name@example.com" style="width:150px">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <div class="doc-title">RECEIPT</div>
+      <div class="doc-sub">ใบเสร็จรับเงิน / ใบกำกับภาษี</div>
+      <div class="doc-en">Receipt / Full Tax Invoice</div>
+      <table class="meta">
+        <tr><td>เลขที่ / No.</td><td><input id="docNo" placeholder="RC-2569-001"></td></tr>
+        <tr><td>เล่มที่ / Book</td><td><input id="bookNo" class="plain" value="1"></td></tr>
+        <tr><td>วันที่ออก / Date</td><td><span class="dpick" id="issueDate" data-v="" tabindex="0" title="คลิกเพื่อเลือกวันที่">—</span></td></tr>
+        <tr><td>อ้างถึงใบแจ้งหนี้</td><td><input id="refInvNo" class="plain" placeholder="INV-..."></td></tr>
+        <tr><td>วันที่ใบแจ้งหนี้</td><td><span class="dpick" id="refInvDate" data-v="" tabindex="0" title="คลิกเพื่อเลือกวันที่">—</span></td></tr>
+        <tr><td>ฉบับ / Copy</td><td><select id="copyType"><option>ต้นฉบับ</option><option>สำเนา</option></select></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Buyer / Reference -->
+  <div class="section">
+    <div class="grid2">
+      <div class="card">
+        <div class="section-title"><i>B</i> ผู้ซื้อ — Buyer / Customer</div>
+        <div class="field-label">ชื่อผู้ซื้อ / บริษัท</div>
+        <input id="buyerName" placeholder="ชื่อลูกค้า / บริษัทผู้ซื้อ">
+        <div class="field-label">ที่อยู่</div>
+        <textarea id="buyerAddr" rows="2" placeholder="ที่อยู่ผู้ซื้อ"></textarea>
+        <div class="row2">
+          <div>
+            <div class="field-label">เลขประจำตัวผู้เสียภาษี</div>
+            <input id="buyerTax" placeholder="0-0000-00000-00-0">
+          </div>
+          <div>
+            <div class="field-label">สาขา</div>
+            <input id="buyerBranch" value="สำนักงานใหญ่" placeholder="สำนักงานใหญ่ / สาขาที่ ...">
+          </div>
+        </div>
+        <div class="field-label">ผู้ติดต่อ / โทรศัพท์</div>
+        <input id="buyerContact" placeholder="ชื่อผู้ติดต่อ เบอร์โทร หรืออีเมล">
+      </div>
+      <div class="card">
+        <div class="section-title gold"><i>R</i> ข้อมูลอ้างอิง — Reference</div>
+        <div class="field-label">โครงการ / งาน</div>
+        <textarea id="prjName" rows="1" placeholder="ชื่อโครงการ"></textarea>
+        <div class="field-label">สถานที่ให้บริการ / ส่งมอบ</div>
+        <input id="prjSite" placeholder="สถานที่">
+        <div class="field-label">เลขที่สัญญา / ใบสั่งจ้าง</div>
+        <input id="prjContract" placeholder="สัญญาเลขที่">
+        <div class="field-label">เลขที่ใบสั่งซื้อ (PO)</div>
+        <input id="poNo" placeholder="PO No.">
+      </div>
+    </div>
+  </div>
+
+  <!-- Items -->
+  <div class="tbl-wrap">
+    <table class="tb">
+      <thead><tr>
+        <th class="no">#</th>
+        <th>รายละเอียดสินค้า / บริการ — Description</th>
+        <th style="width:64px" class="c">หน่วย</th>
+        <th style="width:72px" class="c">จำนวน</th>
+        <th style="width:112px" class="r">ราคา/หน่วย</th>
+        <th style="width:126px" class="r">จำนวนเงิน</th>
+        <th class="delcol" style="width:30px"></th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="add-row"><button type="button" onclick="addRow()">+ เพิ่มรายการ</button></div>
+  </div>
+
+  <!-- Totals -->
+  <div class="totals-row">
+    <div class="words">
+      <span class="lbl">จำนวนเงินที่ได้รับ (ตัวอักษร) — Amount in Words</span>
+      <span class="val" id="words">ศูนย์บาทถ้วน</span>
+      <span class="paid">✓ <b>ได้รับเงินไว้ถูกต้องแล้ว</b> — Received in full as stated above</span>
+    </div>
+    <div class="sum">
+      <table>
+        <tr><td>รวมมูลค่า — Subtotal</td><td id="sSub">0.00</td></tr>
+        <tr id="rowDisc"><td>ส่วนลด — Discount <input id="disc" class="money" inputmode="decimal" value="0.00"> บาท</td><td id="sDisc">0.00</td></tr>
+        <tr class="sep"><td>มูลค่าสินค้า/บริการ — Taxable Base</td><td id="sBase">0.00</td></tr>
+        <tr><td>ภาษีมูลค่าเพิ่ม — VAT <input id="vatR" type="number" value="7" step="any">%</td><td id="sVat">0.00</td></tr>
+        <tr class="grand"><td>รวมทั้งสิ้น — Total</td><td id="sGrand">0.00</td></tr>
+        <tr id="rowWht"><td>หัก ภาษี ณ ที่จ่าย — WHT <input id="whtR" type="number" value="3" step="any">%</td><td id="sWht">0.00</td></tr>
+        <tr id="rowRet"><td>หัก ประกันผลงาน — Retention <input id="retR" type="number" value="0" step="any">%</td><td id="sRet">0.00</td></tr>
+        <tr id="rowAdv"><td>หัก เงินล่วงหน้า — Advance <input id="advR" type="number" value="0" step="any">%</td><td id="sAdv">0.00</td></tr>
+        <tr class="net"><td>ยอดรับชำระสุทธิ — Net Received</td><td id="sNet">0.00</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Payment -->
+  <div class="pay">
+    <div class="pay-hd"><i>P</i> การชำระเงิน — Payment</div>
+    <div class="pay-grid">
+      <div>
+        <label>วิธีชำระเงิน</label>
+        <select id="payMethod">
+          <option>โอนเงินผ่านธนาคาร</option>
+          <option>เงินสด</option>
+          <option>เช็ค</option>
+          <option>บัตรเครดิต / เดบิต</option>
+          <option>อื่น ๆ</option>
+        </select>
+      </div>
+      <div>
+        <label>วันที่รับชำระ</label>
+        <span class="dpick" id="payDate" data-v="" tabindex="0" title="คลิกเพื่อเลือกวันที่">—</span>
+      </div>
+      <div class="wide">
+        <label>ธนาคาร / เลขที่บัญชี / เลขที่เช็ค</label>
+        <input id="payBank" placeholder="ธนาคาร ... สาขา ... เลขที่บัญชี ...">
+      </div>
+      <div>
+        <label>อ้างอิงการชำระเงิน</label>
+        <input id="payRef" placeholder="เลขที่ใบแจ้งหนี้ / เลขที่รายการโอน">
+      </div>
+    </div>
+  </div>
+
+  <!-- Note -->
+  <div class="note">
+    <label>หมายเหตุ — Remarks</label>
+    <textarea id="note" rows="2">ได้รับเงินตามรายการข้างต้นไว้ถูกต้องครบถ้วนแล้ว
+เอกสารออกเป็นชุด 2 ฉบับ · ต้นฉบับสำหรับผู้ซื้อ · สำเนาสำหรับผู้ขาย</textarea>
+  </div>
+  <div class="legal">เอกสารนี้ออกตามประมวลรัษฎากร มาตรา 86/4 · ใช้เป็นใบเสร็จรับเงินและใบกำกับภาษี · กรุณาเก็บไว้เป็นหลักฐานอย่างน้อย 5 ปี</div>
+
+  <!-- Signature -->
+  <div class="sign">
+    <div class="sign-box">
+      <div class="stamp">ประทับตรา<br>บริษัท (ถ้ามี)</div>
+      <div class="line"></div>
+      <div class="role">ผู้รับเงิน — Receiver</div>
+      <div class="name">( ............................................................ )</div>
+      <div class="date">วันที่ ......... / ......... / .........</div>
+    </div>
+    <div class="sign-box">
+      <div class="line"></div>
+      <div class="role">ผู้จ่ายเงิน — Payer</div>
+      <div class="name">( ............................................................ )</div>
+      <div class="date">วันที่ ......... / ......... / .........</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>ใบเสร็จรับเงิน / ใบกำกับภาษี · เอกสารออกเป็นชุด · ต้นฉบับสำหรับผู้ซื้อ · สำเนาสำหรับผู้ขาย</span>
+    <span>Page 1 / 1</span>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   ใบเสร็จรับเงิน / ใบกำกับภาษี
+   เก็บหลายใบ · ค้นหา/ทำซ้ำ/ลบ · สำรอง .json · นำเข้าจากใบแจ้งหนี้
+   ══════════════════════════════════════════════════════════════ */
+const $ = id => document.getElementById(id);
+const fmt = THAI.fmt;
+const bahtText = THAI.bahtText;
+const num = v => { const n = parseFloat(String(v == null ? '' : v).replace(/,/g, '')); return isFinite(n) ? n : 0; };
+let docs = null;
+
+/* ── Items ── */
+function addRow(d = {}) {
+  const tr = document.createElement('tr');
+  tr.innerHTML =
+    '<td class="no"></td>' +
+    '<td class="desc-cell"><textarea rows="1" class="desc" placeholder="รายละเอียดสินค้า / บริการ"></textarea></td>' +
+    '<td><input class="unit" placeholder="-" style="text-align:center"></td>' +
+    '<td class="c"><input class="qty num" inputmode="decimal" value="1"></td>' +
+    '<td class="c"><input class="price num money" inputmode="decimal" value="0.00"></td>' +
+    '<td class="amt r line">0.00</td>' +
+    '<td class="delcol"><button type="button" class="del" title="ลบรายการ">×</button></td>';
+  const ta = tr.querySelector('.desc');
+  ta.value = d.desc || '';
+  tr.querySelector('.unit').value = d.unit || '';
+  tr.querySelector('.qty').value = (d.qty == null || d.qty === '') ? '1' : d.qty;
+  tr.querySelector('.price').value = (d.price == null || d.price === '') ? '0.00' : fmt(num(d.price));
+  $('tbody').appendChild(tr);
+
+  const grow = () => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; };
+  ta.addEventListener('input', grow);
+  setTimeout(grow, 0);
+
+  tr.querySelectorAll('input,textarea').forEach(el => {
+    el.addEventListener('input', () => { calc(); scheduleSave(); });
+    if (el.classList.contains('money')) {
+      el.addEventListener('focus', () => { el.value = String(num(el.value)); });
+      el.addEventListener('blur', () => { el.value = fmt(num(el.value)); calc(); scheduleSave(); });
+    }
+  });
+  tr.querySelector('.del').addEventListener('click', () => {
+    tr.remove(); renumber(); calc(); if (docs) docs.scheduleSave();
+  });
+  renumber(); calc();
+}
+
+function renumber() {
+  document.querySelectorAll('#tbody tr').forEach((tr, i) => {
+    const n = tr.querySelector('.no'); if (n) n.textContent = i + 1;
+  });
+}
+
+function fitAllDesc() {
+  document.querySelectorAll('#tbody .desc').forEach(ta => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; });
+}
+function fitNote() {
+  const n = $('note'); if (!n) return;
+  n.style.height = 'auto'; n.style.height = n.scrollHeight + 'px';
+}
+function fitCardText() {
+  document.querySelectorAll('.card textarea,.co-addr').forEach(ta => {
+    ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px';
+  });
+}
+
+/* ── Calculate ── */
+function calc() {
+  let sub = 0;
+  document.querySelectorAll('#tbody tr').forEach((tr, i) => {
+    const no = tr.querySelector('.no'); if (no) no.textContent = i + 1;
+    const q = num(tr.querySelector('.qty').value);
+    const p = num(tr.querySelector('.price').value);
+    const line = q * p;
+    tr.querySelector('.line').textContent = fmt(line);
+    sub += line;
+  });
+
+  const disc = num($('disc').value);
+  const base = sub - disc;
+  const vat = base * num($('vatR').value) / 100;
+  const grand = base + vat;
+  const wht = base * num($('whtR').value) / 100;
+  const ret = base * num($('retR').value) / 100;
+  const adv = base * num($('advR').value) / 100;
+  const net = grand - wht - ret - adv;
+
+  $('sSub').textContent = fmt(sub);
+  $('sDisc').textContent = fmt(disc);
+  $('sBase').textContent = fmt(base);
+  $('sVat').textContent = fmt(vat);
+  $('sGrand').textContent = fmt(grand);
+  $('sWht').textContent = fmt(wht);
+  $('sRet').textContent = fmt(ret);
+  $('sAdv').textContent = fmt(adv);
+  $('sNet').textContent = fmt(net);
+  $('words').textContent = bahtText(net);
+
+  const zero = v => Math.abs(v) < 0.005;
+  $('rowDisc').classList.toggle('zero', zero(disc));
+  $('rowWht').classList.toggle('zero', zero(wht));
+  $('rowRet').classList.toggle('zero', zero(ret));
+  $('rowAdv').classList.toggle('zero', zero(adv));
+}
+
+/* ── Print helpers ── */
+function swapDescForPrint() {
+  document.querySelectorAll('#tbody .desc').forEach(ta => {
+    if (ta.dataset.swapped) return;
+    ta.dataset.swapped = '1';
+    const div = document.createElement('div');
+    div.className = 'desc-print';
+    div.textContent = ta.value;
+    ta.style.display = 'none';
+    ta.parentNode.insertBefore(div, ta);
+  });
+}
+function restoreDescAfterPrint() {
+  document.querySelectorAll('#tbody .desc-print').forEach(d => d.remove());
+  document.querySelectorAll('#tbody .desc').forEach(ta => { ta.style.display = ''; delete ta.dataset.swapped; });
+}
+window.addEventListener('beforeprint', () => { try { calc(); fitCardText(); fitNote(); swapDescForPrint(); } catch (e) {} });
+window.addEventListener('afterprint', () => { try { restoreDescAfterPrint(); fitAllDesc(); fitCardText(); fitNote(); } catch (e) {} });
+
+/* ── Collect / Load ── */
+const FIELDS = ['docNo', 'bookNo', 'copyType', 'refInvNo', 'sellerBranch', 'buyerName', 'buyerAddr', 'buyerTax',
+  'buyerBranch', 'buyerContact', 'prjName', 'prjSite', 'prjContract', 'poNo',
+  'disc', 'vatR', 'whtR', 'retR', 'advR', 'payMethod', 'payBank', 'payRef', 'note'];
+
+function setDate(id, be) {
+  const el = $(id); if (!el) return;
+  const p = THAI.parseDateBE(be);
+  el.dataset.v = p ? THAI.fmtDateBE(p.y, p.m, p.d) : '';
+  el.textContent = el.dataset.v || '—';
+}
+function readDate(id) { const el = $(id); return el ? (el.dataset.v || '') : ''; }
+
+function collect() {
+  const o = {};
+  FIELDS.forEach(k => { const el = $(k); if (el) o[k] = el.value; });
+  o.issueDate = readDate('issueDate');
+  o.refInvDate = readDate('refInvDate');
+  o.payDate = readDate('payDate');
+  o.items = [...document.querySelectorAll('#tbody tr')].map(tr => ({
+    desc: tr.querySelector('.desc').value,
+    unit: tr.querySelector('.unit').value,
+    qty: tr.querySelector('.qty').value,
+    price: tr.querySelector('.price').value
+  }));
+  o.__year = (THAI.beToISO(o.issueDate) || '').slice(0, 4);
+  return o;
+}
+
+function load(o) {
+  o = o || {};
+  const p = PROFILE.get();
+  FIELDS.forEach(k => {
+    const el = $(k);
+    if (el) el.value = (o[k] != null ? o[k] : '');
+  });
+  if (!o.copyType) $('copyType').value = 'ต้นฉบับ';
+  if (!o.sellerBranch) $('sellerBranch').value = p.coBranch || 'สำนักงานใหญ่';
+  if (!o.buyerBranch) $('buyerBranch').value = 'สำนักงานใหญ่';
+  if (!o.payMethod) $('payMethod').value = 'โอนเงินผ่านธนาคาร';
+  if (!o.payBank && p.bankInfo) $('payBank').value = p.bankInfo;
+  if ((o.vatR == null || o.vatR === '') && p.vatRate) $('vatR').value = p.vatRate;
+  PROFILE.apply();
+  setDate('issueDate', o.issueDate || '');
+  setDate('refInvDate', o.refInvDate || '');
+  setDate('payDate', o.payDate || '');
+  $('tbody').innerHTML = '';
+  (o.items || []).forEach(addRow);
+  if (!(o.items || []).length) addRow();
+  renumber(); calc(); fitNote(); fitCardText();
+  setTimeout(() => { fitAllDesc(); fitCardText(); }, 50);
+}
+
+/* ── Numbering ── */
+function nextReceiptNo() {
+  return DOCNUM.next('RC', () => docs ? docs.list() : [], r => r.data.docNo);
+}
+
+function blankDoc() {
+  const p = PROFILE.get();
+  const t = THAI.todayParts();
+  const today = THAI.fmtDateBE(t.y, t.m, t.d);
+  return {
+    docNo: nextReceiptNo(), bookNo: '1', copyType: 'ต้นฉบับ', issueDate: today,
+    refInvNo: '', refInvDate: '',
+    sellerBranch: p.coBranch || 'สำนักงานใหญ่',
+    buyerName: '', buyerAddr: '', buyerTax: '', buyerBranch: 'สำนักงานใหญ่', buyerContact: '',
+    prjName: '', prjSite: '', prjContract: '', poNo: '',
+    disc: '0.00', vatR: p.vatRate || '7', whtR: '3', retR: '0', advR: '0',
+    payMethod: 'โอนเงินผ่านธนาคาร', payBank: p.bankInfo || '', payRef: '', payDate: today,
+    note: 'ได้รับเงินตามรายการข้างต้นไว้ถูกต้องครบถ้วนแล้ว\nเอกสารออกเป็นชุด 2 ฉบับ · ต้นฉบับสำหรับผู้ซื้อ · สำเนาสำหรับผู้ขาย',
+    items: []
+  };
+}
+
+function summaryOf(rec) {
+  const d = rec.data || {};
+  let sub = 0;
+  (d.items || []).forEach(it => { sub += num(it.qty) * num(it.price); });
+  const base = sub - num(d.disc);
+  const vat = base * num(d.vatR) / 100;
+  const net = base + vat - base * (num(d.whtR) + num(d.retR) + num(d.advR)) / 100;
+  return {
+    no: d.docNo || '(ยังไม่ตั้งเลขที่)',
+    meta: [d.issueDate || '', d.buyerName || 'ยังไม่ระบุผู้ซื้อ', d.refInvNo ? 'อ้างอิง ' + d.refInvNo : ''].filter(Boolean).join(' • '),
+    total: net
+  };
+}
+
+/* ── Save / Archive ── */
+function scheduleSave() { if (docs) docs.scheduleSave(); }
+function saveNow() { if (docs) docs.save(); }
+function diskName(d) {
+  const no = (d.docNo || 'RECEIPT').trim();
+  const bu = (d.buyerName || '').trim();
+  return ARCHIVE.safeName(no + (bu ? '_' + bu : ''));
+}
+function docForDisk() { const d = collect(); return { base: diskName(d), data: d }; }
+
+/* ── Export / Import ── */
+function sanitize(s) { return (s || '').replace(/[\\/:*?"<>|]/g, '_').replace(/\s+/g, ' ').trim().slice(0, 80) || 'receipt'; }
+function exportJSON() {
+  const d = collect();
+  const b = new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(b);
+  a.download = sanitize((d.docNo || 'receipt') + '_' + (d.buyerName || '')) + '.json';
+  a.click();
+}
+function importJSON(el) {
+  const f = el.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    try {
+      const d = JSON.parse(e.target.result);
+      const arr = Array.isArray(d) ? d : [d];
+      if (!arr.length || arr.some(x => !x || typeof x !== 'object' || Array.isArray(x))) throw new Error('bad');
+      if (!confirm('นำเข้าใบเสร็จ ' + arr.length + ' ฉบับ?')) return;
+      arr.forEach(x => {
+        const rec = { id: 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 4), updatedAt: Date.now(), data: x };
+        docs._push(rec);
+      });
+      load(arr[arr.length - 1]);
+      calc(); docs.save(true);
+    } catch { alert('ไฟล์ไม่ถูกต้อง'); }
+    el.value = '';
+  };
+  r.readAsText(f);
+}
+
+/* ── Import from Invoice JSON ── */
+function importInvoiceFile(el) {
+  const f = el.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    try {
+      const d = JSON.parse(e.target.result);
+      const inv = Array.isArray(d) ? d[0] : d;
+      if (!confirm('นำข้อมูลจากใบแจ้งหนี้ ' + (inv.invNo || '') + ' มาทับใบเสร็จที่เปิดอยู่?')) return;
+      fillFromInvoice(inv);
+    } catch { alert('อ่านไฟล์ใบแจ้งหนี้ไม่สำเร็จ'); }
+    el.value = '';
+  };
+  r.readAsText(f);
+}
+function fillFromInvoice(inv) {
+  if (!inv || typeof inv !== 'object') throw new Error('bad');
+  const p = PROFILE.get();
+  if (!p.coName && inv.coName) {
+    p.coName = inv.coName || '';
+    p.coAddr = inv.coAddr || '';
+    p.coTax = (inv.coTax || '').trim();
+    if (!p.bankInfo && inv.note) p.bankInfo = inv.note;
+    PROFILE.set(p, true);
+    PROFILE.apply();
+  }
+  const set = (id, v) => { const el = $(id); if (el) el.value = v == null ? '' : v; };
+  set('refInvNo', inv.invNo || '');
+  setDate('refInvDate', THAI.isoToBE(inv.invDate || ''));
+  set('buyerName', inv.cusName || '');
+  set('buyerAddr', inv.cusAddr || '');
+  set('buyerTax', inv.cusTax || '');
+  set('prjName', inv.prjName || '');
+  set('prjSite', inv.prjSite || '');
+  set('prjContract', inv.prjContract || '');
+  set('disc', fmt(num(inv.disc)));
+  set('vatR', inv.vatR != null && inv.vatR !== '' ? inv.vatR : (p.vatRate || '7'));
+  set('whtR', inv.whtR != null && inv.whtR !== '' ? inv.whtR : '0');
+  set('retR', inv.retR != null && inv.retR !== '' ? inv.retR : '0');
+  set('advR', inv.advR != null && inv.advR !== '' ? inv.advR : '0');
+  if (!$('payBank').value.trim()) set('payBank', p.bankInfo || inv.note || '');
+  set('payRef', inv.invNo || '');
+  const t = THAI.todayParts();
+  setDate('payDate', THAI.fmtDateBE(t.y, t.m, t.d));
+
+  $('tbody').innerHTML = '';
+  (inv.items || []).forEach(it => {
+    const pct = (it.pct == null || it.pct === '') ? 100 : num(it.pct);
+    addRow({ desc: it.desc, unit: it.unit, qty: it.qty, price: num(it.price) * pct / 100 });
+  });
+  if (!(inv.items || []).length) addRow();
+  renumber(); fitAllDesc(); fitCardText(); calc(); docs && docs.save(true);
+  alert('นำข้อมูลจากใบแจ้งหนี้เข้าแล้ว — กรุณาตรวจสอบยอดเงิน จำนวนเงิน และเลขที่ใบกำกับภาษีก่อนพิมพ์');
+}
+
+/* ── Init ── */
+(function init() {
+  /* autosave fields */
+  FIELDS.forEach(k => {
+    const el = $(k); if (!el) return;
+    el.addEventListener('input', () => { calc(); scheduleSave(); });
+    el.addEventListener('change', () => { calc(); scheduleSave(); });
+  });
+  $('note').addEventListener('input', fitNote);
+  document.querySelectorAll('.card textarea,.co-addr').forEach(ta => ta.addEventListener('input', fitCardText));
+
+  PROFILE.apply();
+  PROFILE.mountButton(document.querySelector('.toolbar'));
+
+  docs = DOCS.mount({
+    mountEl: $('docsMount'), key: 'quota_receipts_v1', curKey: 'quota_receipt_cur',
+    title: 'ใบเสร็จรับเงิน',
+    collect, load, blank: blankDoc,
+    summary: summaryOf,
+    searchText: rec => {
+      const d = rec.data || {};
+      return [(d.docNo || ''), (d.buyerName || ''), (d.prjName || ''), (d.refInvNo || '')].join(' ');
+    },
+    nextNo: () => nextReceiptNo(),
+    setNo: (d, n) => { d.docNo = n; },
+    archive: () => ARCHIVE.pick(docForDisk),
+    onSaved: rec => ARCHIVE.scheduleWrite(diskName(rec.data), rec.data)
+  });
+
+  ARCHIVE.init({ status: docs.panel.querySelector('.arc-st'), saved: docs.panel.querySelector('.arc-lasted') });
+  ARCHIVE.restore();
+
+  /* เตือนถ้าแก้เลขที่มือแล้วซ้ำกับใบอื่น */
+  DOCNUM.watch($('docNo'), () => docs.list(), r => r.data.docNo, () => docs.currentId());
+
+  THAI.init(() => docs && docs.save(true));
+  fitNote(); fitCardText();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { fitAllDesc(); fitCardText(); fitNote(); });
+  document.addEventListener('profile:updated', e => {
+    const p = (e && e.detail) || PROFILE.get();
+    if (p.coBranch) $('sellerBranch').value = p.coBranch;
+    if (p.bankInfo) $('payBank').value = p.bankInfo;
+    if (p.vatRate != null && p.vatRate !== '') $('vatR').value = p.vatRate;
+    fitCardText(); calc(); scheduleSave();
+  });
+  GATE.init();
+
+  document.querySelectorAll('#tbody .desc').forEach(ta => {
+    ta.addEventListener('input', function () {
+      this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px';
+    });
+  });
+})();
+</script>
+</body>
+</html>

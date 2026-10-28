@@ -1,0 +1,16 @@
+# ── Cloudflare Pages headers ──
+# HTML: ไม่ให้ cache ค้าง เพื่อให้แก้ไขแล้วเห็นทันทีหลัง deploy
+/*.html
+  Cache-Control: no-store
+
+# JS/CSS: ให้เบราว์เซอร์ revalidate ทุกครั้ง กันไฟล์เก่าค้างหลังอัปเดต
+/assets/*
+  Cache-Control: no-cache
+
+# ความปลอดภัยพื้นฐาน + ไม่ให้ search engine เก็บเว็บนี้
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=()
+  X-Robots-Tag: noindex, nofollow

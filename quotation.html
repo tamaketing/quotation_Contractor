@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ใบเสนอราคา — Quotation</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="assets/app.css" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:"Sarabun",sans-serif;background:#eef2f7;color:#000;padding:20px;line-height:1.45}
+
+/* ── Toolbar ── */
+.toolbar{max-width:900px;margin:0 auto 12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:7px 11px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.toolbar .brand{font-weight:700;font-size:12.5px;margin-right:auto;display:flex;align-items:center;gap:6px;color:#1a1f36}
+.toolbar .brand span{width:6px;height:6px;border-radius:50%;background:#c2410c}
+.toolbar button{appearance:none;border:1px solid #d1d5db;cursor:pointer;font-family:inherit;font-size:12px;font-weight:500;padding:6px 11px;border-radius:6px;background:#fff;color:#374151;transition:.12s}
+.toolbar button:hover{background:#f3f4f6}
+.toolbar button.pri{background:#c2410c;color:#fff;border-color:#c2410c}
+.toolbar button.pri:hover{background:#9a3412}
+.toolbar button.ok{background:#059669;color:#fff;border-color:#059669}
+.toolbar input[type=file]{display:none}
+
+/* ── Page ── */
+.page{width:210mm;min-height:297mm;max-width:100%;margin:0 auto;background:#fff;padding:14mm 13mm;box-shadow:0 10px 30px rgba(15,23,42,.12)}
+
+/* ── Header ── */
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
+.co-name{font-size:20px;font-weight:700;color:#1a1f36;margin:0;line-height:1.25}
+.co-addr{font-size:10.5px;line-height:1.55;margin:5px 0 0;color:#000}
+.co-addr a{color:#1d4ed8}
+.hdr-logo{flex-shrink:0;width:104px}
+.hdr-logo img{width:100%;display:block}
+.hdr-rule{border:0;border-top:1px solid #1a1f36;margin:12px 0 0}
+
+/* ── Info row ── */
+.info-row{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-top:16px}
+.cust-block{font-size:12.5px;line-height:1.75}
+.cust-row{margin:0}
+.cust-row{display:flex;gap:6px;align-items:flex-start}
+.cust-row b{flex-shrink:0;min-width:82px;color:#e11d2e;font-weight:700;font-size:12px}
+.cust-row .tw{flex:1;min-width:0}
+.qbox{width:212px;flex-shrink:0;border-collapse:collapse;font-size:11.5px}
+.qbox th{background:#ef8a45;color:#1a1f36;font-weight:700;font-size:11.5px;padding:4px 8px;text-align:center;border:1px solid #6b7280}
+.qbox td{border:1px solid #6b7280;padding:3px 8px;line-height:1.5}
+.qbox td:first-child{width:80px;color:#374151;white-space:nowrap;font-size:11px}
+.qbox .u{white-space:nowrap}
+
+/* ปฏิทิน พ.ศ. / หน้าต่างตั้งค่า / แผงจัดการเอกสาร → assets/app.css */
+
+/* ── Main table ── */
+table.t{width:100%;border-collapse:collapse;table-layout:fixed;font-size:11px;margin-top:16px}
+table.t th,table.t td{border:1px solid #6b7280}
+table.t thead th{background:#e5e7eb;font-weight:700;font-size:10px;text-align:center;padding:4px 5px;line-height:1.3}
+table.t thead tr.h2 th{background:#f3f4f6;font-size:9.5px;padding:3px 4px;font-weight:600}
+table.t tbody td{padding:3px 5px;vertical-align:middle}
+
+/* column widths */
+.cw-seq{width:38px}
+.cw-qty{width:72px}
+.cw-unit{width:62px}
+.cw-price{width:96px}
+.cw-disc{width:96px}
+.cw-total{width:118px}
+.tw{display:block;width:100%;border:0;background:transparent;font-family:inherit;font-size:11px;color:#000;padding:1px 2px;margin:0;border-radius:0}
+.tw:focus{outline:1px solid #2563eb;outline-offset:0;background:#f0f9ff}
+.tw.num{text-align:right;font-variant-numeric:tabular-nums}
+.tw.ctr{text-align:center}
+.tw.lbl{font-weight:700;text-align:center;font-size:11px}
+.cat-in{width:100%;border:0;background:transparent;font-family:inherit;font-size:11.5px;font-weight:700;text-align:left;color:#000;padding:1px 4px;margin:0}
+.cat-in:focus{outline:1px solid #2563eb;outline-offset:-1px;background:rgba(255,255,255,.6)}
+.cat-in::placeholder{color:#a16207;opacity:.7;font-weight:600}
+.tw.num::-webkit-outer-spin-button,.tw.num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.tw.num{-moz-appearance:textfield;appearance:textfield}
+
+/* Row backgrounds */
+tr.r-cat td{background:#f9cf9b}
+tr.r-cat td.seq{text-align:center;font-weight:700;font-size:11.5px}
+tr.r-sub td{background:#fbe3c3}
+tr.r-sub td.blank{background:#fff}
+tr.r-item:nth-of-type(even) td{background:#fff}
+tr.r-item:nth-of-type(odd) td{background:#e8f4fb}
+tr.r-item td.seq{padding:2px 0;text-align:center}
+.seq-val{display:block;text-align:center;font-size:11px;font-weight:600;color:#000;line-height:1.4}
+tr.r-total td{background:#fff}
+tr.r-total td.lbl-c{text-align:right;font-weight:700;font-size:12px;padding:5px 8px}
+tr.r-total td.lbl-c,tr.r-vat td.lbl-c{border-left:0;padding-left:16px}
+tr.r-total td.val-c{text-align:right;font-weight:700;font-size:13.5px;padding:5px 8px;white-space:nowrap}
+tr.r-total.grand td.lbl-c{font-weight:700;font-size:12.5px;border-top:1px solid #6b7280}
+tr.r-total.grand td.val-c{font-size:15px;border-top:1px solid #6b7280}
+tr.r-vat td.lbl-c{text-align:right;font-weight:600;font-size:12px;padding:5px 8px}
+tr.r-vat td.val-c{text-align:right;font-weight:600;font-size:13px;padding:5px 8px;white-space:nowrap}
+
+/* ลำดับอัตโนมัติแสดงในช่องลำดับ */
+.cell-flex{display:flex;align-items:center;gap:3px;width:100%}
+.desc-in{flex:1;min-width:0;width:auto;border:0;background:transparent;font-family:inherit;font-size:11px;color:#000;padding:1px 2px;margin:0}
+.desc-in:focus{outline:1px solid #2563eb;outline-offset:-1px;background:#f0f9ff}
+.unit-in{width:100%;text-align:center;border:0;background:transparent;font-family:inherit;font-size:11px;color:#000;padding:1px 2px;margin:0}
+.unit-in:focus{outline:1px solid #2563eb;outline-offset:-1px;background:#f0f9ff}
+.desc-in::placeholder,.unit-in::placeholder{color:#9ca3af}
+/* make editable cells easier to click */
+tr.r-item td{padding:4px 6px}
+tr.r-item td.c-edit{padding:2px 4px}
+tr.r-item td.c-edit input:focus,tr.r-item td.c-edit input:hover{background:#fffbe6}
+
+/* Terms row inside table */
+table.t td.terms-c{background:#fff;vertical-align:middle;padding:4px 7px;text-align:left;border-right:0}
+tr.r-total.grand table.t td.terms-c,table.t tr.r-total.grand td.terms-c{border-top:1px solid #6b7280}
+table.t td.lbl-c{border-left:0}
+table.t tr.r-total td.lbl-c,table.t tr.r-vat td.lbl-c{padding-left:16px}
+td.terms-c .terms-in{display:block;width:100%;border:0;background:transparent;font-family:inherit;font-size:11px;font-weight:700;text-align:left;color:#000;padding:1px 2px;resize:none;overflow:hidden;line-height:1.4}
+td.terms-c .terms-in:focus{outline:1px solid #2563eb;background:#f0f9ff}
+
+/* จำนวนเงินเป็นตัวหนังสือ ในพื้นที่ฝั่งซ้ายของแถวยอดรวมทั้งสิ้น */
+.words-txt{display:block;font-size:11px;font-weight:600;color:#1a1f36;text-align:left;line-height:1.5;padding:1px 2px}
+
+/* Notes */
+tr.r-note td{background:#fff;padding:0}
+tr.r-note td .note-wrap{padding:5px 7px}
+tr.r-note .note-lbl{font-size:10.5px;font-weight:600;display:block;margin-bottom:3px}
+tr.r-note textarea{width:100%;border:0;background:transparent;font-family:inherit;font-size:11px;color:#000;resize:none;overflow:hidden;min-height:96px;display:block;line-height:1.5;padding:0}
+tr.r-note textarea:focus{outline:0;background:#fffdf5}
+
+/* Row tools (screen only) */
+.tools{display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:11px;color:#6b7280}
+.tools .grp{display:flex;gap:4px;flex-wrap:wrap}
+.tools button{border:1px dashed #9ca3af;background:#fff;color:#4b5563;padding:3px 9px;border-radius:5px;font-size:11px;cursor:pointer;font-family:inherit}
+.tools button:hover{border-color:#c2410c;color:#c2410c;background:#fff7ed}
+.row-del{display:none;border:1px solid #fecaca;background:#fff;color:#dc2626;border-radius:4px;cursor:pointer;font-size:10px;padding:0 5px;margin-left:3px;font-family:inherit}
+tr:hover .row-del{display:inline-block;vertical-align:middle}
+
+/* ── Signatures ── */
+.sign-row{display:flex;justify-content:space-between;gap:40px;margin-top:34px;font-size:11.5px;color:#1a1f36}
+.sign-row div{white-space:nowrap}
+.sign-row .sr-line{border-bottom:1px dotted #4b5563;min-width:230px;display:inline-block}
+.sign-row .cap{font-size:11px;margin-top:3px;color:#000}
+.sign-row .who{font-size:11px}
+
+/* Footer note */
+.tail-note{margin-top:26px;font-size:10.5px;color:#374151}
+
+/* ── Print / PDF ── */
+@media print{
+  @page{size:A4 portrait;margin:0}
+  html,body{background:#fff!important;padding:0!important;margin:0!important}
+  .toolbar,.tools,.row-del{display:none!important}
+  .page{width:auto;min-height:0;margin:0;padding:12mm 13mm;box-shadow:none;max-width:none}
+  /* keep desktop layout when printing */
+  .hdr{flex-direction:row;align-items:flex-start}
+  .hdr-logo{width:100px}
+  .info-row{flex-direction:row;align-items:flex-start;gap:24px}
+  .cust-block{flex:1;min-width:0}
+  .qbox{width:196px;flex-shrink:0}
+  .sign-row{flex-direction:row}
+  table.t{page-break-inside:auto}
+  tr{page-break-inside:avoid;page-break-after:auto}
+  thead{display:table-header-group}
+  tfoot{display:table-row-group}
+  .tw{border:0!important;background:transparent!important;box-shadow:none!important;outline:0!important;color:#000!important;appearance:none;-webkit-appearance:none}
+  textarea{border:0!important;background:transparent!important;box-shadow:none!important;outline:0!important;resize:none!important;overflow:hidden!important;color:#000!important}
+  .sign-row{page-break-inside:avoid}
+  #calPop,.dpick::after{display:none!important}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+}
+
+@media screen and (max-width:820px){
+  body{padding:8px}
+  .page{padding:14px;width:100%;min-height:0}
+  .hdr{flex-direction:column}
+  .hdr-logo{width:88px;margin-top:10px}
+  .info-row{flex-direction:column}
+  .qbox{width:100%}
+  .sign-row{flex-direction:column;gap:18px;text-align:left!important}
+}
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="brand"><span></span> ใบเสนอราคา — QUOTATION <b id="ver" style="font-weight:500;color:#9ca3af;font-size:10.5px">v4.0</b></div>
+  <button onclick="addItem()">+ รายการ</button>
+  <button onclick="addCat()">+ หมวด</button>
+  <button onclick="addSub()">+ รวมย่อย</button>
+  <button class="ok" onclick="save()">บันทึก</button>
+  <button onclick="exportJSON()">Export</button>
+  <button onclick="document.getElementById('fi').click()">Import</button>
+  <button class="pri" onclick="window.print()">พิมพ์ / PDF</button>
+  <input type="file" id="fi" accept=".json" onchange="importJSON(this)">
+</div>
+
+<div class="wrap" style="max-width:900px;margin:0 auto 12px"><div id="docsMount"></div></div>
+
+<div class="page">
+
+  <!-- Header -->
+  <div class="hdr">
+    <div>
+      <p class="co-name" data-profile="coName" contenteditable="true" data-profile-multiline="1">ชื่อบริษัทผู้เสนอราคา</p>
+      <p class="co-addr">
+        <span data-profile="coAddr" contenteditable="true" data-profile-multiline="1">54/59 หมู่ที่ 7 ตำบลโป่ง อำเภอบางละมุง จังหวัดชลบุรี 20150</span><br>
+        <span id="coTaxLine">เลขประจำตัวผู้เสียภาษี <span data-profile="coTax" contenteditable="true">0-0000-00000-00-0</span></span><br>
+        <span id="coContactLine">อีเมล <span data-profile="coEmail" contenteditable="true"></span> โทร <span data-profile="coPhone" contenteditable="true"></span></span>
+      </p>
+    </div>
+    <div class="hdr-logo"><img data-profile-logo alt="logo"></div>
+  </div>
+  <hr class="hdr-rule">
+
+  <!-- Info -->
+  <div class="info-row">
+    <div class="cust-block">
+      <p class="cust-row"><b>เสนอราคา</b> <span class="tw" id="custTitle" contenteditable="true">ช่างต่อ</span></p>
+      <p class="cust-row"><b>บริษัท</b> <span class="tw" id="cusName" contenteditable="true">ชื่อบริษัท / หน่วยงาน</span></p>
+      <p class="cust-row"><b>ที่อยู่</b> <span class="tw" id="cusAddr" contenteditable="true">ที่อยู่ผู้รับบริการ</span></p>
+      <p class="cust-row"><b>โครงการ</b> <span class="tw" id="prjName" contenteditable="true">ชื่อโครงการ / หมายเลขสัญญา</span></p>
+    </div>
+    <table class="qbox">
+      <tr><th colspan="2">Quotation/ใบเสนอราคา</th></tr>
+      <tr><td>เลขที่</td><td><span class="tw" id="quoteNo" contenteditable="true">PCC-0001</span></td></tr>
+      <tr><td>วันที่</td><td><span class="tw u dpick" id="quoteDate" data-v="" tabindex="0" title="คลิกเพื่อเลือกวันที่">—</span></td></tr>
+      <tr><td>ผู้เสนอราคา</td><td><span class="tw" id="sellerName" data-profile="sellerName" contenteditable="true">ชื่อผู้เสนอราคา</span></td></tr>
+      <tr><td>เบอร์โทร</td><td><span class="tw u" id="sellerPhone" data-profile="sellerPhone" contenteditable="true">0xx-xxx-xxxx</span></td></tr>
+      <tr><td>อายุใบเสนอราคา</td><td><span class="tw u" id="validDays" data-profile="validDays" contenteditable="true">15วัน</span></td></tr>
+    </table>
+  </div>
+
+  <!-- Items table -->
+  <table class="t" id="tbl">
+    <colgroup>
+      <col style="width:38px"><col><col style="width:72px"><col style="width:62px">
+      <col style="width:96px"><col style="width:96px"><col style="width:118px">
+    </colgroup>
+    <thead>
+      <tr>
+        <th rowspan="2">ลำดับ</th>
+        <th rowspan="2">รายละเอียด</th>
+        <th rowspan="2">จำนวน</th>
+        <th rowspan="2">หน่วย</th>
+        <th colspan="2">ราคา/หน่วย</th>
+        <th rowspan="2">ยอดรวม/บาท</th>
+      </tr>
+      <tr class="h2">
+        <th>ค่าวัสดุ/บาท</th>
+        <th>ค่าแรง/บาท</th>
+      </tr>
+    </thead>
+    <tbody id="tb"></tbody>
+  </table>
+
+  <div class="tools">
+    <div class="grp">
+      <button onclick="addItem()">+ เพิ่มรายการงาน</button>
+      <button onclick="addCat()">+ เพิ่มหมวด</button>
+      <button onclick="addSub()">+ เพิ่มรวมย่อย</button>
+    </div>
+    <button onclick="save()">บันทึกข้อมูล</button>
+  </div>
+
+  <!-- Totals + terms + notes as table rows (matches reference) -->
+  <table class="t" id="tbl2">
+    <colgroup>
+      <col style="width:38px"><col><col style="width:72px"><col style="width:62px">
+      <col style="width:96px"><col style="width:96px"><col style="width:118px">
+    </colgroup>
+    <tbody>
+      <tr class="r-total">
+        <td colspan="4" class="terms-c"><textarea class="terms-in" id="terms" rows="1">สิ้นสุดการเสนอราคาอยู่ในระยะเวลาที่เราได้ระบุไว้ด้านล่าง</textarea></td>
+        <td colspan="2" class="lbl-c">รวมเป็นเงิน</td>
+        <td class="val-c" id="tSub">0.00</td>
+      </tr>
+      <tr class="r-vat">
+        <td colspan="4" class="terms-c"></td>
+        <td colspan="2" class="lbl-c">ภาษีมูลค่าเพิ่ม <input type="number" id="vatR" value="7" class="tw num" style="width:26px;text-align:center;display:inline-block" oninput="calc()">%</td>
+        <td class="val-c" id="tVat">0.00</td>
+      </tr>
+      <tr class="r-total grand">
+        <td colspan="4" class="terms-c"><span class="words-txt" id="tWords">ศูนย์บาทถ้วน</span></td>
+        <td colspan="2" class="lbl-c">จำนวนเงินรวมทั้งสิ้น</td>
+        <td class="val-c" id="tGrand">0.00</td>
+      </tr>
+      <tr class="r-note">
+        <td colspan="7"><div class="note-wrap"><span class="note-lbl">หมายเหตุ</span><textarea id="notes" rows="4"></textarea></div></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Signatures -->
+  <div class="sign-row">
+    <div>
+      <div class="who">ผู้เสนอราคา<span class="sr-line"></span></div>
+      <div class="cap">(................................................)</div>
+    </div>
+    <div style="text-align:right">
+      <div class="who">ผู้ว่าจ้าง<span class="sr-line"></span></div>
+      <div class="cap">(................................................)</div>
+    </div>
+  </div>
+
+  <div class="tail-note">เอกสารออกโดย <span data-profile="coName">ชื่อบริษัท</span> <span data-profile="coNameEn"></span></div>
+
+</div>
+
+<!-- Date picker popup + settings modal → assets/thai.js, assets/profile.js -->
+
+<script src="assets/thai.js"></script>
+<script src="assets/docnum.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="assets/gate.js"></script>
+<script src="assets/profile.js"></script>
+<script src="assets/archive.js"></script>
+<script src="assets/docs.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const fmt=THAI.fmt;
+const bahtText=THAI.bahtText;
+let docs=null;
+
+/* row builders */
+function addItem(d={}){
+  const tr=document.createElement('tr');
+  tr.className='r-item';
+  tr.innerHTML=
+   '<td class="seq"><span class="seq-val"></span></td>'+
+   '<td class="c-edit"><div class="cell-flex"><input type="text" class="desc-in" data-k="desc" placeholder="รายละเอียดงาน"><button class="row-del" onclick="delRow(this)">ลบ</button></div></td>'+
+   '<td class="c-edit"><input type="number" class="tw num" data-k="qty" step="any" placeholder="0"></td>'+
+   '<td class="c-edit"><input type="text" class="unit-in" data-k="unit" placeholder="-"></td>'+
+   '<td class="c-edit"><input type="number" class="tw num" data-k="mat" step="any" title="ค่าวัสดุ/บาท" placeholder="0"></td>'+
+   '<td class="c-edit"><input type="number" class="tw num" data-k="lab" step="any" title="ค่าแรง/บาท" placeholder="0"></td>'+
+   '<td class="amt"><span class="tw num" data-k="amt" style="font-weight:600;text-align:right;display:block"></span></td>';
+  $('tb').appendChild(tr);
+  fill(tr,d);
+  wire(tr);
+  renumber();
+  calc();
+}
+function addCat(label=''){
+  const tr=document.createElement('tr');
+  tr.className='r-cat';
+  tr.innerHTML='<td class="seq"><span class="seq-val"></span></td><td colspan="6"><input type="text" class="cat-in" data-k="label" placeholder="ชื่อหมวด เช่น ห้องประชุมใหญ่ PB2"><button class="row-del" onclick="delRow(this)">ลบ</button></td>';
+  $('tb').appendChild(tr);
+  fill(tr,{label});
+  wire(tr);
+  renumber();
+  calc();
+}
+function addSub(){
+  const tr=document.createElement('tr');
+  tr.className='r-sub';
+  tr.innerHTML='<td class="seq blank"></td><td colspan="6" style="text-align:center;font-weight:700;font-size:11.5px">รวมย่อย<button class="row-del" onclick="delRow(this)">ลบ</button></td>';
+  $('tb').appendChild(tr);
+  wire(tr);
+  calc();
+}
+function delRow(btn){btn.closest('tr').remove();renumber();calc();save()}
+
+function fill(tr,d){
+  const set=(k,v)=>{const el=tr.querySelector('[data-k="'+k+'"]');if(el){if(el.tagName==='INPUT')el.value=v??'';else el.textContent=v??'';}};
+  set('desc',d.desc);set('qty',d.qty);set('unit',d.unit);
+  set('mat',d.mat??d.pf);set('lab',d.lab??d.pd);set('label',d.label);
+}
+function wire(tr){
+  tr.querySelectorAll('[data-k],[contenteditable]').forEach(el=>{
+    el.addEventListener('input',()=>{calc();scheduleSave()});
+  });
+  tr.querySelectorAll('input').forEach(el=>el.addEventListener('change',()=>{calc();scheduleSave()}));
+}
+function scheduleSave(){if(docs)docs.scheduleSave()}
+
+/* renumber — ลำดับสร้างอัตโนมัติจากโครงสร้าง:
+   หมวด → 1, 2, 3 …   งานใต้หมวดนั้น → 1.1, 1.2, 1.3 … */
+function renumber(){
+  const rows=[...$('tb').children];
+  let catNo=0,itemNo=0;
+  rows.forEach(tr=>{
+    const val=tr.querySelector('.seq-val');
+    if(tr.classList.contains('r-cat')){
+      catNo++;itemNo=0;
+      if(val)val.textContent=catNo;
+    }else if(tr.classList.contains('r-item')){
+      itemNo++;
+      if(val)val.textContent=catNo>0?catNo+'.'+itemNo:itemNo;
+    }
+  });
+}
+
+/* calc — matches reference: amount = qty × (full + discount) */
+function calc(){
+  let sub=0;
+  $('tb').querySelectorAll('tr.r-item').forEach(tr=>{
+    const g=k=>tr.querySelector('[data-k="'+k+'"]');
+    const q=+g('qty').value||0,mat=+g('mat').value||0,lab=+g('lab').value||0;
+    const amt=q*(mat+lab);
+    g('amt').textContent=fmt(amt);
+    sub+=amt;
+  });
+  const vr=+$('vatR').value||0,vat=sub*vr/100;
+  $('tSub').textContent=fmt(sub);
+  $('tVat').textContent=fmt(vat);
+  $('tGrand').textContent=fmt(sub+vat);
+  $('tWords').textContent=bahtText(sub+vat);
+  fitNotes();
+}
+function fitNotes(){const n=$('notes');n.style.height='auto';n.style.height=n.scrollHeight+'px'}
+
+/* ═══════ DATE PICKER (พ.ศ.) → assets/thai.js ═══════ */
+THAI.init(()=>docs&&docs.save(true));
+
+/* data */
+function collect(){
+  const rows=[...$('tb').children].map(tr=>{
+    const g=k=>{const e=tr.querySelector('[data-k="'+k+'"]');if(!e)return'';return e.tagName==='INPUT'?e.value:e.textContent};
+    if(tr.classList.contains('r-item'))return{t:'i',desc:g('desc'),qty:g('qty'),unit:g('unit'),mat:g('mat'),lab:g('lab')};
+    if(tr.classList.contains('r-cat'))return{t:'c',label:g('label')};
+    return{t:'s'};
+  });
+  const tx=id=>{const e=$(id);return e.tagName==='TEXTAREA'?e.value:e.textContent.trim()};
+  const quoteDate=$('quoteDate').dataset.v||'';
+  return{custTitle:tx('custTitle'),cusName:tx('cusName'),cusAddr:tx('cusAddr'),prjName:tx('prjName'),
+    quoteNo:tx('quoteNo'),quoteDate,sellerName:tx('sellerName'),sellerPhone:tx('sellerPhone'),validDays:tx('validDays'),
+    vatR:$('vatR').value,terms:$('terms').value,notes:$('notes').value,rows,
+    __year:(THAI.beToISO(quoteDate)||'').slice(0,4)};
+}
+function load(d){
+  d=d||{};
+  const prof=PROFILE.get();
+  ['custTitle','cusName','cusAddr','prjName','quoteNo','sellerName','sellerPhone','validDays'].forEach(id=>{const e=$(id);if(e&&d[id]!=null)e.textContent=d[id]});
+  if(!$('sellerName').textContent.trim()&&prof.sellerName)$('sellerName').textContent=prof.sellerName;
+  if(!$('sellerPhone').textContent.trim()&&(prof.sellerPhone||prof.coPhone))$('sellerPhone').textContent=prof.sellerPhone||prof.coPhone;
+  if(!$('validDays').textContent.trim()&&prof.validDays)$('validDays').textContent=prof.validDays;
+  const qd=$('quoteDate');
+  if(qd){const p=THAI.parseDateBE(d.quoteDate);qd.dataset.v=p?THAI.fmtDateBE(p.y,p.m,p.d):'';qd.textContent=qd.dataset.v||'—';}
+  $('vatR').value=d.vatR??(prof.vatRate||7);$('terms').value=d.terms||'';$('notes').value=d.notes||'';
+  $('tb').innerHTML='';
+  (d.rows||[]).forEach(r=>{ if(r.t==='i')addItem(r); else if(r.t==='c')addCat(r.label); else addSub(); });
+  PROFILE.apply();
+  renumber();calc();
+}
+function save(){if(docs)docs.save()}
+function sanitize(s){return(s||'').replace(/[\\/:*?"<>|]/g,'_').replace(/\s+/g,' ').trim().slice(0,80)||'quotation'}
+function exportJSON(){const d=collect();const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=sanitize((d.quoteNo||'QUO')+'_'+d.cusName)+'.json';a.click()}
+function importJSON(el){
+  const f=el.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const d=JSON.parse(e.target.result);
+      const arr=Array.isArray(d)?d:[d];
+      if(!confirm('นำเข้าใบเสนอราคา '+arr.length+' ฉบับ?'))return;
+      arr.forEach(x=>docs.addOne(x));
+      el.value='';
+    }catch{alert('ไฟล์ไม่ถูกต้อง')}
+  };
+  r.readAsText(f);el.value='';
+}
+
+/* เลขที่ถัดไป: PCC-2569-007 (กรองตามปี พ.ศ. + กันเลขที่เคยลบถูกนำกลับมาใช้) */
+function nextQuoteNo(){
+  return DOCNUM.next('PCC',()=>docs?docs.list():[],r=>r.data.quoteNo);
+}
+function blankDoc(){
+  const p=PROFILE.get();
+  const t=THAI.todayParts();
+  return {
+    custTitle:'ช่างต่อ', cusName:'', cusAddr:'', prjName:'',
+    quoteNo:nextQuoteNo(), quoteDate:THAI.fmtDateBE(t.y,t.m,t.d),
+    sellerName:p.sellerName||'', sellerPhone:p.sellerPhone||p.coPhone||'', validDays:p.validDays||'15วัน',
+    vatR:p.vatRate||7,
+    terms:'ราคานี้มีอายุตามระบุด้านบน และรวมภาษีมูลค่าเพิ่มตามที่ระบุ',
+    notes:'', rows:[]
+  };
+}
+function summaryOf(rec){
+  const d=rec.data||{};
+  let sub=0;
+  (d.rows||[]).forEach(r=>{ if(r.t==='i') sub+=(+r.qty||0)*((+r.mat||0)+(+r.lab||0)); });
+  const vat=sub*(+d.vatR||0)/100;
+  return{no:d.quoteNo||'(ยังไม่ตั้งเลขที่)',meta:[d.quoteDate||'',d.cusName||'ยังไม่ระบุผู้รับบริการ',d.prjName||''].filter(Boolean).join(' • '),total:sub+vat};
+}
+
+/* ชื่อไฟล์ที่ใช้เมื่อเขียนลงโฟลเดอร์สำรอง */
+function diskName(d){
+  const no=(d.quoteNo||'QUOTATION').trim();
+  const cu=(d.cusName||'').trim();
+  return ARCHIVE.safeName(no+(cu?'_'+cu:''));
+}
+function docForDisk(){const d=collect();return{base:diskName(d),data:d};}
+
+/* init */
+(function(){
+  PROFILE.apply();
+  PROFILE.mountButton(document.querySelector('.toolbar'));
+
+  docs=DOCS.mount({
+    mountEl:$('docsMount'), key:'quota_quotes_v1', curKey:'quota_quote_cur',
+    title:'ใบเสนอราคา',
+    collect, load, blank:blankDoc,
+    summary:summaryOf,
+    searchText:rec=>{const d=rec.data||{};return[(d.quoteNo||''),(d.cusName||''),(d.prjName||''),(d.cusAddr||'')].join(' ');},
+    nextNo:()=>nextQuoteNo(),
+    setNo:(d,n)=>{d.quoteNo=n},
+    addOne:d=>{
+      const rec={id:'d'+Date.now().toString(36)+Math.random().toString(36).slice(2,4),updatedAt:Date.now(),data:d};
+      docs._push(rec);load(d);
+    },
+    archive:()=>ARCHIVE.pick(docForDisk),
+    onSaved:rec=>ARCHIVE.scheduleWrite(diskName(rec.data),rec.data)
+  });
+  ARCHIVE.init({status:docs.panel.querySelector('.arc-st'),saved:docs.panel.querySelector('.arc-lasted')});
+  ARCHIVE.restore();
+
+  /* เตือนถ้าแก้เลขที่มือแล้วซ้ำกับใบอื่น */
+  DOCNUM.watch($('quoteNo'),()=>docs.list(),r=>r.data.quoteNo,()=>docs.currentId());
+
+  /* บันทึกอัตโนมัติทุกครั้งที่แก้ (ช่องนอกตารางรายการ) */
+  document.querySelectorAll('#tbl2 input,#tbl2 textarea').forEach(el=>{
+    el.addEventListener('input',()=>{calc();docs.scheduleSave()});
+  });
+  ['custTitle','cusName','cusAddr','prjName','quoteNo','sellerName','sellerPhone','validDays'].forEach(id=>{
+    const e=$(id); if(e)e.addEventListener('input',()=>docs.scheduleSave());
+  });
+  document.addEventListener('profile:updated',e=>{
+    const p=(e&&e.detail)||PROFILE.get();
+    if(p.sellerName)$('sellerName').textContent=p.sellerName;
+    if(p.sellerPhone||p.coPhone)$('sellerPhone').textContent=p.sellerPhone||p.coPhone;
+    if(p.validDays)$('validDays').textContent=p.validDays;
+    if(p.vatRate!=null&&p.vatRate!=='')$('vatR').value=p.vatRate;
+    calc();
+    if(docs)docs.scheduleSave();
+  });
+
+  GATE.init();
+})();
+</script>
+</body>
+</html>

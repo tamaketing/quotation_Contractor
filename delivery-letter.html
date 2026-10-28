@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>หนังสือส่งมอบงานจ้าง — ระบบเอกสารรับเหมา</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="assets/app.css" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:"Sarabun",sans-serif;background:#eef2f7;color:#111827;padding:24px;line-height:1.5}
+  .toolbar{max-width:210mm;margin:0 auto 14px;display:flex;gap:8px;align-items:center;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:8px 14px;box-shadow:0 1px 3px rgba(0,0,0,.08);flex-wrap:wrap}
+  .toolbar b{font-size:14px;margin-right:auto}
+  .toolbar button{font-family:inherit;font-size:13px;padding:8px 18px;border-radius:7px;border:1px solid #2563eb;background:#2563eb;color:#fff;cursor:pointer;font-weight:600}
+  .toolbar button:hover{background:#1d4ed8}
+  .toolbar button.ghost{background:#fff;color:#374151;border-color:#d1d5db}
+  .toolbar button.ghost:hover{background:#f3f4f6}
+  .toolbar select{font-family:inherit;font-size:13px;padding:7px 10px;border-radius:7px;border:1px solid #d1d5db;background:#fff;color:#374151}
+  .paper{max-width:210mm;margin:0 auto;background:#fff;border:1px solid #dbe2ea;box-shadow:0 12px 35px rgba(15,23,42,.1);padding:14mm 15mm 12mm;position:relative}
+  .letter-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;border-bottom:3px double #1a1f36;padding-bottom:10px}
+  .brand{display:flex;gap:12px;align-items:center}
+  .brand img{width:64px;height:64px;object-fit:contain}
+  .brand .co{font-size:20px;font-weight:700;color:#1a1f36;line-height:1.2}
+  .brand .co small{display:block;font-size:12px;font-weight:400;color:#4b5563}
+  .doc-title{text-align:right}
+  .doc-title h1{font-size:22px;margin:0;color:#1a1f36}
+  .doc-title p{margin:2px 0 0;font-size:13px;color:#4b5563}
+  .top-line{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-top:12px;font-size:15px}
+  .top-line .subject-left{flex:1}
+  .top-line .subject-left b{font-size:16px}
+  .meta{font-size:15px;text-align:right;white-space:nowrap;flex-shrink:0}
+  .meta .row{display:flex;gap:8px;margin:0;justify-content:flex-end}
+  .meta .label{white-space:nowrap}
+  .subject{margin-top:4px;font-size:15px}
+  .subject b{font-size:16px}
+  .refbox{margin-top:12px;border:1px solid #d7dde5;border-radius:6px;background:#fafbfc;padding:8px 10px;font-size:13.5px}
+  .refbox div{display:flex;gap:6px;padding:2.5px 0}
+  .refbox div b{flex-shrink:0;min-width:150px;color:#4b5563;font-weight:600}
+  .refbox .ed{flex:0 1 auto;min-width:120px}
+  .body{margin-top:14px;font-size:15px;text-align:justify}
+  .body p{margin:6px 0;text-indent:2em}
+  h3.sec{font-size:15px;margin:12px 0 6px;color:#1a1f36}
+  table.work{width:100%;border-collapse:collapse;font-size:14px;margin-top:4px}
+  table.work th,table.work td{border:1px solid #9ca3af;padding:4px 8px}
+  table.work thead th{background:#f3f4f6;font-weight:700;text-align:center}
+  table.work td.c{text-align:center}
+  table.work td.r{text-align:right;font-variant-numeric:tabular-nums}
+  table.work tr.addline td{background:#fffdf5}
+  table.work td.del{padding:2px 4px;text-align:center}
+  table.work td.del button{border:1px solid #fecaca;background:#fff;color:#dc2626;border-radius:4px;cursor:pointer;font-size:10px;padding:1px 6px;font-family:inherit}
+  table.work tr.addline td.del button{display:none}
+  table.work tr.addline:hover td.del button{display:inline-block}
+  table.work input{width:100%;border:0;background:transparent;font-family:inherit;font-size:14px;color:#000;padding:0}
+  table.work input.num{text-align:right;font-variant-numeric:tabular-nums}
+  table.work input:focus{outline:1px solid #2563eb;background:#fffbe6}
+  .closing{margin-top:18px;font-size:15px;text-align:justify}
+  .sign-area{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:22px;font-size:14px;text-align:center}
+  .sign-area .box{border:1px solid #d1d5db;border-radius:8px;padding:10px}
+  .sign-area .box h4{margin:0 0 6px;font-size:13.5px;background:#f3f4f6;padding:4px;border-radius:5px}
+  .sign-area .line{margin-top:38px;border-top:1px dotted #6b7280;padding-top:4px}
+  .sign-area .chk{text-align:left;font-size:13.5px;margin:4px 0;line-height:1.8}
+  .footer{margin-top:6px;text-align:center;font-size:11px;color:#9ca3af}
+  .ed{display:inline-block;min-width:40px;border-bottom:1px dashed #c9c9c9;cursor:text}
+  .ed:empty::before{content:"กรอกข้อความ";color:#b6bcc7;font-size:.9em}
+  .ed:hover{background:#fffbe6}
+  .ed:focus{outline:0;background:#f0f9ff;border-bottom-color:#2563eb}
+  .ed.date{cursor:pointer}
+  .rowtools{max-width:210mm;margin:0 auto 10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  @media print{
+    body{background:#fff;padding:0;font-size:13.5px;line-height:1.45}
+    .toolbar,.rowtools{display:none!important}
+    .paper{border:0;box-shadow:none;max-width:100%;padding:0}
+    .letter-head{padding-bottom:8px}
+    .brand img{width:52px;height:52px}
+    .brand .co{font-size:17px}
+    .doc-title h1{font-size:19px}
+    .top-line,.subject,.body,.closing{font-size:13.5px}
+    .top-line .subject-left b,.subject b{font-size:14px}
+    .refbox{font-size:12.5px;padding:6px 8px}
+    .refbox div b{min-width:135px}
+    table.work{font-size:12.5px}
+    table.work th,table.work td{padding:3px 7px}
+    table.work input{border:0!important;background:transparent!important;outline:0!important}
+    table.work tr.addline td{background:#fff}
+    h3.sec{margin:10px 0 4px;font-size:13.5px}
+    .closing p{margin:6px 0!important}
+    .sign-area{margin-top:16px;gap:18px;font-size:12.5px;break-inside:avoid}
+    .sign-area .line{margin-top:30px}
+    .footer{font-size:10px}
+    .ed{border-bottom:0!important;background:transparent!important}
+    .ed:empty::before{content:""}
+    *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+    @page{size:A4;margin:12mm 13mm 12mm}
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <b>📄 หนังสือส่งมอบงานจ้าง</b>
+  <button class="ghost" onclick="addItem()">+ รายการงาน</button>
+  <button class="ghost" onclick="importInvoice()">นำเข้าจากใบแจ้งหนี้</button>
+  <button class="ghost" onclick="save()">บันทึก</button>
+  <button class="ghost" onclick="exportJSON()">Export</button>
+  <button class="ghost" onclick="document.getElementById('fi').click()">Import</button>
+  <select id="scaleSel" title="ขนาดตอนพิมพ์" onchange="setScale(this.value)">
+    <option value="105">105%</option>
+    <option value="100" selected>100%</option>
+    <option value="95">95% — พอดี A4</option>
+    <option value="90">90%</option>
+    <option value="85">85%</option>
+  </select>
+  <button onclick="window.print()">🖨️ พิมพ์ / บันทึก PDF</button>
+  <input type="file" id="fi" accept=".json" hidden onchange="importJSON(this)">
+  <input type="file" id="fiInv" accept=".json" hidden onchange="fromInvoice(this)">
+</div>
+
+<div class="wrap" style="max-width:210mm;margin:0 auto 12px"><div id="docsMount"></div></div>
+
+<div class="rowtools">
+  <button class="x-btn" onclick="addItem()">+ เพิ่มรายการงาน</button>
+  <button class="x-btn ok" onclick="save()">บันทึกหนังสือนี้</button>
+  <span style="font-size:11px;color:#6b7280">คลิกข้อความในกระดาษเพื่อแก้ไขได้โดยตรง · วันที่คลิกเพื่อเลือกจากปฏิทิน</span>
+</div>
+
+<div class="paper" id="paper">
+  <div class="letter-head">
+    <div class="brand">
+      <img data-profile-logo alt="logo">
+      <div class="co"><span data-profile="coName">ชื่อบริษัท</span>
+        <small data-profile="coNameEn"></small>
+      </div>
+    </div>
+    <div class="doc-title">
+      <h1>หนังสือส่งมอบงานจ้าง</h1>
+      <p>Delivery &amp; Payment Request Letter</p>
+    </div>
+  </div>
+
+  <div class="top-line">
+    <div class="subject-left"><b>เรื่อง</b> &nbsp; ส่งมอบงานจ้างและขอเบิกจ่ายเงินงวด</div>
+    <div class="meta">
+      <div class="row"><span class="label"><b>วันที่</b> &nbsp; <span class="ed date dpick" data-k="letterDate" data-v=""></span></span></div>
+    </div>
+  </div>
+
+  <div class="subject">
+    <div><b>เรียน</b> &nbsp; <span class="ed" data-k="toTitle"></span> <span class="ed" data-k="toName"></span></div>
+    <div style="margin-left:38px"><span class="ed" data-k="toCo"></span> <span class="ed" data-k="toCoEn"></span></div>
+    <div><b>อ้างถึง</b> &nbsp; ใบแจ้งหนี้เลขที่ <span class="ed" data-k="invNo"></span> ลงวันที่ <span class="ed date dpick" data-k="invDate" data-v=""></span></div>
+    <div><b>เอกสารแนบ</b> &nbsp; ใบแจ้งหนี้เลขที่ <span class="ed" data-k="invNo"></span> ลงวันที่ <span class="ed date dpick" data-k="invDate" data-v=""></span> จำนวน 1 ชุด</div>
+  </div>
+
+  <div class="refbox">
+    <div><b>โครงการ / หมายเลขงาน</b><span class="ed" data-k="prjName"></span></div>
+    <div><b>สถานที่จัดทำงาน</b><span class="ed" data-k="prjSite"></span></div>
+    <div><b>ประเภทงานที่ส่งมอบ</b><span class="ed" data-k="workType"></span></div>
+    <div><b>เลขที่ใบสั่งจ้าง / สัญญา</b><span class="ed" data-k="prjContract"></span></div>
+    <div><b>จำนวนเงินที่ขอเบิกจ่าย</b><span class="ed" data-k="amount"></span> บาท</div>
+    <div><b>กำหนดชำระภายใน</b><span class="ed date dpick" data-k="dueDate" data-v=""></span></div>
+  </div>
+
+  <div class="body">
+    <p id="bodyText"></p>
+  </div>
+
+  <h3 class="sec">รายละเอียดผลงานที่ส่งมอบ</h3>
+  <table class="work">
+    <thead>
+      <tr><th style="width:44px">ลำดับ</th><th>รายการ</th><th style="width:110px">จำนวน</th><th style="width:80px">หน่วย</th><th style="width:34px"></th></tr>
+    </thead>
+    <tbody id="tb"></tbody>
+  </table>
+
+  <div class="closing">
+    <p style="text-indent:2em;margin:12px 0 0" id="closingText"></p>
+    <p style="text-indent:2em;margin:8px 0 0">จึงเรียนมาเพื่อโปรดพิจารณาตรวจรับงานและอนุมัติการจ่ายเงิน</p>
+    <p style="text-align:right;margin:18px 40px 0 0">ขอแสดงความนับถือ</p>
+  </div>
+
+  <div class="sign-area">
+    <div class="box">
+      <h4>ผู้ส่งมอบงาน — <span data-profile="coName">ชื่อบริษัท</span></h4>
+      <div class="line">ลงชื่อ ........................................................</div>
+      <div>( ........................................................ )</div>
+      <div>ผู้มีอำนาจลงนาม</div>
+      <div>วันที่ ............ / ............ / ............</div>
+    </div>
+    <div class="box">
+      <h4>ผู้ตรวจรับงาน — <span class="ed" data-k="toCo"></span></h4>
+      <div class="chk">☐ ตรวจรับงานถูกต้องครบถ้วน<br>☐ มีข้อแก้ไข / หมายเหตุ ....................................<br>........................................................................</div>
+      <div class="line">ลงชื่อ ........................................................</div>
+      <div>( ........................................................ )</div>
+      <div>ผู้ตรวจรับงาน / ผู้อนุมัติจ่ายเงิน</div>
+      <div>วันที่ ............ / ............ / ............</div>
+    </div>
+  </div>
+
+  <div class="footer"><span data-profile="coNameEn"></span> — หนังสือส่งมอบงานจ้าง — <span class="ed" data-k="invNo"></span></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="assets/thai.js"></script>
+<script src="assets/gate.js"></script>
+<script src="assets/profile.js"></script>
+<script src="assets/archive.js"></script>
+<script src="assets/docs.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const fmt = THAI.fmt;
+let docs = null;
+
+/* ── ช่องข้อความ (บางคียมีหลายช่องในกระดาษ ต้องซิงก์ให้เหมือนกัน) ── */
+const all = k => [...document.querySelectorAll('.ed[data-k="' + k + '"]')];
+const one = k => { const n = all(k); return n.length ? n[0] : null; };
+const read = k => { const n = one(k); if (!n) return ''; return n.classList.contains('date') ? (n.dataset.v || '') : n.textContent.trim(); };
+function write(k, v) {
+  all(k).forEach(n => {
+    if (n.classList.contains('date')) { n.dataset.v = v || ''; n.textContent = v || '—'; }
+    else n.textContent = v == null ? '' : String(v);
+  });
+}
+function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+function numFmt(s) {
+  const n = parseFloat(String(s).replace(/,/g, ''));
+  return isFinite(n) ? n.toLocaleString('en-US', { maximumFractionDigits: 2 }) : s;
+}
+
+/* ── รายการงาน ── */
+function addItem(d = {}) {
+  const tr = document.createElement('tr');
+  tr.className = 'addline';
+  tr.innerHTML =
+    '<td class="c"><span class="seq"></span></td>' +
+    '<td><input type="text" data-k="desc" value="' + esc(d.desc || '') + '" placeholder="รายการงาน"></td>' +
+    '<td><input type="text" class="num" data-k="qty" value="' + esc(d.qty == null ? '' : d.qty) + '" placeholder="0"></td>' +
+    '<td class="c"><input type="text" data-k="unit" value="' + esc(d.unit || '') + '" placeholder="-"></td>' +
+    '<td class="del"><button type="button" onclick="delItem(this)">ลบ</button></td>';
+  $('tb').appendChild(tr);
+  tr.querySelectorAll('input').forEach(i => i.addEventListener('input', () => { renum(); scheduleSave(); }));
+  renum(); scheduleSave();
+}
+function delItem(btn) { btn.closest('tr').remove(); renum(); scheduleSave(); }
+function renum() { [...$('tb').children].forEach((tr, i) => { const s = tr.querySelector('.seq'); if (s) s.textContent = i + 1; }); }
+
+/* ── ข้อความอัตโนมัติ ── */
+function longDate(v) { const p = THAI.parseDateBE(v); return p ? THAI.fmtDateBEFull(p.y, p.m, p.d) : (v || '[วันที่]'); }
+function renderText() {
+  const p = PROFILE.get();
+  const coName = read('coName') || p.coName || '[ชื่อบริษัทผู้รับจ้าง]';
+  const toCo = read('toCo') || '[ชื่อบริษัทคู่สัญญา]';
+  const work = read('workType') || 'ก่อสร้าง';
+  const prj = read('prjName') || '[ชื่อโครงการ]';
+  const site = read('prjSite');
+  const contract = read('prjContract');
+  const invNo = read('invNo') || '[เลขที่ใบแจ้งหนี้]';
+  const invDate = longDate(read('invDate'));
+  const dueDate = longDate(read('dueDate'));
+  const amount = +String(read('amount') || '').replace(/,/g, '') || 0;
+
+  $('bodyText').textContent =
+    'ตามที่ ' + toCo + ' ได้ตกลงว่าจ้าง ' + coName + ' ให้ดำเนินการ' + work +
+    ' ในโครงการ ' + prj + (site ? ' ณ ' + site : '') +
+    (contract ? ' ตามใบสั่งจ้าง/สัญญาเลขที่ ' + contract : '') +
+    ' นั้น บัดนี้ทางบริษัทฯ ได้ดำเนินการเสร็จสมบูรณ์ตามที่ระบุไว้แล้ว โดยมีรายละเอียดผลงานดังต่อไปนี้';
+
+  $('closingText').innerHTML =
+    'บริษัทฯ จึงขอส่งมอบงานดังกล่าว และใคร่ขอความกรุณาจากท่านโปรดพิจารณาตรวจรับงาน พร้อมทั้งอนุมัติการเบิกจ่ายเงินจำนวน ' +
+    '<b>' + fmt(amount) + ' บาท (' + THAI.bahtText(amount) + ')</b> ตามรายละเอียดในใบแจ้งหนี้เลขที่ ' + invNo +
+    ' ลงวันที่ ' + invDate + ' ที่แนบมาพร้อมกันนี้ ภายในวันที่ครบกำหนด <b>' + dueDate + '</b> ต่อไป';
+}
+
+/* ── collect / load ── */
+const KEYS = ['letterDate', 'toTitle', 'toName', 'toCo', 'toCoEn', 'workType', 'invNo', 'invDate', 'prjName', 'prjSite', 'prjContract', 'dueDate', 'amount'];
+function collect() {
+  const d = {};
+  KEYS.forEach(k => { d[k] = read(k); });
+  d.__year = (THAI.beToISO(d.letterDate) || '').slice(0, 4);
+  d.items = [...$('tb').children].map(tr => ({
+    desc: tr.querySelector('[data-k="desc"]').value,
+    qty: tr.querySelector('[data-k="qty"]').value,
+    unit: tr.querySelector('[data-k="unit"]').value
+  }));
+  return d;
+}
+function load(o) {
+  o = o || {};
+  KEYS.forEach(k => { if (o[k] != null) write(k, o[k]); });
+  $('tb').innerHTML = '';
+  (o.items || []).forEach(addItem);
+  if (!(o.items || []).length) addItem({});
+  PROFILE.apply();
+  renum(); renderText(); scheduleSave();
+}
+function save() { if (docs) docs.save(); }
+function scheduleSave() { renderText(); if (docs) docs.scheduleSave(); }
+
+document.addEventListener('input', e => {
+  const k = e.target.dataset && e.target.dataset.k;
+  if (k === 'amount' && e.target.isContentEditable) e.target.textContent = numFmt(e.target.textContent);
+  if (e.target.classList && e.target.classList.contains('ed') && e.target.dataset.k !== 'amount') {
+    const v = e.target.classList.contains('date') ? (e.target.dataset.v || '') : e.target.textContent;
+    all(e.target.dataset.k).forEach(n => { if (n !== e.target) n.textContent = v; });
+  }
+  scheduleSave();
+});
+
+/* ── เอกสารใหม่ ── */
+function blankDoc() {
+  const t = THAI.todayParts(), due = new Date(Date.now() + 30 * 864e5);
+  return {
+    letterDate: THAI.fmtDateBE(t.y, t.m, t.d),
+    toTitle: 'กรรมการผู้จัดการ', toName: '', toCo: '', toCoEn: '',
+    workType: 'ก่อสร้าง', invNo: '', invDate: '', prjName: '', prjSite: '', prjContract: '',
+    dueDate: THAI.fmtDateBE(due.getFullYear(), due.getMonth(), due.getDate()),
+    amount: '0.00', items: []
+  };
+}
+function summaryOf(rec) {
+  const d = rec.data || {};
+  return {
+    no: d.invNo ? (d.invNo + (d.toCo ? ' · ' + d.toCo : '')) : '(ยังไม่ระบุเลขที่)',
+    meta: [d.letterDate || '', d.prjName || ''].filter(Boolean).join(' • '),
+    total: +String(d.amount || '').replace(/,/g, '') || 0
+  };
+}
+
+/* ── นำเข้าจากไฟล์ใบแจ้งหนี้ ── */
+function importInvoice() { $('fiInv').click(); }
+function fromInvoice(el) {
+  const f = el.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    try {
+      const d = JSON.parse(e.target.result);
+      fillFromInvoice(Array.isArray(d) ? d[0] : d);
+    } catch { alert('อ่านไฟล์ใบแจ้งหนี้ไม่สำเร็จ'); }
+    el.value = '';
+  };
+  r.readAsText(f);
+}
+function fillFromInvoice(inv) {
+  if (!inv || typeof inv !== 'object') throw new Error('bad');
+  const p = PROFILE.get();
+  if (!p.coName && inv.coName) {
+    p.coName = inv.coName || '';
+    p.coAddr = inv.coAddr || '';
+    p.coTax = (inv.coTax || '').trim();
+    if (!p.bankInfo && inv.note) p.bankInfo = inv.note;
+    PROFILE.set(p, true);
+    PROFILE.apply();
+  }
+  write('invDate', THAI.isoToBE(inv.invDate || ''));
+  write('dueDate', THAI.isoToBE(inv.dueDate || ''));
+  write('invNo', inv.invNo || '');
+  write('toCo', inv.cusName || '');
+  write('prjName', inv.prjName || '');
+  write('prjSite', inv.prjSite || '');
+  write('prjContract', inv.prjContract || '');
+  let net = 0;
+  try {
+    const sub = (inv.items || []).reduce((a, it) => a + (+it.qty || 0) * (+it.price || 0) * ((+it.pct || 100) / 100), 0);
+    const base = sub - (+inv.disc || 0);
+    const gross = base + base * (+inv.vatR || 0) / 100;
+    net = gross - base * ((+inv.retR || 0) + (+inv.advR || 0) + (+inv.whtR || 0)) / 100;
+  } catch (e) { }
+  write('amount', fmt(net));
+  $('tb').innerHTML = '';
+  (inv.items || []).forEach(it => addItem({ desc: it.desc, qty: numFmt(it.qty), unit: it.unit }));
+  if (!(inv.items || []).length) addItem({});
+  renum(); renderText(); save();
+  alert('นำข้อมูลจากใบแจ้งหนี้เข้าแล้ว — กรุณาตรวจสอบยอดเงินและรายละเอียดอีกครั้ง');
+}
+
+/* ── export / import หนังสือ ── */
+function sanitize(s) { return (s || '').replace(/[\\/:*?"<>|]/g, '_').replace(/\s+/g, ' ').trim().slice(0, 80) || 'letter'; }
+function exportJSON() {
+  const d = collect();
+  const b = new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(b);
+  a.download = sanitize((d.invNo || 'letter') + '_' + d.toCo) + '.json';
+  a.click();
+}
+function importJSON(el) {
+  const f = el.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    try {
+      const d = JSON.parse(e.target.result);
+      const arr = Array.isArray(d) ? d : [d];
+      if (!confirm('นำเข้าหนังสือ ' + arr.length + ' ฉบับ?')) return;
+      arr.forEach(x => docs._push({ id: 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 4), updatedAt: Date.now(), data: x }));
+      load(arr[0]);
+    } catch { alert('ไฟล์ไม่ถูกต้อง'); }
+    el.value = '';
+  };
+  r.readAsText(f);
+}
+
+/* ── ขนาดตอนพิมพ์ ── */
+let curScale = 100;
+function setScale(v) { curScale = +v || 100; $('paper').style.zoom = (curScale / 100); }
+window.addEventListener('beforeprint', () => { $('paper').style.zoom = (curScale / 100); });
+window.addEventListener('afterprint', () => { $('paper').style.zoom = (curScale / 100); });
+
+/* ── โฟลเดอร์สำรอง ── */
+function diskName(d) {
+  const no = (d.invNo || 'HANDOVER').trim();
+  const cu = (d.toCo || '').trim();
+  return ARCHIVE.safeName('HANDOVER-' + no + (cu ? '_' + cu : ''));
+}
+function docForDisk() { const d = collect(); return { base: diskName(d), data: d }; }
+
+/* ── init ── */
+(function () {
+  PROFILE.apply();
+  PROFILE.mountButton(document.querySelector('.toolbar'));
+  docs = DOCS.mount({
+    mountEl: $('docsMount'), key: 'quota_letters_v1', curKey: 'quota_letter_cur',
+    title: 'หนังสือส่งมอบ',
+    collect, load, blank: blankDoc,
+    summary: summaryOf,
+    searchText: rec => { const d = rec.data || {}; return [(d.invNo || ''), (d.toCo || ''), (d.prjName || '')].join(' '); },
+    archive: () => ARCHIVE.pick(docForDisk),
+    onSaved: rec => ARCHIVE.scheduleWrite(diskName(rec.data), rec.data)
+  });
+  ARCHIVE.init({ status: docs.panel.querySelector('.arc-st'), saved: docs.panel.querySelector('.arc-lasted') });
+  ARCHIVE.restore();
+  document.querySelectorAll('.ed').forEach(n => {
+    n.setAttribute('contenteditable', 'true');
+    n.addEventListener('blur', scheduleSave);
+  });
+  THAI.init(scheduleSave);
+  renderText();
+  document.addEventListener('profile:updated', () => { renderText(); scheduleSave(); });
+  GATE.init();
+})();
+</script>
+</body>
+</html>

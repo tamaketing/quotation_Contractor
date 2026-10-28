@@ -1,0 +1,108 @@
+/* ══════════════════════════════════════════════════════════════
+   app.css — สไตล์กลางที่ใช้ร่วมกันทุกหน้า
+   (ปฏิทิน พ.ศ. / หน้าต่างตั้งค่า / หน้าล็อกรหัสผ่าน / แผงจัดการเอกสาร)
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── ปฏิทินเลือกวันที่ (พ.ศ.) ── */
+.dpick{cursor:pointer;border-bottom:1px dashed #9ca3af;display:inline-block;min-width:66px;padding:0 2px}
+.dpick:hover{background:#fff7ed}
+.dpick::after{content:"▾";font-size:8px;color:#9ca3af;margin-left:3px;vertical-align:middle}
+#calPop{position:absolute;z-index:60;background:#fff;border:1px solid #9ca3af;border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:6px;font-family:inherit;font-size:11px;display:none;width:212px}
+#calPop.open{display:block}
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;gap:2px}
+.cal-head .t{font-weight:700;font-size:11.5px;color:#1a1f36}
+.cal-nav{display:flex;gap:1px}
+.cal-nav button{border:1px solid #d1d5db;background:#fff;color:#374151;cursor:pointer;font-family:inherit;font-size:10px;padding:1px 6px;line-height:1.4}
+.cal-nav button:hover{background:#f3f4f6}
+.cal-dow{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:9.5px;font-weight:700;color:#6b7280;padding:2px 0;border-bottom:1px solid #e5e7eb}
+.cal-dow span:nth-child(1){color:#dc2626}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;margin-top:2px}
+.cal-grid button{border:1px solid transparent;background:#fff;color:#000;font-family:inherit;font-size:11px;padding:3px 0;cursor:pointer;border-radius:4px;line-height:1.35}
+.cal-grid button:hover{background:#e0f2fe;border-color:#7dd3fc}
+.cal-grid button.pad{visibility:hidden}
+.cal-grid button.today{background:#fff7ed;border-color:#fdba74;font-weight:700}
+.cal-grid button.on{background:#2563eb;border-color:#2563eb;color:#fff;font-weight:700}
+.cal-foot{margin-top:5px;padding-top:4px;border-top:1px solid #e5e7eb;display:flex;gap:4px;justify-content:flex-end}
+.cal-foot button{border:1px solid #d1d5db;background:#fff;color:#374151;font-family:inherit;font-size:10px;padding:2px 8px;cursor:pointer;border-radius:4px}
+.cal-foot button:hover{background:#f3f4f6}
+@media print{#calPop,.dpick::after{display:none!important}}
+
+/* ── ปุ่ม/ช่องมาตรฐานของหน้าต่างตั้งค่า ── */
+.x-btn{appearance:none;border:1px solid #d1d5db;cursor:pointer;font-family:inherit;font-size:12px;font-weight:500;padding:6px 11px;border-radius:6px;background:#fff;color:#374151;transition:.12s}
+.x-btn:hover{background:#f3f4f6}
+.x-btn.pri{background:#c2410c;color:#fff;border-color:#c2410c}
+.x-btn.pri:hover{background:#9a3412}
+.x-btn.ok{background:#059669;color:#fff;border-color:#059669}
+.x-btn.ok:hover{background:#047857}
+.x-btn.danger{background:#dc2626;color:#fff;border-color:#dc2626}
+.x-btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* ── หน้าต่างตั้งค่า (Modal) ── */
+.x-overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:200;display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto}
+.x-overlay.open{display:flex}
+.x-modal{background:#fff;border-radius:10px;width:100%;max-width:560px;box-shadow:0 20px 50px rgba(0,0,0,.3);overflow:hidden}
+.x-modal.wide{max-width:760px}
+.x-modal-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid #e5e7eb;background:#f9fafb}
+.x-modal-hd h3{margin:0;font-size:15px;color:#1a1f36}
+.x-modal-hd .x-close{border:0;background:transparent;font-size:20px;line-height:1;cursor:pointer;color:#6b7280;padding:0 4px}
+.x-modal-hd .x-close:hover{color:#dc2626}
+.x-modal-bd{padding:18px;max-height:66vh;overflow:auto}
+.x-modal-ft{padding:12px 18px;border-top:1px solid #e5e7eb;background:#f9fafb;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.x-field{margin-bottom:12px}
+.x-field label{display:block;font-size:11.5px;font-weight:600;color:#374151;margin-bottom:3px}
+.x-field label .hint{font-weight:400;color:#9ca3af}
+.x-field input[type=text],.x-field input[type=tel],.x-field input[type=email],.x-field textarea,.x-field select{width:100%;border:1px solid #d1d5db;border-radius:6px;padding:7px 9px;font-family:inherit;font-size:13px;color:#000;background:#fff}
+.x-field textarea{resize:vertical;min-height:58px;line-height:1.5}
+.x-field input:focus,.x-field textarea:focus,.x-field select:focus{outline:0;border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.x-row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.x-logo-row{display:flex;gap:14px;align-items:center;padding:10px;border:1px dashed #d1d5db;border-radius:8px;background:#f9fafb}
+.x-logo-preview{width:96px;height:96px;flex-shrink:0;border:1px solid #e5e7eb;border-radius:6px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.x-logo-preview img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+.x-logo-preview .none{font-size:10px;color:#9ca3af;text-align:center}
+.x-logo-actions{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.x-note{font-size:11px;color:#6b7280;line-height:1.6;background:#f0f9ff;border-left:3px solid #7dd3fc;padding:8px 10px;border-radius:4px;margin-bottom:14px}
+@media (max-width:560px){.x-row2{grid-template-columns:1fr}}
+
+/* ── หน้าล็อกรหัสผ่าน ── */
+.gate{position:fixed;inset:0;background:linear-gradient(160deg,#1a1f36 0%,#2d3748 55%,#4a2c1a 100%);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px}
+.gate.hide{display:none}
+.gate-box{background:#fff;border-radius:12px;padding:30px 28px;width:100%;max-width:340px;box-shadow:0 24px 60px rgba(0,0,0,.4);text-align:center}
+.gate-box .g-icon{width:52px;height:52px;border-radius:12px;background:#c2410c;color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:24px}
+.gate-box h2{margin:0 0 4px;font-size:17px;color:#1a1f36}
+.gate-box p.sub{margin:0 0 18px;font-size:11.5px;color:#6b7280;line-height:1.6}
+.gate-box input{width:100%;border:1px solid #d1d5db;border-radius:7px;padding:10px 12px;font-family:inherit;font-size:14px;text-align:center;letter-spacing:2px;margin-bottom:10px}
+.gate-box input:focus{outline:0;border-color:#c2410c;box-shadow:0 0 0 3px rgba(194,65,12,.14)}
+.gate-box button{width:100%;border:0;background:#c2410c;color:#fff;font-family:inherit;font-size:13.5px;font-weight:600;padding:10px;border-radius:7px;cursor:pointer}
+.gate-box button:hover{background:#9a3412}
+.gate-err{min-height:18px;font-size:11.5px;color:#dc2626;margin-top:8px;font-weight:600}
+.gate-hint{font-size:10.5px;color:#9ca3af;margin-top:14px;line-height:1.6}
+
+/* ── แผงจัดการเอกสาร (รายการใบที่ทำไว้) ── */
+.docs{border-top:1px solid #e5e7eb;border-bottom:1px solid #e5e7eb;background:#f8fafc;padding:10px 14px;margin:0 0 12px}
+.docs.hide{display:none}
+.docs-hd{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.docs-hd b{font-size:12.5px;color:#1a1f36}
+.docs-hd .sp{margin-left:auto;display:flex;gap:5px;flex-wrap:wrap}
+.docs-search{flex:1;min-width:150px;border:1px solid #d1d5db;border-radius:6px;padding:5px 9px;font-family:inherit;font-size:12px}
+.docs-list{max-height:190px;overflow:auto;border:1px solid #e5e7eb;border-radius:7px;background:#fff}
+.docs-empty{padding:16px;text-align:center;font-size:11.5px;color:#9ca3af}
+.doc-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border-bottom:1px solid #f1f5f9;font-size:12px;cursor:pointer}
+.doc-row:last-child{border-bottom:0}
+.doc-row:hover{background:#f0f9ff}
+.doc-row.active{background:#fff7ed;box-shadow:inset 3px 0 0 #c2410c}
+.doc-row .d-info{flex:1;min-width:0}
+.doc-row .d-info b{display:block;font-size:12px;color:#111827;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.doc-row .d-info small{color:#6b7280;font-size:10.5px}
+.doc-row .d-amt{font-weight:700;font-size:12px;color:#111827;white-space:nowrap}
+.doc-row .d-act{display:flex;gap:4px;flex-shrink:0}
+.doc-row .d-act button{border:1px solid #d1d5db;background:#fff;border-radius:5px;font-size:10.5px;padding:3px 8px;cursor:pointer;font-family:inherit;color:#374151}
+.doc-row .d-act button:hover{background:#f3f4f6}
+.doc-row .d-act button.d:hover{background:#fef2f2;border-color:#fecaca;color:#dc2626}
+
+/* ── แถวโฟลเดอร์สำรอง ── */
+.arc{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:7px;font-size:11px;color:#6b7280}
+.arc .arc-st{flex:1;min-width:160px}
+.arc .arc-st b{color:#059669}
+.arc .arc-lasted{color:#9ca3af}
+@media (max-width:560px){.arc .arc-st{flex:1 1 100%;order:-1}}
+@media print{.docs,.docs-panel,.gate,.x-overlay{display:none!important}.wrap{display:none!important}}

@@ -1,0 +1,20 @@
+# ── ข้อมูลงานจริง / ไฟล์ส่วนตัว ห้ามขึ้น repo ──
+invoices/
+backup/
+*.pdf
+*.zip
+exports/
+
+# ── โลโก้จริง (ผู้ใช้อัปโหลดเองผ่านหน้าตั้งค่า) ──
+img/
+assets/logo*.png
+assets/logo*.jpg
+
+# ── ระบบ ──
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+node_modules/
+*.log

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ระบบเอกสารรับเหมา — ใบเสนอราคา / ใบแจ้งหนี้ / ใบเสร็จรับเงิน / หนังสือส่งมอบงาน</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="assets/app.css" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:"Sarabun",sans-serif;background:#eef2f7;color:#111827;min-height:100vh;padding:36px 20px;line-height:1.6}
+  .box{max-width:920px;margin:0 auto}
+  header{text-align:center;margin-bottom:26px}
+  header .mark{width:56px;height:56px;border-radius:14px;background:#c2410c;color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 12px}
+  header h1{margin:0 0 4px;font-size:23px;color:#1a1f36}
+  header p{margin:0;font-size:13px;color:#6b7280}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+  .card{display:block;text-decoration:none;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(15,23,42,.06);transition:.14s}
+  .card:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(15,23,42,.12);border-color:#c2410c}
+  .card .ic{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:10px;color:#fff}
+  .card h2{margin:0 0 4px;font-size:16px;color:#1a1f36}
+  .card p{margin:0;font-size:12.5px;color:#6b7280;line-height:1.6}
+  .card ul{margin:10px 0 0;padding-left:18px;font-size:11.5px;color:#6b7280;line-height:1.7}
+  .panel{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:18px 20px;margin-top:16px;box-shadow:0 1px 3px rgba(15,23,42,.05)}
+  .panel h3{margin:0 0 10px;font-size:14px;color:#1a1f36;display:flex;align-items:center;gap:7px}
+  .panel p,.panel li{font-size:12.5px;color:#4b5563;line-height:1.75}
+  .panel ul{margin:0;padding-left:19px}
+  .warn{background:#fffbeb;border-color:#fde68a}
+  .warn h3{color:#92400e}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  footer{text-align:center;margin-top:26px;font-size:11px;color:#9ca3af;line-height:1.8}
+</style>
+</head>
+<body>
+
+<div class="box">
+  <header>
+    <div class="mark">🏗️</div>
+    <h1>ระบบเอกสารรับเหมา</h1>
+    <p>ใบเสนอราคา · ใบแจ้งหนี้ · ใบเสร็จรับเงิน · หนังสือส่งมอบงานจ้าง</p>
+    <div id="pfBtn" class="row" style="justify-content:center;margin-top:16px"></div>
+  </header>
+
+  <div class="cards">
+    <a class="card" href="quotation.html">
+      <div class="ic" style="background:#c2410c">📝</div>
+      <h2>ใบเสนอราคา</h2>
+      <p>Quotation — แบ่งหมวดหมู่ คิดค่าวัสดุ/ค่าแรง พร้อมจำนวนเงินเป็นตัวหนังสือ</p>
+      <ul>
+        <li>เลขที่เอกสารนับต่อเอง</li>
+        <li>เก็บได้หลายใบ ค้นหา/ทำซ้ำ/ลบ</li>
+        <li>ส่งออกทั้งหมดเป็น ZIP แยกตามปี</li>
+      </ul>
+    </a>
+    <a class="card" href="invoice.html">
+      <div class="ic" style="background:#2563eb">🧾</div>
+      <h2>ใบแจ้งหนี้</h2>
+      <p>Invoice — VAT · หักประกัน · เงินล่วงหน้า · ภาษี ณ ที่จ่าย · ยอดสุทธิ</p>
+      <ul>
+        <li>เก็บได้หลายใบ ค้นหา/ทำซ้ำ/ลบ</li>
+        <li>เขียนไฟล์ลงโฟลเดอร์จริงแยกตามปี (OneDrive/Google Drive)</li>
+        <li>ส่งออกทั้งหมดเป็น ZIP</li>
+      </ul>
+    </a>
+    <a class="card" href="receipt.html">
+      <div class="ic" style="background:#0f766e">✅</div>
+      <h2>ใบเสร็จรับเงิน / ใบกำกับภาษี</h2>
+      <p>Receipt / Tax Invoice — รับชำระเงิน พร้อมภาษีและยอดเงินเป็นตัวหนังสือ</p>
+      <ul>
+        <li>นำเข้าข้อมูลจากใบแจ้งหนี้ได้</li>
+        <li>บันทึกวิธีชำระ ธนาคาร เช็ค และเลขอ้างอิง</li>
+        <li>เก็บได้หลายใบ พิมพ์ A4 พร้อมช่องลงนาม</li>
+      </ul>
+    </a>
+    <a class="card" href="delivery-letter.html">
+      <div class="ic" style="background:#059669">📄</div>
+      <h2>หนังสือส่งมอบงานจ้าง</h2>
+      <p>Delivery &amp; Payment Request Letter — ขอเบิกจ่ายเงินงวด</p>
+      <ul>
+        <li>นำเข้าข้อมูลจากไฟล์ใบแจ้งหนี้ได้</li>
+        <li>ยอดเงินและตัวเลขไทยคำนวณให้อัตโนมัติ</li>
+        <li>เก็บได้หลายฉบับ</li>
+      </ul>
+    </a>
+  </div>
+
+  <div class="panel">
+    <h3>⚙ ข้อมูลบริษัท</h3>
+    <p id="coSummary" style="margin:0 0 8px;padding:8px 12px;border-radius:8px;background:#f8fafc;border:1px solid #e2e8f0;font-size:12.5px;color:#334155"></p>
+    <p>กดปุ่ม <b>“⚙ ข้อมูลบริษัท”</b> ด้านบน หรือในหน้าเอกสารใดก็ได้ (ใบเสนอราคา / ใบแจ้งหนี้ / ใบเสร็จรับเงิน / หนังสือส่งมอบงาน)<br>
+      กรอกชื่อบริษัท ที่อยู่ เลขประจำตัวผู้เสียภาษี สาขา โทร อีเมล ชื่อผู้เสนอราคา บัญชีธนาคาร และอัปโหลดโลโก้ — <b>ตั้งค่าที่เดียว ใช้ได้กับทุกเอกสารอัตโนมัติ</b><br>
+      ย้ายเครื่องหรือใช้หลายเครื่อง → กด <b>“ส่งออก (.json)”</b> แล้วนำไปกด <b>“นำเข้า”</b> ที่เครื่องปลายทาง</p>
+  </div>
+
+  <div class="panel warn">
+    <h3>⚠️ ข้อควรระวังเรื่องข้อมูล</h3>
+    <ul>
+      <li>เอกสารทั้งหมดถูกเก็บไว้ใน <b>เบราว์เซอร์ของเครื่องนี้</b> ไม่ได้ส่งขึ้นเซิร์ฟเวอร์</li>
+      <li>ถ้าล้างข้อมูลเว็บ หรือใช้หมดแบบไม่ระบุตัวตน (Incognito) เอกสารจะหาย — <b>ต้องกด Export เก็บไว้เป็นระยะ</b></li>
+      <li>แนะนำให้เก็บไฟล์ .json ไว้ใน OneDrive / Google Drive เป็นประจำ</li>
+      <li>ห้ามเปิดจากเครื่องสาธารณะหรือคอมพิวเตอร์ร่วม ถ้ามีข้อมูลงานจริงอยู่</li>
+    </ul>
+  </div>
+
+  <div class="panel">
+    <h3>🖨️ บันทึกเป็น PDF</h3>
+    <p>กดปุ่ม <b>“พิมพ์ / PDF”</b> แล้วเลือก <b>เครื่องพิมพ์ → บันทึกเป็น PDF</b> (หรือเลือกปลายทางเป็น “Save as PDF”)<br>
+      ตั้งขอบกระดาษเป็น <b>A4 · ไม่มีหัวกระดาษ/ท้ายกระดาษ · ขอบ 0</b> · เปิด “พื้นหลังกราฟิก” ไว้เพื่อให้สีช่องตารางออกมา</p>
+    <div class="row">
+      <a class="x-btn" href="quotation.html">ไปที่ใบเสนอราคา →</a>
+      <a class="x-btn" href="invoice.html">ไปที่ใบแจ้งหนี้ →</a>
+      <a class="x-btn" href="receipt.html">ไปที่ใบเสร็จรับเงิน →</a>
+      <a class="x-btn" href="delivery-letter.html">ไปที่หนังสือส่งมอบ →</a>
+    </div>
+  </div>
+
+  <footer>
+    เอกสารทั้งหมดพร้อมพิมพ์ออก A4 · ใช้งานฟรี<br>
+    <span id="ver"></span>
+  </footer>
+</div>
+
+<script src="assets/gate.js"></script>
+<script src="assets/profile.js"></script>
+<script>
+PROFILE.apply();
+PROFILE.mountButton(document.getElementById('pfBtn'));
+function renderCoSummary() {
+  const p = PROFILE.get();
+  const el = document.getElementById('coSummary');
+  if (!el) return;
+  if (p.coName && p.coName.trim()) {
+    const parts = ['<b>' + p.coName.replace(/</g, '&lt;') + '</b>'];
+    if (p.coTax) parts.push('เลขผู้เสียภาษี: ' + p.coTax.replace(/</g, '&lt;'));
+    if (p.coBranch) parts.push('สาขา: ' + p.coBranch.replace(/</g, '&lt;'));
+    if (p.coPhone) parts.push('โทร: ' + p.coPhone.replace(/</g, '&lt;'));
+    el.innerHTML = '✅ ตั้งค่าแล้ว — ' + parts.join(' · ');
+  } else {
+    el.innerHTML = 'ℹ️ ยังไม่ได้ตั้งค่าข้อมูลบริษัท — กดปุ่ม <b>“⚙ ข้อมูลบริษัท”</b> ด้านบนเพื่อตั้งค่าครั้งเดียวสำหรับทุกเอกสาร';
+  }
+}
+renderCoSummary();
+document.addEventListener('profile:updated', renderCoSummary);
+document.getElementById('ver').textContent = 'เวอร์ชัน 4.0';
+GATE.init();
+</script>
+</body>
+</html>
