@@ -13,4 +13,4 @@
   X-Frame-Options: SAMEORIGIN
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(), microphone=(), camera=()
-  X-Robots-Tag: noindex, nofollow
+  X-Robots-Tag: index, follow  # ← เปลี่ยนจาก noindex, nofollow เป็น index, follow

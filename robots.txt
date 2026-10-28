@@ -1,2 +1,12 @@
 User-agent: *
-Disallow: /
+Allow: /
+Sitemap: https://quotation-contractor.pages.dev/sitemap.xml
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
