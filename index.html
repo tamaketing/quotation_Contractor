@@ -34,7 +34,28 @@
 </head>
 <body>
 
-<div class="box">
+<div id="authPanel" style="max-width:420px;margin:60px auto;background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:28px;box-shadow:0 4px 16px rgba(0,0,0,.08)">
+  <h2 style="margin:0 0 6px;font-size:20px;color:#1a1f36;text-align:center">🔐 เข้าสู่ระบบ</h2>
+  <p style="margin:0 0 18px;font-size:12.5px;color:#6b7280;text-align:center">บริการเอกสารรับเหมา (Cloud) — ข้อมูลแยกตามบริษัท</p>
+  <div id="authTabs" style="display:flex;gap:8px;margin-bottom:14px">
+    <button id="tabLogin" class="x-btn" style="flex:1;background:#c2410c;color:#fff;border-color:#c2410c">เข้าสู่ระบบ</button>
+    <button id="tabReg" class="x-btn" style="flex:1">สมัครสมาชิก</button>
+  </div>
+  <div id="loginForm">
+    <input id="lEmail" type="email" placeholder="อีเมล" style="width:100%;padding:10px;margin-bottom:8px;border:1px solid #d1d5db;border-radius:8px;font-family:inherit">
+    <input id="lPwd" type="password" placeholder="รหัสผ่าน" style="width:100%;padding:10px;margin-bottom:12px;border:1px solid #d1d5db;border-radius:8px;font-family:inherit">
+    <button id="lBtn" class="x-btn" style="width:100%;background:#c2410c;color:#fff;border-color:#c2410c">เข้าสู่ระบบ</button>
+  </div>
+  <div id="regForm" style="display:none">
+    <input id="rCompany" placeholder="ชื่อบริษัท" style="width:100%;padding:10px;margin-bottom:8px;border:1px solid #d1d5db;border-radius:8px;font-family:inherit">
+    <input id="rEmail" type="email" placeholder="อีเมล" style="width:100%;padding:10px;margin-bottom:8px;border:1px solid #d1d5db;border-radius:8px;font-family:inherit">
+    <input id="rPwd" type="password" placeholder="รหัสผ่าน (≥6 ตัว)" style="width:100%;padding:10px;margin-bottom:12px;border:1px solid #d1d5db;border-radius:8px;font-family:inherit">
+    <button id="rBtn" class="x-btn" style="width:100%;background:#2563eb;color:#fff;border-color:#2563eb">สมัครสมาชิก</button>
+  </div>
+  <p id="authMsg" style="margin-top:10px;font-size:12.5px;color:#dc2626;text-align:center;display:none"></p>
+</div>
+
+<div class="box" id="appBox" style="display:none">
   <header>
     <div class="mark">🏗️</div>
     <h1>ระบบเอกสารรับเหมา</h1>
@@ -139,6 +160,7 @@
   </footer>
 </div>
 
+<script src="assets/api.js"></script>
 <script src="assets/gate.js"></script>
 <script src="assets/profile.js"></script>
 <script>
@@ -199,8 +221,94 @@ if (resetBtn) {
   });
 }
 
-document.getElementById('ver').textContent = 'เวอร์ชัน 4.0';
-GATE.init();
+document.getElementById('ver').textContent = 'เวอร์ชัน 4.0 (Cloud)';
+
+// --- Auth flow ---
+const authPanel = document.getElementById('authPanel');
+const appBox = document.getElementById('appBox');
+const authMsg = document.getElementById('authMsg');
+function showAuth(msg) {
+  if (authPanel) authPanel.style.display = '';
+  if (appBox) appBox.style.display = 'none';
+  if (msg && authMsg) { authMsg.style.display = ''; authMsg.textContent = msg; }
+}
+function showApp() {
+  if (authPanel) authPanel.style.display = 'none';
+  if (appBox) appBox.style.display = '';
+  if (authMsg) authMsg.style.display = 'none';
+}
+
+// tabs
+const tabLogin = document.getElementById('tabLogin');
+const tabReg = document.getElementById('tabReg');
+if (tabLogin && tabReg) {
+  tabLogin.addEventListener('click', () => {
+    document.getElementById('loginForm').style.display = '';
+    document.getElementById('regForm').style.display = 'none';
+    tabLogin.style.background = '#c2410c'; tabLogin.style.color = '#fff'; tabLogin.style.borderColor = '#c2410c';
+    tabReg.style.background = ''; tabReg.style.color = ''; tabReg.style.borderColor = '';
+  });
+  tabReg.addEventListener('click', () => {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('regForm').style.display = '';
+    tabReg.style.background = '#2563eb'; tabReg.style.color = '#fff'; tabReg.style.borderColor = '#2563eb';
+    tabLogin.style.background = ''; tabLogin.style.color = ''; tabLogin.style.borderColor = '';
+  });
+}
+
+async function tryLogin() {
+  const email = document.getElementById('lEmail').value.trim();
+  const password = document.getElementById('lPwd').value;
+  try {
+    const res = await API.login(email, password);
+    API.setToken(res.token); API.setUser(res.user);
+    await afterLogin();
+  } catch (e) { showAuth(e.message); }
+}
+async function tryRegister() {
+  const companyName = document.getElementById('rCompany').value.trim();
+  const email = document.getElementById('rEmail').value.trim();
+  const password = document.getElementById('rPwd').value;
+  try {
+    const res = await API.register(email, password, companyName);
+    API.setToken(res.token); API.setUser(res.user);
+    await afterLogin();
+  } catch (e) { showAuth(e.message); }
+}
+document.getElementById('lBtn').addEventListener('click', tryLogin);
+document.getElementById('rBtn').addEventListener('click', tryRegister);
+
+async function afterLogin() {
+  showApp();
+  // load profile from backend into PROFILE if available
+  try {
+    const p = await API.getProfile();
+    if (p && p.company) {
+      const c = p.company;
+      if (typeof PROFILE !== 'undefined' && PROFILE.set) {
+        PROFILE.set({
+          coName: c.name || '', coNameEn: c.name_en || '', coBranch: c.branch || '',
+          coTax: c.tax_id || '', coAddr: c.address || '', coPhone: c.phone || '',
+          coEmail: c.email || '', bankInfo: c.bank_info || ''
+        });
+      }
+      renderCoSummary();
+    }
+  } catch (e) { /* ignore */ }
+}
+
+// boot
+if (API.isLoggedIn()) {
+  afterLogin();
+} else {
+  showAuth();
+}
+
+if (typeof GATE !== 'undefined' && !API.isLoggedIn()) {
+  // keep gate only as extra; auth panel is primary
+}
+// Do not block auth flow with legacy gate on this page
+// GATE.init();
 </script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 # ── ข้อมูลงานจริง / ไฟล์ส่วนตัว ห้ามขึ้น repo ──
-invoices/
-backup/
+/invoices/
+/backup/
 *.pdf
 *.zip
 exports/

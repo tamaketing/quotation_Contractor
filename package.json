@@ -1,0 +1,24 @@
+{
+  "name": "app-quotation",
+  "version": "1.0.0",
+  "description": "เครื่องมือทำเอกสารชุดนี้สำหรับผู้รับเหมาก่อสร้าง ใช้ผ่านเว็บเบราว์เซอร์ ไม่ต้องติดตั้งโปรแกรม ข้อมูลทั้งหมดถูกเก็บไว้ในเครื่องของผู้ใช้เอง ไม่ถูกส่งขึ้นเซิร์ฟเวอร์ใดๆ",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tamaketing/quotation_Contractor.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/tamaketing/quotation_Contractor/issues"
+  },
+  "homepage": "https://github.com/tamaketing/quotation_Contractor#readme",
+  "devDependencies": {
+    "wrangler": "^4.154.0"
+  }
+}
