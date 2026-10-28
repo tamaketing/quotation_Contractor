@@ -3,6 +3,10 @@
 คู่มือนี้สำหรับโปรเจกต์ `app-quotation` ซึ่งเป็นเว็บ static ล้วน
 (HTML + CSS + JS ไม่มี build step และไม่มีเซิร์ฟเวอร์)
 
+> **สถานะปัจจุบัน:** โค้ดถูก push ขึ้น GitHub แล้วที่
+> [github.com/tamaketing/quotation_Contractor](https://github.com/tamaketing/quotation_Contractor)
+> branch `main` — เหลือขั้นตอน Cloudflare Pages ด้านล่าง
+
 ---
 
 ## 0. ก่อนเริ่ม
@@ -20,6 +24,9 @@
 
 ## 1. ขึ้น GitHub
 
+> ถ้าใช้ repo [tamaketing/quotation_Contractor](https://github.com/tamaketing/quotation_Contractor)
+> ที่ push ไว้แล้ว ข้ามขั้นนี้ไปข้อ 2 ได้เลย
+
 เปิด PowerShell ที่โฟลเดอร์โปรเจกต์
 
 ```powershell
@@ -36,14 +43,14 @@ git commit -m "Initial commit: quotation / invoice / receipt / delivery letter"
 
 ```powershell
 gh auth login
-gh repo create app-quotation --private --source=. --remote=origin --push
+gh repo create quotation_Contractor --private --source=. --remote=origin --push
 ```
 
-ถ้าไม่มี GitHub CLI ให้สร้าง repo เปล่าบนเว็บ GitHub ชื่อ `app-quotation` (เลือก **Private**)
+ถ้าไม่มี GitHub CLI ให้สร้าง repo เปล่าบนเว็บ GitHub ชื่อ `quotation_Contractor` (เลือก **Private**)
 แล้วรัน
 
 ```powershell
-git remote add origin https://github.com/<ชื่อผู้ใช้>/app-quotation.git
+git remote add origin https://github.com/<ชื่อผู้ใช้>/quotation_Contractor.git
 git branch -M main
 git push -u origin main
 ```
@@ -57,12 +64,12 @@ git push -u origin main
 
 1. เข้า [Cloudflare Dashboard](https://dash.cloudflare.com/)
 2. ไปที่ **Workers & Pages** → **Create application** → **Pages** → **Connect to Git**
-3. เชื่อมต่อ GitHub และเลือก repo `app-quotation`
+3. เชื่อมต่อ GitHub และเลือก repo `quotation_Contractor`
 4. ตั้งค่าตามนี้
 
 | ช่อง | ค่า |
 |---|---|
-| Project name | `app-quotation` (หรือชื่อที่ต้องการ) |
+| Project name | `quotation-contractor` (หรือชื่อที่ยังไม่ถูกใช้) |
 | Production branch | `main` |
 | Framework preset | **None** |
 | Build command | `exit 0` |
@@ -70,7 +77,7 @@ git push -u origin main
 | Environment variables | ไม่ต้องใส่ |
 
 5. กด **Save and deploy**
-6. รอ build เสร็จ จะได้ URL ประมาณ `https://app-quotation.pages.dev`
+6. รอ build เสร็จ จะได้ URL ประมาณ `https://quotation-contractor.pages.dev`
 
 > **ตั้งชื่อ project ให้เสร็จก่อนใช้งานจริง** เพราะ URL จะติดไปกับ `localStorage`
 > ถ้าเปลี่ยนชื่อ project ภายหลัง ข้อมูลเดิมจะไม่ปรากฏ (ต้อง export/import)
@@ -97,7 +104,7 @@ git push -u origin main
 ตรวจ header ได้ด้วย PowerShell
 
 ```powershell
-curl.exe -I https://app-quotation.pages.dev/index.html
+curl.exe -I https://quotation-contractor.pages.dev/index.html
 ```
 
 ควรเห็น `cache-control: no-store` และ `x-robots-tag: noindex, nofollow`
