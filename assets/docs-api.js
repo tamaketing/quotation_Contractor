@@ -75,8 +75,10 @@ const DOCS = (function () {
           list = list.filter(x=>x.id!==curId); list.unshift(rec);
         }
         if (typeof opt.onSaved === 'function') opt.onSaved(rec);
+        try { window.dispatchEvent(new CustomEvent('doc:saved', { detail: { ok: true } })); } catch (e) {}
       } catch (e) {
         console.error('save failed', e);
+        try { window.dispatchEvent(new CustomEvent('doc:saved', { detail: { ok: false, msg: e.message } })); } catch (e2) {}
         if (!silent) alert('บันทึกไม่สำเร็จ: ' + e.message);
       }
       render();

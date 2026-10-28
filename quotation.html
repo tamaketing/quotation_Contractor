@@ -503,6 +503,21 @@ function docForDisk(){const d=collect();return{base:diskName(d),data:d};}
   PROFILE.apply();
   PROFILE.mountButton(document.querySelector('.toolbar'));
 
+  /* Toast แจ้งสถานะบันทึก */
+  const toast = document.createElement('div');
+  toast.id = 'saveToast';
+  toast.style.cssText = 'position:fixed;bottom:20px;right:20px;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;color:#fff;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9999;';
+  document.body.appendChild(toast);
+  let toastTimer = null;
+  window.addEventListener('doc:saved', e => {
+    const ok = e.detail && e.detail.ok;
+    toast.textContent = ok ? '✅ บันทึกแล้ว' : ('❌ บันทึกไม่สำเร็จ: ' + (e.detail && e.detail.msg || ''));
+    toast.style.background = ok ? '#059669' : '#dc2626';
+    toast.style.opacity = '1';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { toast.style.opacity = '0'; }, 2000);
+  });
+
   // Load profile from Cloud
   API.getProfile().then(p => {
     if (p && p.company) {
