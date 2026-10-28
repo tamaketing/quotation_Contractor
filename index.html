@@ -93,13 +93,21 @@
       ย้ายเครื่องหรือใช้หลายเครื่อง → กด <b>“ส่งออก (.json)”</b> แล้วนำไปกด <b>“นำเข้า”</b> ที่เครื่องปลายทาง</p>
   </div>
 
+  <div class="panel" id="pwdWarnPanel" style="background:#fef2f2;border-color:#fecaca;display:none">
+    <h3 style="color:#991b1b">🔐 ยังใช้รหัสผ่านเริ่มต้นอยู่</h3>
+    <p style="color:#7f1d1d">เว็บนี้เป็นบริการสาธารณะ — รหัสผ่านเริ่มต้น <b>primecess2569</b> เป็นที่รู้จักของทุกคน  
+    กรุณาเปลี่ยนรหัสผ่านทันทีผ่านปุ่ม <b>“⚙ ข้อมูลบริษัท”</b> → เปลี่ยนรหัสผ่าน (ต้องมีอย่างน้อย 4 ตัวอักษร)  
+    มิฉะนั้นข้อมูลบริษัทของคุณอาจถูกเข้าถึงโดยผู้อื่น</p>
+  </div>
+
   <div class="panel warn">
     <h3>⚠️ ข้อควรระวังเรื่องข้อมูล</h3>
     <ul>
       <li>เอกสารทั้งหมดถูกเก็บไว้ใน <b>เบราว์เซอร์ของเครื่องนี้</b> ไม่ได้ส่งขึ้นเซิร์ฟเวอร์</li>
       <li>ถ้าล้างข้อมูลเว็บ หรือใช้หมดแบบไม่ระบุตัวตน (Incognito) เอกสารจะหาย — <b>ต้องกด Export เก็บไว้เป็นระยะ</b></li>
       <li>แนะนำให้เก็บไฟล์ .json ไว้ใน OneDrive / Google Drive เป็นประจำ</li>
-      <li>ห้ามเปิดจากเครื่องสาธารณะหรือคอมพิวเตอร์ร่วม ถ้ามีข้อมูลงานจริงอยู่</li>
+      <li>ห้ามเปิดจากเครื่องสาธารณะหรือคอมพิวเตอร์ร่วม ถ้ามีข้อมูลงานจริงอยู่ — หากจำเป็นให้ใช้ปุ่ม “ล้างข้อมูลทั้งหมด” ก่อนออก</li>
+    <li>รหัสผ่าน gate เป็นรหัสร่วมของเครื่องนี้เท่านั้น — เปลี่ยนทันทีถ้ายังใช้ค่าเริ่มต้น</li>
     </ul>
   </div>
 
@@ -113,6 +121,16 @@
       <a class="x-btn" href="receipt.html">ไปที่ใบเสร็จรับเงิน →</a>
       <a class="x-btn" href="delivery-letter.html">ไปที่หนังสือส่งมอบ →</a>
     </div>
+  </div>
+
+  <div class="panel" style="background:#fff;border-color:#fecaca">
+    <h3 style="color:#991b1b">🗑️ ล้างข้อมูลทั้งหมดในเครื่องนี้</h3>
+    <p>สำหรับคอมพิวเตอร์สาธารณะ/เครื่องร่วม — กดปุ่มนี้เพื่อลบเอกสาร, ข้อมูลบริษัท, รหัสผ่าน และประวัติทั้งหมดออกจากเบราว์เซอร์นี้  
+    <b>กู้คืนไม่ได้</b> (แนะนำ Export เก็บไว้ก่อน)</p>
+    <div class="row">
+      <button id="resetAllBtn" class="x-btn" style="background:#dc2626;color:#fff;border-color:#dc2626">ล้างข้อมูลทั้งหมด</button>
+    </div>
+    <p id="resetMsg" style="margin-top:8px;font-size:12px;color:#6b7280;display:none"></p>
   </div>
 
   <footer>
@@ -142,6 +160,38 @@ function renderCoSummary() {
 }
 renderCoSummary();
 document.addEventListener('profile:updated', renderCoSummary);
+
+/* แจ้งเตือนถ้ายังใช้รหัสผ่านเริ่มต้น */
+try {
+  if (localStorage.getItem('quota_gate_is_default') === '1') {
+    const pw = document.getElementById('pwdWarnPanel');
+    if (pw) pw.style.display = '';
+  }
+} catch (e) {}
+
+/* ล้างข้อมูลทั้งหมด */
+const resetBtn = document.getElementById('resetAllBtn');
+if (resetBtn) {
+  resetBtn.addEventListener('click', async () => {
+    if (!confirm('ยืนยันล้างข้อมูลทั้งหมดในเครื่องนี้?\\nเอกสาร/ข้อมูลบริษัท/รหัสผ่านจะหายและกู้คืนไม่ได้')) return;
+    try {
+      const keys = Object.keys(localStorage);
+      keys.forEach(k => {
+        if (k.startsWith('quota_') || k.startsWith('constr_') || k.startsWith('docnum_')) localStorage.removeItem(k);
+      });
+      sessionStorage.clear();
+      if (window.indexedDB && indexedDB.deleteDatabase) {
+        try { indexedDB.deleteDatabase('quota_archive_db'); } catch (e) {}
+      }
+      const msg = document.getElementById('resetMsg');
+      if (msg) { msg.style.display = ''; msg.textContent = 'ล้างข้อมูลเรียบร้อยแล้ว — กำลังโหลดหน้าใหม่'; }
+      setTimeout(() => location.reload(), 900);
+    } catch (e) {
+      alert('เกิดข้อผิดพลาด: ' + e.message);
+    }
+  });
+}
+
 document.getElementById('ver').textContent = 'เวอร์ชัน 4.0';
 GATE.init();
 </script>

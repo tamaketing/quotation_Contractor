@@ -41,6 +41,7 @@ const GATE = (function () {
     if (!h) {
       h = await hash(DEFAULT_PASSWORD);
       localStorage.setItem(HKEY, h);
+      localStorage.setItem('quota_gate_is_default', '1');
     }
     return h;
   }
@@ -102,6 +103,7 @@ const GATE = (function () {
     const h = await ensureHash();
     if ((await hash(oldPwd || '')) !== h) return { ok: false, msg: 'รหัสผ่านเดิมไม่ถูกต้อง' };
     localStorage.setItem(HKEY, await hash(newPwd));
+    localStorage.removeItem('quota_gate_is_default');
     return { ok: true, msg: 'เปลี่ยนรหัสผ่านเรียบร้อยแล้ว' };
   }
 
