@@ -198,3 +198,25 @@ npx wrangler pages deploy . --project-name app-quotation
 | ฟอนต์หรือ JSZip ไม่โหลด | ต้องต่ออินเทอร์เน็ต (โหลดจาก Google Fonts / jsDelivr) |
 | เลขที่เอกสารเริ่มไม่ตรง | Export ข้อมูลเดิมมาดู แล้วอย่าลบ `docnum_v1_*` ใน localStorage |
 | ขึ้น Too many redirects | ตั้ง SSL/TLS เป็น Full (strict) ไม่ใช่ Flexible |
+
+---
+
+## Backend (D1 + Pages Functions) — ตั้งค่าครั้งแรก
+
+1. ล็อกอิน https://dash.cloudflare.com/ (Google SSO)
+2. ไปที่ **Workers & Pages → D1 → Create database** → ตั้งชื่อ `quotation_db` → Create
+3. เปิด database ที่สร้าง → แท็บ **Console** → วางเนื้อหาไฟล์ `schema.sql` → Execute
+4. ไปที่ **Workers & Pages → quotation-contractor → Settings → Functions → D1 database bindings** → Add binding:
+   - Variable name: `DB`
+   - D1 database: `quotation_db`
+   - Save
+5. (แนะนำ) **Settings → Environment variables** → Add `JWT_SECRET` = ค่าสุ่มยาว → Save
+6. Redeploy (Push commit ใหม่ หรือกด Retry deployment)
+
+ทดสอบ:
+- เปิด https://quotation-contractor.pages.dev → หน้า Login/สมัครสมาชิก
+- สมัครสมาชิก → เข้าสู่ระบบ → โหลดโปรไฟล์บริษัทจาก D1
+
+หมายเหตุ:
+- หน้าเอกสาร (quotation/invoice/receipt/delivery-letter) ยังใช้ localStorage เป็นหลักในเวอร์ชันนี้
+- API endpoints: `/api/auth/register`, `/api/auth/login`, `/api/profile`, `/api/quotations`, `/api/invoices`, `/api/receipts`, `/api/delivery-letters`, `/api/docnum/next`
