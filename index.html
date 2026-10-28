@@ -170,7 +170,7 @@ function showPwdWarnIfNeeded() {
     }
   } catch (e) {}
 }
-if (window.GATE && typeof GATE.ensureHash === 'function') {
+if (typeof GATE !== 'undefined' && typeof GATE.ensureHash === 'function') {
   GATE.ensureHash().then(showPwdWarnIfNeeded).catch(() => {});
 } else {
   showPwdWarnIfNeeded();
