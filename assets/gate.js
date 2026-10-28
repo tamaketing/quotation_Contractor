@@ -42,6 +42,11 @@ const GATE = (function () {
       h = await hash(DEFAULT_PASSWORD);
       localStorage.setItem(HKEY, h);
       localStorage.setItem('quota_gate_is_default', '1');
+    } else {
+      /* ตรวจว่ายังใช้รหัสผ่านเริ่มต้นอยู่หรือไม่ (รองรับข้อมูลเก่า) */
+      const def = await hash(DEFAULT_PASSWORD);
+      if (h === def) localStorage.setItem('quota_gate_is_default', '1');
+      else localStorage.removeItem('quota_gate_is_default');
     }
     return h;
   }
@@ -113,5 +118,5 @@ const GATE = (function () {
     sessionStorage.removeItem(UKEY);
   }
 
-  return { init, changePassword, resetToDefault, DEFAULT_PASSWORD };
+  return { init, ensureHash, changePassword, resetToDefault, DEFAULT_PASSWORD };
 })();

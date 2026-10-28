@@ -161,13 +161,20 @@ function renderCoSummary() {
 renderCoSummary();
 document.addEventListener('profile:updated', renderCoSummary);
 
-/* แจ้งเตือนถ้ายังใช้รหัสผ่านเริ่มต้น */
-try {
-  if (localStorage.getItem('quota_gate_is_default') === '1') {
-    const pw = document.getElementById('pwdWarnPanel');
-    if (pw) pw.style.display = '';
-  }
-} catch (e) {}
+/* แจ้งเตือนถ้ายังใช้รหัสผ่านเริ่มต้น (ตรวจ hash จริง) */
+function showPwdWarnIfNeeded() {
+  try {
+    if (localStorage.getItem('quota_gate_is_default') === '1') {
+      const pw = document.getElementById('pwdWarnPanel');
+      if (pw) pw.style.display = '';
+    }
+  } catch (e) {}
+}
+if (window.GATE && typeof GATE.ensureHash === 'function') {
+  GATE.ensureHash().then(showPwdWarnIfNeeded).catch(() => {});
+} else {
+  showPwdWarnIfNeeded();
+}
 
 /* ล้างข้อมูลทั้งหมด */
 const resetBtn = document.getElementById('resetAllBtn');
