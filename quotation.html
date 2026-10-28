@@ -458,11 +458,13 @@ function importJSON(el){
 async function nextQuoteNo(){
   try {
     const t = THAI.todayParts();
-    const r = await API.nextDocNo('PCC', String(t.y));
+    const beYear = String(THAI.BE + t.y);
+    const r = await API.nextDocNo('PCC', beYear);
     return r.number;
   } catch (e) {
     console.error(e);
-    return 'PCC-' + String(THAI.todayParts().y) + '-001';
+    const t = THAI.todayParts();
+    return 'PCC-' + String(THAI.BE + t.y) + '-001';
   }
 }
 async function blankDoc(){
