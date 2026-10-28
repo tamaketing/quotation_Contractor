@@ -7,9 +7,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link href="assets/app.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="assets/api.js"></script>
 <script src="assets/thai.js"></script>
 <script src="assets/docnum.js"></script>
-<script src="assets/gate.js"></script>
 <script src="assets/profile.js"></script>
 <script src="assets/archive.js"></script>
 <style>
@@ -518,12 +518,12 @@ function load(o){
 function sanitize(s){return(s||'').replace(/[\\/:*?"<>|]/g,'_').replace(/\s+/g,' ').trim().slice(0,80)||'untitled'}
 
 /* ═══════ PERSISTENCE ═══════ */
-function loadFromStorage(){try{const raw=localStorage.getItem(KEY_V2);if(raw){const p=JSON.parse(raw);if(Array.isArray(p))invoices=p;}currentId=localStorage.getItem(KEY_CUR);if(invoices.length===0){const old=localStorage.getItem(KEY);if(old){try{const o=JSON.parse(old);const id='inv_'+Date.now().toString(36);invoices=[{id,updatedAt:Date.now(),data:o}];currentId=id;persist();}catch{}}}if(currentId&&!invoices.find(x=>x.id===currentId))currentId=invoices[0]?.id||null;if(!currentId&&invoices.length)currentId=invoices[0].id;}catch(e){console.error(e)}}
-function persist(){localStorage.setItem(KEY_V2,JSON.stringify(invoices));if(currentId)localStorage.setItem(KEY_CUR,currentId);const cur=invoices.find(x=>x.id===currentId);if(cur)localStorage.setItem(KEY,JSON.stringify(cur.data));renderList();document.getElementById('invCount').textContent=invoices.length;document.getElementById('totalInvoices').textContent=invoices.length+' invoices';}
+async function loadInvoices(){try{const res=await API.listDocs('invoices');invoices=(res.items||[]).map(r=>({id:r.id,updatedAt:r.updatedAt?new Date(r.updatedAt).getTime():Date.now(),data:r}));if(!currentId&&invoices.length)currentId=invoices[0].id;}catch(e){console.error(e);invoices=[];}renderList();document.getElementById('invCount').textContent=invoices.length;document.getElementById('totalInvoices').textContent=invoices.length+' invoices';}
+function persist(){renderList();document.getElementById('invCount').textContent=invoices.length;document.getElementById('totalInvoices').textContent=invoices.length+' invoices';}
 function getCurrent(){return invoices.find(x=>x.id===currentId)||null}
 
 async function saveToDisk(data){return ARCHIVE.write(diskName(data),data)}
-async function saveCurrent(data){const now=Date.now();let rec=getCurrent();if(!rec){const id='inv_'+now.toString(36)+Math.random().toString(36).slice(2,5);rec={id,updatedAt:now,data};invoices.unshift(rec);currentId=id;}else{rec.data=data;rec.updatedAt=now;invoices=invoices.filter(x=>x.id!==currentId);invoices.unshift(rec);}persist();const disk=await saveToDisk(data);const st=document.getElementById('saveStatus');const ls=document.getElementById('lastSaved');const t=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});if(disk){st.innerHTML='<b style="color:#059669">Saved</b>';ls.textContent=disk+' • '+t;}else if(ARCHIVE.has()){st.innerHTML='<b style="color:#059669">Saved</b>';ls.textContent=t;}else{st.innerHTML='<b style="color:#6b7280">Saved (local)</b>';ls.textContent='• '+t;}}
+async function saveCurrent(data){const now=Date.now();let rec=getCurrent();try{if(!rec){const r=await API.createDoc('invoices',{docNo:data.invNo||'',data});const id=r.id;rec={id,updatedAt:now,data};invoices.unshift(rec);currentId=id;}else{await API.updateDoc('invoices',rec.id,{docNo:data.invNo||'',data});rec.data=data;rec.updatedAt=now;invoices=invoices.filter(x=>x.id!==currentId);invoices.unshift(rec);}persist();window.dispatchEvent(new CustomEvent('doc:saved',{detail:{ok:true}}));}catch(e){console.error(e);window.dispatchEvent(new CustomEvent('doc:saved',{detail:{ok:false,msg:e.message}}));}const disk=await saveToDisk(data);const st=document.getElementById('saveStatus');const ls=document.getElementById('lastSaved');const t=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});if(disk){st.innerHTML='<b style="color:#059669">Saved</b>';ls.textContent=disk+' • '+t;}else if(ARCHIVE.has()){st.innerHTML='<b style="color:#059669">Saved</b>';ls.textContent=t;}else{st.innerHTML='<b style="color:#6b7280">Saved (local)</b>';ls.textContent='• '+t;}}
 function scheduleAutoSave(){clearTimeout(saveTimer);document.getElementById('saveStatus').innerHTML='<b style="color:#d97706">Editing...</b>';saveTimer=setTimeout(async()=>{await saveCurrent(collect())},900)}
 function updateDirStatus(){ARCHIVE.setStatus()}
 
@@ -532,37 +532,59 @@ async function pickDirectory(){return pickArchive()}
 async function loadDirHandle(){return ARCHIVE.restore()}
 
 /* ═══════ INVOICE ACTIONS ═══════ */
-function blankInvoice(){const d=new Date(),p=PROFILE.get();return{coName:p.coName||gv('coName'),coAddr:p.coAddr||gv('coAddr'),coTax:p.coTax||gv('coTax'),invNo:DOCNUM.next('INV',()=>invoices,r=>r.data.invNo),invDate:d.toISOString().slice(0,10),dueDate:new Date(Date.now()+30*864e5).toISOString().slice(0,10),period:'1',cusName:'',cusAddr:'',cusTax:'',prjName:'',prjSite:'',prjContract:'',disc:'0',vatR:p.vatRate||'7',retR:'5',advR:'0',whtR:'3',note:p.bankInfo||gv('note')||'',items:[]};}
-function createNew(){if(getCurrent())saveCurrent(collect());if(!confirm('Create new invoice?'))return;const blank=blankInvoice();const id='inv_'+Date.now().toString(36);invoices.unshift({id,updatedAt:Date.now(),data:blank});currentId=id;persist();load(blank);saveCurrent(blank);window.scrollTo({top:0,behavior:'smooth'});}
-function duplicateCurrent(){const cur=getCurrent();if(!cur)return alert('No current invoice');const data=JSON.parse(JSON.stringify(cur.data));data.invNo=DOCNUM.next('INV',()=>invoices,r=>r.data.invNo);data.invDate=new Date().toISOString().slice(0,10);data.dueDate=new Date(Date.now()+30*864e5).toISOString().slice(0,10);const id='inv_'+Date.now().toString(36);invoices.unshift({id,updatedAt:Date.now(),data});currentId=id;persist();load(data);saveCurrent(data);window.scrollTo({top:0,behavior:'smooth'});}
-function loadInvoice(id){const rec=invoices.find(x=>x.id===id);if(!rec)return;if(currentId!==id)saveCurrent(collect());currentId=id;localStorage.setItem(KEY_CUR,id);load(rec.data);persist();window.scrollTo({top:0,behavior:'smooth'});}
-function deleteInvoice(id){const rec=invoices.find(x=>x.id===id);if(!rec)return;if(!confirm('Delete invoice '+(rec.data.invNo||'')+'?'))return;invoices=invoices.filter(x=>x.id!==id);if(currentId===id){if(invoices.length){currentId=invoices[0].id;load(invoices[0].data);}else{const blank=blankInvoice();const nid='inv_'+Date.now().toString(36);invoices.unshift({id:nid,updatedAt:Date.now(),data:blank});currentId=nid;load(blank);}}persist();}
+async function blankInvoice(){const d=new Date(),p=PROFILE.get();let invNo='INV-'+(THAI.BE+d.getFullYear())+'-001';try{const beYear=String(THAI.BE+d.getFullYear());const r=await API.nextDocNo('INV',beYear);invNo=r.number;}catch(e){console.error(e);}return{coName:p.coName||gv('coName'),coAddr:p.coAddr||gv('coAddr'),coTax:p.coTax||gv('coTax'),invNo,invDate:d.toISOString().slice(0,10),dueDate:new Date(Date.now()+30*864e5).toISOString().slice(0,10),period:'1',cusName:'',cusAddr:'',cusTax:'',prjName:'',prjSite:'',prjContract:'',disc:'0',vatR:p.vatRate||'7',retR:'5',advR:'0',whtR:'3',note:p.bankInfo||gv('note')||'',items:[]};}
+async function createNew(){if(getCurrent())await saveCurrent(collect());if(!confirm('Create new invoice?'))return;const blank=await blankInvoice();try{const r=await API.createDoc('invoices',{docNo:blank.invNo,data:blank});const id=r.id;invoices.unshift({id,updatedAt:Date.now(),data:blank});currentId=id;persist();load(blank);await saveCurrent(blank);window.scrollTo({top:0,behavior:'smooth'});}catch(e){alert('สร้างไม่สำเร็จ: '+e.message);}}
+async function duplicateCurrent(){const cur=getCurrent();if(!cur)return alert('No current invoice');const data=JSON.parse(JSON.stringify(cur.data));try{const beYear=String(THAI.BE+new Date().getFullYear());const r=await API.nextDocNo('INV',beYear);data.invNo=r.number;}catch(e){console.error(e);}data.invDate=new Date().toISOString().slice(0,10);data.dueDate=new Date(Date.now()+30*864e5).toISOString().slice(0,10);try{const r=await API.createDoc('invoices',{docNo:data.invNo,data});const id=r.id;invoices.unshift({id,updatedAt:Date.now(),data});currentId=id;persist();load(data);await saveCurrent(data);window.scrollTo({top:0,behavior:'smooth'});}catch(e){alert('ทำซ้ำไม่สำเร็จ: '+e.message);}}
+async function loadInvoice(id){const rec=invoices.find(x=>x.id===id);if(!rec)return;if(currentId!==id)await saveCurrent(collect());currentId=id;load(rec.data);persist();window.scrollTo({top:0,behavior:'smooth'});}
+async function deleteInvoice(id){const rec=invoices.find(x=>x.id===id);if(!rec)return;if(!confirm('Delete invoice '+(rec.data.invNo||'')+'?'))return;try{await API.deleteDoc('invoices',id);}catch(e){alert('ลบไม่สำเร็จ: '+e.message);return;}invoices=invoices.filter(x=>x.id!==id);if(currentId===id){if(invoices.length){currentId=invoices[0].id;load(invoices[0].data);}else{const blank=await blankInvoice();try{const r=await API.createDoc('invoices',{docNo:blank.invNo,data:blank});const nid=r.id;invoices.unshift({id:nid,updatedAt:Date.now(),data:blank});currentId=nid;load(blank);}catch(e){alert('สร้างไม่สำเร็จ: '+e.message);}}}persist();}
 function renderList(){const box=document.getElementById('invoiceList');const q=(document.getElementById('searchBox').value||'').toLowerCase().trim();let list=invoices;if(q)list=list.filter(r=>{const d=r.data;return(d.invNo||'').toLowerCase().includes(q)||(d.cusName||'').toLowerCase().includes(q)||(d.prjName||'').toLowerCase().includes(q);});if(!list.length){box.innerHTML='<div class="empty">No invoices found</div>';return;}box.innerHTML=list.map(r=>{const d=r.data,active=r.id===currentId;let sub=0;(d.items||[]).forEach(it=>{sub+=(+it.qty||0)*(+it.price||0)*((+it.pct||0)/100)});const disc=+d.disc||0,base=sub-disc,vat=base*(+d.vatR||0)/100,gross=base+vat,ret=base*(+d.retR||0)/100,adv=base*(+d.advR||0)/100,wht=base*(+d.whtR||0)/100,net=gross-ret-adv-wht;const ds=d.invDate?new Date(d.invDate).toLocaleDateString('en-US',{day:'numeric',month:'short',year:'numeric'}):'-';return`<div class="inv-row ${active?'active':''}"><div class="info" onclick="loadInvoice('${r.id}')"><b>${d.invNo||'—'}</b><small>${ds}</small>${active?'<small style="color:var(--accent);font-weight:700">● Editing</small>':''}<div>${d.cusName||'No client'}${d.prjName?' • '+d.prjName:''} — ${(d.items||[]).length} items</div></div><div class="amt">${f(net)} THB</div><div class="act"><button onclick="loadInvoice('${r.id}')">Open</button><button class="d" onclick="deleteInvoice('${r.id}')">Del</button></div></div>`}).join('');}
 
 /* ═══════ EXPORTS ═══════ */
 function exportJSON(){const data=collect();const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=sanitize((data.invNo||'invoice')+'_'+(data.cusName||'')+'.json');a.click();}
 async function exportAllZIP(){if(!invoices.length)return alert('No invoices');if(window.JSZip){const zip=new JSZip();const byYear={};invoices.forEach(r=>{const y=(r.data.invDate||'').slice(0,4)||'unknown';if(!byYear[y])byYear[y]=[];byYear[y].push(r);});for(const[y,arr]of Object.entries(byYear)){const folder=zip.folder(y);arr.forEach(r=>{const d=r.data;folder.file(sanitize((d.invNo||r.id)+'_'+(d.cusName||'')+'.json'),JSON.stringify(d,null,2));});}zip.file('README.txt','Backup: '+new Date().toLocaleString()+'\nTotal: '+invoices.length+' invoices\n');const blob=await zip.generateAsync({type:'blob'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='invoices_'+new Date().toISOString().slice(0,10)+'.zip';a.click();}else{const b=new Blob([JSON.stringify(invoices.map(r=>r.data),null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='invoices_backup.json';a.click();alert('JSZip not loaded — exported as JSON');}}
-function importJSON(el){const file=el.files[0];if(!file)return;const r=new FileReader();r.onload=e=>{try{const data=JSON.parse(e.target.result);if(Array.isArray(data)){if(!confirm('Import '+data.length+' invoices?'))return;data.forEach(d=>{const id='inv_'+Date.now().toString(36)+Math.random().toString(36).slice(2,4);invoices.unshift({id,updatedAt:Date.now(),data:d})});currentId=invoices[0].id;persist();load(invoices[0].data);alert('Imported '+data.length+' invoices');}else{load(data);const id='inv_'+Date.now().toString(36);invoices.unshift({id,updatedAt:Date.now(),data});currentId=id;persist();}}catch{alert('Invalid file')}};r.readAsText(file);el.value='';}
+async function importJSON(el){const file=el.files[0];if(!file)return;const r=new FileReader();r.onload=async e=>{try{const data=JSON.parse(e.target.result);const arr=Array.isArray(data)?data:[data];if(!arr.length)return;if(!confirm('Import '+arr.length+' invoices?'))return;for(const d of arr){try{const r=await API.createDoc('invoices',{docNo:d.invNo||'',data:d});invoices.unshift({id:r.id,updatedAt:Date.now(),data:d});}catch(err){console.error(err);}}currentId=invoices.length?invoices[0].id:null;if(currentId){const rec=invoices.find(x=>x.id===currentId);if(rec)load(rec.data);}persist();alert('Imported '+arr.length+' invoices');}catch{alert('Invalid file')}el.value='';};r.readAsText(file);el.value='';}
 async function manualSave(){const data=collect();await saveCurrent(data);if(!ARCHIVE.has()){const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=sanitize((data.invNo||'invoice')+'_'+(data.cusName||'')+'.json');a.click();}else{await saveToDisk(data);}}
 
 /* ═══════ INIT ═══════ */
-(function init(){
+(async function init(){
+  if (!API.isLoggedIn()) { window.location.replace('/'); return; }
+
   FIELDS.forEach(k=>{const el=document.getElementById(k);if(!el)return;el.addEventListener('input',()=>{calc();scheduleAutoSave()});el.addEventListener('change',()=>{calc();scheduleAutoSave()})});
   DOCNUM.watch(document.getElementById('invNo'),()=>invoices,r=>r.data.invNo,()=>currentId);
   document.getElementById('searchBox').addEventListener('input',renderList);
   ARCHIVE.init({status:document.getElementById('dirStatus'),saved:document.getElementById('lastSaved')});
-  loadFromStorage();loadDirHandle();
-  if(invoices.length&&currentId){const cur=getCurrent();if(cur)load(cur.data);else{const d=invoices[0];currentId=d.id;load(d.data);}}
-  else if(invoices.length){currentId=invoices[0].id;load(invoices[0].data);}
-  else{const initData=blankInvoice();const id='inv_'+Date.now().toString(36);invoices=[{id,updatedAt:Date.now(),data:initData}];currentId=id;persist();load(initData);}
-  persist();
-  window.addEventListener('beforeunload',()=>{try{const data=collect();const cur=getCurrent();if(cur){cur.data=data;cur.updatedAt=Date.now();localStorage.setItem(KEY_V2,JSON.stringify(invoices));localStorage.setItem(KEY,JSON.stringify(data))}}catch{}});
 
-  /* ข้อมูลบริษัท + รหัสผ่าน */
+  /* ข้อมูลบริษัท + โหลดจาก Cloud */
   const pp=PROFILE.get();
   if(!pp.coName&&gv('coName').trim()){pp.coName=gv('coName');pp.coAddr=gv('coAddr');pp.coTax=gv('coTax');if(!pp.bankInfo)pp.bankInfo=gv('note');PROFILE.set(pp);}
   PROFILE.apply();
   PROFILE.mountButton(document.querySelector('.toolbar'));
+  try {
+    const p = await API.getProfile();
+    if (p && p.company) {
+      const c = p.company;
+      if (typeof PROFILE !== 'undefined' && PROFILE.set) {
+        PROFILE.set({
+          coName: c.name || '', coNameEn: c.name_en || '', coBranch: c.branch || '',
+          coTax: c.tax_id || '', coAddr: c.address || '', coPhone: c.phone || '',
+          coEmail: c.email || '', bankInfo: c.bank_info || ''
+        });
+      }
+      PROFILE.apply();
+      if((!gv('note')||gv('note').startsWith('Transfer to: Bangkok Bank'))&& (PROFILE.get().bankInfo)) document.getElementById('note').value=PROFILE.get().bankInfo;
+      if(PROFILE.get().vatRate!=null&&PROFILE.get().vatRate!=='') document.getElementById('vatR').value=PROFILE.get().vatRate;
+    }
+  } catch (e) { console.error(e); }
+
+  await loadInvoices();
+  await loadDirHandle();
+  if(invoices.length&&currentId){const cur=getCurrent();if(cur)load(cur.data);else{const d=invoices[0];currentId=d.id;load(d.data);}}
+  else if(invoices.length){currentId=invoices[0].id;load(invoices[0].data);}
+  else{const initData=await blankInvoice();const r=await API.createDoc('invoices',{docNo:initData.invNo,data:initData});const id=r.id;invoices=[{id,updatedAt:Date.now(),data:initData}];currentId=id;persist();load(initData);}
+  persist();
+
+  window.addEventListener('beforeunload',()=>{try{const data=collect();const cur=getCurrent();if(cur){cur.data=data;cur.updatedAt=Date.now();saveCurrent(data);}}catch{}});
+
   document.addEventListener('profile:updated',e=>{
     const p=(e&&e.detail)||PROFILE.get();
     if((!gv('note')||gv('note').startsWith('Transfer to: Bangkok Bank'))&&p.bankInfo)document.getElementById('note').value=p.bankInfo;
@@ -570,7 +592,21 @@ async function manualSave(){const data=collect();await saveCurrent(data);if(!ARC
     calc();
     scheduleAutoSave();
   });
-  GATE.init();
+
+  /* Toast */
+  const toast = document.createElement('div');
+  toast.id = 'saveToast';
+  toast.style.cssText = 'position:fixed;bottom:20px;right:20px;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;color:#fff;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9999;';
+  document.body.appendChild(toast);
+  let toastTimer = null;
+  window.addEventListener('doc:saved', e => {
+    const ok = e.detail && e.detail.ok;
+    toast.textContent = ok ? '✅ บันทึกแล้ว' : ('❌ บันทึกไม่สำเร็จ: ' + (e.detail && e.detail.msg || ''));
+    toast.style.background = ok ? '#059669' : '#dc2626';
+    toast.style.opacity = '1';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { toast.style.opacity = '0'; }, 2000);
+  });
 })();
 </script>
 </body>
