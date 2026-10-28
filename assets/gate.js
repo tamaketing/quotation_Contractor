@@ -77,6 +77,11 @@ const GATE = (function () {
       sessionStorage.setItem(UKEY, '1');
       el.classList.add('hide');
       document.dispatchEvent(new CustomEvent('gate:passed'));
+      /* หลังล็อกอินสำเร็จ ให้เข้าหน้าหลัก (เมนู) เสมอ */
+      const p = (location.pathname || '/').replace(/\/+$/, '') || '/';
+      if (p !== '/' && p !== '/index.html' && p !== '/index') {
+        window.location.replace('/');
+      }
     }
 
     el.querySelector('#gateBtn').addEventListener('click', tryUnlock);
