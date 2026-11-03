@@ -425,11 +425,19 @@ function docForDisk() { const d = collect(); return { base: diskName(d), data: d
     if (p && p.company) {
       const c = p.company;
       if (typeof PROFILE !== 'undefined' && PROFILE.set) {
+        const ex = PROFILE.get();
         PROFILE.set({
-          coName: c.name || '', coNameEn: c.name_en || '', coBranch: c.branch || '',
-          coTax: c.tax_id || '', coAddr: c.address || '', coPhone: c.phone || '',
-          coEmail: c.email || '', bankInfo: c.bank_info || ''
-        });
+          ...ex,
+          coName: c.name || ex.coName || '',
+          coNameEn: c.name_en || ex.coNameEn || '',
+          coBranch: c.branch || ex.coBranch || '',
+          coTax: c.tax_id || ex.coTax || '',
+          coAddr: c.address || ex.coAddr || '',
+          coPhone: c.phone || ex.coPhone || '',
+          coEmail: c.email || ex.coEmail || '',
+          bankInfo: c.bank_info || ex.bankInfo || '',
+          logo: c.logo || ex.logo || ''
+        }, true, true);
       }
       PROFILE.apply();
       renderText();

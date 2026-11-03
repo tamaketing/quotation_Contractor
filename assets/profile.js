@@ -6,6 +6,7 @@ const PROFILE = (function () {
 
   const KEY = 'quota_profile_v1';
   const WN_KEY = '__quota_profile_v1__';
+  let _cloudSyncTimer = null;
 
   const FIELDS = [
     { k: 'coName', label: 'ชื่อบริษัท', ph: 'บริษัท ตัวอย่าง จำกัด', line: true },
@@ -52,6 +53,22 @@ const PROFILE = (function () {
       (p.coPhone && p.coPhone.trim()) || (p.coEmail && p.coEmail.trim()) || (p.bankInfo && p.bankInfo.trim()) || p.logo);
   }
 
+  /* แปลง field ของ PROFILE → field ของ D1 (companies table) */
+  function toCloud(p) {
+    if (!p) return {};
+    const out = {};
+    if (p.coName !== undefined) out.name = p.coName;
+    if (p.coNameEn !== undefined) out.name_en = p.coNameEn;
+    if (p.coBranch !== undefined) out.branch = p.coBranch;
+    if (p.coTax !== undefined) out.tax_id = p.coTax;
+    if (p.coAddr !== undefined) out.address = p.coAddr;
+    if (p.coPhone !== undefined) out.phone = p.coPhone;
+    if (p.coEmail !== undefined) out.email = p.coEmail;
+    if (p.bankInfo !== undefined) out.bank_info = p.bankInfo;
+    if (p.logo !== undefined) out.logo = p.logo;
+    return out;
+  }
+
   function get() {
     let ls = null;
     try { ls = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch { ls = null; }
@@ -69,12 +86,21 @@ const PROFILE = (function () {
     return Object.assign({}, DEFAULT, chosen || {});
   }
 
-  function set(p, silent) {
+  function set(p, silent, skipCloudSync) {
     const merged = Object.assign({}, DEFAULT, p || {}, { _updatedAt: Date.now() });
     try { localStorage.setItem(KEY, JSON.stringify(merged)); } catch { }
     writeWindowName(merged);
     if (!silent) {
       try { document.dispatchEvent(new CustomEvent('profile:updated', { detail: merged })); } catch { }
+    }
+    /* ซิงก์ไป D1 (ถ้า API พร้อมและไม่ได้โหลดจาก cloud) */
+    if (!skipCloudSync && typeof API !== 'undefined' && API && typeof API.isLoggedIn === 'function' && API.isLoggedIn()) {
+      clearTimeout(_cloudSyncTimer);
+      _cloudSyncTimer = setTimeout(() => {
+        try {
+          API.updateProfile(toCloud(merged)).catch(e => console.error('Profile sync error:', e));
+        } catch (e) { console.error('Profile sync error:', e); }
+      }, 800);
     }
     return merged;
   }
@@ -246,16 +272,29 @@ const PROFILE = (function () {
     ov.addEventListener('click', e => { if (e.target === ov) ov.classList.remove('open'); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') ov.classList.remove('open'); });
 
-    ov.querySelector('#profSave').addEventListener('click', () => {
+    ov.querySelector('#profSave').addEventListener('click', async () => {
       const p = {};
       FIELDS.forEach(f => { const el = ov.querySelector('[data-f="' + f.k + '"]'); if (el) p[f.k] = el.value; });
       const old = get();
       p.logo = removeLogo ? '' : (pendingLogo || old.logo);
-      const saved = set(p, true);
+      const saved = set(p, true, true);   // skipCloudSync=true, we'll call API directly
       apply();
       try { document.dispatchEvent(new CustomEvent('profile:updated', { detail: saved })); } catch { }
-      ov.classList.remove('open');
-      alert('บันทึกข้อมูลบริษัทเรียบร้อยแล้ว');
+      /* บันทึกไป Cloud (D1) */
+      if (typeof API !== 'undefined' && API && typeof API.isLoggedIn === 'function' && API.isLoggedIn()) {
+        try {
+          await API.updateProfile(toCloud(saved));
+          ov.classList.remove('open');
+          alert('บันทึกข้อมูลบริษัทเรียบร้อยแล้ว');
+        } catch (e) {
+          console.error('Profile save to cloud error:', e);
+          alert('บันทึกในเครื่องแล้ว แต่ซิงก์ไป Cloud ไม่สำเร็จ: ' + (e.message || ''));
+          ov.classList.remove('open');
+        }
+      } else {
+        ov.classList.remove('open');
+        alert('บันทึกข้อมูลบริษัทเรียบร้อยแล้ว');
+      }
     });
 
     ov.querySelector('#profExport').addEventListener('click', () => {
@@ -272,12 +311,15 @@ const PROFILE = (function () {
     pf.addEventListener('change', () => {
       const f = pf.files[0]; if (!f) return;
       const r = new FileReader();
-      r.onload = e => {
+      r.onload = async e => {
         try {
           const d = JSON.parse(e.target.result);
-          const saved = set(d, true);
+          const saved = set(d, true, true);
           apply();
           try { document.dispatchEvent(new CustomEvent('profile:updated', { detail: saved })); } catch { }
+          if (typeof API !== 'undefined' && API && typeof API.isLoggedIn === 'function' && API.isLoggedIn()) {
+            try { await API.updateProfile(toCloud(saved)); } catch (err) { console.error(err); }
+          }
           openModal();
           alert('นำเข้าข้อมูลบริษัทเรียบร้อยแล้ว');
         } catch { alert('ไฟล์ไม่ถูกต้อง'); }
