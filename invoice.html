@@ -197,34 +197,119 @@
   #coAddr{font-size:11.5px;line-height:1.5}
 
   /* ── Print ── */
-  @media print{
-    body{background:#fff;padding:0;font-size:11.5px;color:#000;line-height:1.4;margin:0}
-    .toolbar,.archive{display:none!important}
-    .paper{border:0;border-radius:0;box-shadow:none;max-width:100%;margin:0;padding:18mm 14mm;background:#fff!important}
-    .paper::before{display:none!important}
-    .hdr{padding:18px 24px 14px;border-bottom-width:2.5px;gap:24px;background:#fff!important;border-top:3px solid #0f172a}
-    .hdr-right{border:1px solid #cbd5e1;background:#fff!important}
-    .hdr-left,.hdr-right{display:block}
-    .co-name{font-size:18px}
-    .inv-title{font-size:28px;letter-spacing:-.02em}
-    .inv-sub{font-size:10px}
-    .section-title{font-size:9.5px}
-    .section{padding:0 24px}
-    .grid2{grid-template-columns:1.15fr .85fr;gap:12px}
-    .card{padding:12px 14px}
-    .tbl-wrap{margin:12px 24px 0;border-color:#cbd5e1}
-    .tb thead th{background:#0f172a!important;color:#fff!important;border-bottom:2.5px solid #334155!important}
-    .tb tbody tr:nth-child(even) td{background:#f8fafc!important}
-    .sum{border-color:#cbd5e1!important}
-    .sum table tr.total td{background:#0f172a!important;color:#fff!important;font-weight:800!important}
-    .words{margin:0;padding:9px 10px;background:#f8fafc!important;border-color:#cbd5e1!important}
-    .note{margin:10px 24px 0;padding:9px 10px;background:#f8fafc!important;border-color:#cbd5e1!important}
-    .sign{margin:20px 24px 0;gap:24px;font-size:10.5px}
-    .footer{margin-top:14px;padding:7px 24px;font-size:9px;border-top:3px double #cbd5e1!important}
-    input,textarea{font-size:10.5px!important;padding:1px 2px!important}
-    .add-row,.toolbar,.archive,.inv-row .del{display:none!important}
-    @page{size:A4;margin:10mm 10mm}
-    *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
+  @media print {
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+
+    html,
+    body {
+      width: 210mm;
+      margin: 0;
+      padding: 0;
+      background: #fff;
+      font-size: 10px;
+    }
+
+    .page {
+      width: 210mm;
+      min-height: 0;
+      margin: 0;
+      padding: 10mm 12mm;
+      box-shadow: none;
+    }
+
+    .top-bar {
+      margin: -10mm -12mm 10px;
+    }
+
+    .header {
+      flex-direction: row;
+      gap: 12px;
+      padding-bottom: 8px;
+    }
+
+    .company h1 {
+      font-size: 16px;
+    }
+
+    .document-title {
+      width: 42%;
+    }
+
+    .document-title h2 {
+      font-size: 21px;
+      margin-bottom: 4px;
+    }
+
+    .meta-table th,
+    .meta-table td {
+      padding: 3px 5px;
+    }
+
+    .parties {
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 8px;
+      margin: 10px 0 8px;
+    }
+
+    .panel h3 {
+      padding: 5px 8px;
+      font-size: 11px;
+    }
+
+    .panel-content {
+      padding: 6px 8px;
+    }
+
+    .field {
+      margin-bottom: 4px;
+    }
+
+    .items {
+      margin-top: 8px;
+      font-size: 10px;
+    }
+
+    .items th,
+    .items td {
+      padding: 4px 5px;
+    }
+
+    .below-table {
+      grid-template-columns: 1fr 0.8fr;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .amount-words,
+    .totals td {
+      padding: 5px 7px;
+    }
+
+    .remarks {
+      margin-top: 8px;
+    }
+
+    .signatures {
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    .footer {
+      margin-top: 8px;
+      padding-top: 5px;
+    }
+
+    .panel,
+    .items,
+    .below-table,
+    .remarks,
+    .signatures {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
   }
 
   @media (max-width:768px){
