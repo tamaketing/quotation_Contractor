@@ -16,11 +16,12 @@
 <script src="assets/archive.js"></script>
 <style>
   :root{
-    --dark:#1a1f36;--dark2:#2d3250;--accent:#2563eb;--accent2:#1d4ed8;
-    --bg:#f8f9fb;--white:#ffffff;--border:#e5e7eb;--border2:#d1d5db;
-    --text:#111827;--text2:#4b5563;--text3:#9ca3af;
-    --green:#059669;--green-bg:#ecfdf5;
-    --red:#dc2626;--gold:#b45309;--gold-bg:#fffbeb;
+    --dark:#0f172a;--dark2:#1e293b;--accent:#0f766e;--accent2:#115e59;
+    --bg:#f6f7f9;--white:#ffffff;--border:#e2e8f0;--border2:#cbd5e1;
+    --text:#0f172a;--text2:#334155;--text3:#64748b;
+    --green:#047857;--green-bg:#ecfdf5;
+    --red:#b91c1c;--gold:#92400e;--gold-bg:#fffbeb;
+    --ink:#111827;
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
@@ -84,16 +85,17 @@
   }
 
   /* ── Header ── */
-  .hdr{display:flex;justify-content:space-between;align-items:flex-start;padding:32px 36px 24px;border-bottom:3px solid var(--accent);gap:40px}
+  .hdr{display:flex;justify-content:space-between;align-items:flex-start;padding:32px 36px 24px;border-bottom:3px solid var(--accent);gap:40px;background:linear-gradient(180deg,#fff,#fafbfc);position:relative}
+  .hdr::before{content:"";position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--accent),#059669)}
   .hdr-left{flex:1.3}
-  .brand-block{max-width:480px;display:flex;align-items:flex-end;gap:14px;margin-top:64px}
+  .brand-block{max-width:480px;display:flex;align-items:flex-end;gap:14px;margin-top:0}
   .brand-info{flex:1;min-width:0}
-  .hdr-right{flex:1;text-align:right}
-  .co-name{font-size:22px;font-weight:700;color:var(--dark);margin:0 0 2px}
+  .hdr-right{flex:1;text-align:right;background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 16px;box-shadow:0 2px 8px rgba(15,23,42,.04)}
+  .co-name{font-size:22px;font-weight:700;color:var(--ink);margin:0 0 2px}
   .co-addr{font-size:11.5px;color:var(--text2);line-height:1.5;margin:0 0 6px}
   .co-tax{font-size:10.5px;color:var(--text3);display:flex;align-items:center;gap:4px}
   .co-tax span{font-weight:600;font-size:9px;letter-spacing:.06em;text-transform:uppercase;background:#f3f4f6;border:1px solid var(--border);padding:1px 6px;border-radius:4px;color:var(--text2)}
-  .inv-title{font-size:30px;font-weight:700;color:var(--dark);margin:0;letter-spacing:-.02em}
+  .inv-title{font-size:32px;font-weight:800;color:var(--ink);margin:0;letter-spacing:-.03em;text-transform:uppercase}
   .inv-sub{font-size:12px;color:var(--accent);font-weight:600;margin-top:3px}
   .inv-meta{margin-top:16px;display:inline-block;text-align:left;width:100%;max-width:300px}
   .inv-meta table{width:100%;border-collapse:collapse}
@@ -115,8 +117,8 @@
 
   /* ── Client / Project ── */
   .section{padding:0 36px;margin-top:20px}
-  .section-title{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--dark);margin:0 0 10px;padding:0 0 8px;border-bottom:2px solid var(--accent);display:flex;align-items:center;gap:7px}
-  .section-title i{width:18px;height:18px;border-radius:4px;background:var(--accent);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-style:normal;font-size:8px;font-weight:700}
+  .section-title{font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);margin:0 0 10px;padding:0 0 8px;border-bottom:2.5px solid var(--accent);display:flex;align-items:center;gap:7px}
+  .section-title i{width:18px;height:18px;border-radius:4px;background:linear-gradient(135deg,var(--accent),#059669);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-style:normal;font-size:8px;font-weight:700;box-shadow:0 2px 6px rgba(15,118,110,.18)}
   .section-title.gold i{background:var(--gold)}
   .grid2{display:grid;grid-template-columns:1.15fr .85fr;gap:16px}
   .field-label{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.04em;text-transform:uppercase;margin:6px 0 2px}
@@ -126,9 +128,9 @@
   .tbl-wrap{margin:20px 36px 0;border:1px solid var(--border);border-radius:8px;overflow:hidden}
   table.tb{width:100%;border-collapse:collapse;font-size:12px}
   .tb thead th{
-     background:#eaf2ff;color:var(--dark);font-weight:700;font-size:10px;
-     letter-spacing:.04em;text-transform:uppercase;padding:10px 8px;text-align:left;
-     border-right:1px solid #dbeafe;border-bottom:2px solid #bfdbfe;
+     background:#0f172a;color:#fff;font-weight:600;font-size:9.5px;
+     letter-spacing:.06em;text-transform:uppercase;padding:10px 8px;text-align:left;
+     border-right:1px solid #1e293b;border-bottom:2.5px solid #334155;
   }
   .tb thead th:last-child{border-right:0}
   .tb thead th.r{text-align:right}
@@ -162,7 +164,7 @@
   .sum table td:last-child{font-weight:600;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;min-width:90px}
   .sum table tr.sep td{border-top:1px solid var(--border)}
   .sum table tr.sep td{border-top:1px solid var(--border);padding-top:6px}
-  .sum table tr.total td{background:var(--accent);color:#fff;font-weight:700;font-size:13px;padding:8px 12px}
+  .sum table tr.total td{background:var(--ink);color:#fff;font-weight:800;font-size:14px;padding:10px 12px;letter-spacing:.02em}
   .sum table tr.total td:first-child{text-align:right}
   .sum table tr.total td:last-child{text-align:right;font-size:14px}
   .sum input[type="number"]{width:48px;padding:2px 4px;font-size:11px;border-radius:4px;display:inline-block;vertical-align:middle;text-align:right}
@@ -186,7 +188,7 @@
   .sign .date{font-size:10px;color:var(--text3);margin-top:2px}
 
   /* ── Footer ── */
-  .footer{margin-top:20px;padding:10px 36px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:10px;color:var(--text3)}
+  .footer{margin-top:20px;padding:10px 36px;border-top:3px double var(--border);display:flex;justify-content:space-between;font-size:9px;color:var(--text3);letter-spacing:.02em}
 
   /* ── Screen-only adjustments ── */
   #coAddr{font-size:11.5px;line-height:1.5}
