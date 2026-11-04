@@ -79,9 +79,12 @@
   /* ── Paper (Invoice) ── */
   .paper{
     max-width:960px;margin:0 auto;background:var(--white);
-    border:1px solid #dbe2ea;border-radius:4px;
-    box-shadow:0 12px 35px rgba(15,23,42,.08);
-    overflow:hidden;
+    border:1px solid #c8d0db;border-radius:3px;
+    box-shadow:0 8px 30px rgba(15,23,42,.1);
+    overflow:hidden;position:relative;
+  }
+  .paper::before{
+    content:"";position:absolute;top:0;left:0;right:0;height:8px;background:linear-gradient(90deg,#0f172a,#1e293b,#334155);
   }
 
   /* ── Header ── */
@@ -195,73 +198,33 @@
 
   /* ── Print ── */
   @media print{
-    body{background:#fff;padding:0;font-size:11.5px;color:#000;line-height:1.4}
+    body{background:#fff;padding:0;font-size:11.5px;color:#000;line-height:1.4;margin:0}
     .toolbar,.archive{display:none!important}
-    .paper{border:0;border-radius:0;box-shadow:none;max-width:100%}
-    .hdr{padding:18px 24px 14px;border-bottom-width:2px;gap:24px}
+    .paper{border:0;border-radius:0;box-shadow:none;max-width:100%;margin:0;padding:18mm 14mm;background:#fff!important}
+    .paper::before{display:none!important}
+    .hdr{padding:18px 24px 14px;border-bottom-width:2.5px;gap:24px;background:#fff!important;border-top:3px solid #0f172a}
+    .hdr-right{border:1px solid #cbd5e1;background:#fff!important}
     .hdr-left,.hdr-right{display:block}
-    .co-name{font-size:17px}
-    #logoImg{width:58px;height:58px}
-    .brand-block{margin-top:44px}
-    .co-addr{font-size:11px;line-height:1.4}
-    .co-tax{font-size:10px}
-    .co-tax span{font-size:8.5px;padding:1px 5px}
-    .inv-title{font-size:26px}
-    .inv-sub{font-size:10px;letter-spacing:.04em}
-    .inv-meta{margin-top:10px}
-    .inv-meta table td{padding:4px 7px;font-size:10.5px}
-    .inv-meta table td:first-child{font-size:10px}
-    .section{margin-top:12px;padding:0 24px}
-    .section-title{font-size:9.5px;margin:0 0 6px;padding-bottom:4px}
-    .section-title i{width:15px;height:15px;font-size:7.5px}
-    .grid2{gap:12px}
-    .field-label{font-size:9px;margin:4px 0 1px}
-    input,textarea{font-size:11px;padding:0}
-    input[type="date"],input[type="number"]{padding:0;font-size:10.5px}
-    input,textarea,
-    .tb input,.tb textarea,
-    .sum input{border:0!important;border-bottom:0!important;background:transparent!important;box-shadow:none!important;outline:0!important;color:#000!important;appearance:none;-webkit-appearance:none}
-    textarea{resize:none;overflow:visible}
-    .tb input[type="number"]{width:100%}
-    .sum input[type="number"]{width:auto!important;display:inline-block;padding:0!important}
-    .tbl-wrap{margin:12px 24px 0}
-    .tb thead th{padding:7px 7px;font-size:9px;letter-spacing:.03em}
-    .tb tbody td{padding:5px 7px;font-size:11px}
-    .tb .desc{min-height:16px}
-    .tb .desc-print{font-size:11px;line-height:1.4;white-space:pre-wrap;word-break:break-word;min-height:16px}
-    .tb .del{display:none!important}
-    .add-row{display:none!important}
-    .totals-row{margin:12px 24px 0;grid-template-columns:1fr 310px;gap:14px}
-    .sum-area{margin:0}
-    .sum{width:310px;font-size:11px}
-    .sum table td{padding:3px 10px;font-size:10.5px}
-    .sum table tr.total td{padding:6px 10px;font-size:11.5px}
-    .sum table tr.zero{display:none}
-    .sum table tr.total td:last-child{font-size:13px}
-    .words{margin:0;padding:9px 10px;font-size:10.5px}
-    .words span.lbl{font-size:9px;padding:2px 6px}
-    .words span.val{font-size:11px}
-    .note{margin:10px 24px 0;padding:9px 10px}
-    .note .field-label{font-size:9px;margin:0 0 3px}
-    #note{font-size:10.5px;line-height:1.4}
+    .co-name{font-size:18px}
+    .inv-title{font-size:28px;letter-spacing:-.02em}
+    .inv-sub{font-size:10px}
+    .section-title{font-size:9.5px}
+    .section{padding:0 24px}
+    .grid2{grid-template-columns:1.15fr .85fr;gap:12px}
+    .card{padding:12px 14px}
+    .tbl-wrap{margin:12px 24px 0;border-color:#cbd5e1}
+    .tb thead th{background:#0f172a!important;color:#fff!important;border-bottom:2.5px solid #334155!important}
+    .tb tbody tr:nth-child(even) td{background:#f8fafc!important}
+    .sum{border-color:#cbd5e1!important}
+    .sum table tr.total td{background:#0f172a!important;color:#fff!important;font-weight:800!important}
+    .words{margin:0;padding:9px 10px;background:#f8fafc!important;border-color:#cbd5e1!important}
+    .note{margin:10px 24px 0;padding:9px 10px;background:#f8fafc!important;border-color:#cbd5e1!important}
     .sign{margin:20px 24px 0;gap:24px;font-size:10.5px}
-    .sign .line{margin-top:38px;padding-top:4px}
-    .sign .role{font-size:10px}
-    .sign .date{font-size:9px}
-    .footer{margin-top:12px;padding:7px 24px;font-size:9px}
-    .r{text-align:right!important}
-    .c{text-align:center!important}
-    .l{text-align:left!important}
-    .amt{text-align:right;font-variant-numeric:tabular-nums}
-    input[type="number"]{font-variant-numeric:tabular-nums}
-    input[type="number"]::-webkit-outer-spin-button,
-    input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none!important;margin:0!important}
-    input[type="number"]{-moz-appearance:textfield!important;appearance:textfield!important}
-    input[type="date"]::-webkit-calendar-picker-indicator{display:none!important}
-    .tb textarea{scrollbar-width:none!important;-ms-overflow-style:none!important}
-    .tb textarea::-webkit-scrollbar{display:none!important}
-    @page{size:A4;margin:10mm 12mm}
-    *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+    .footer{margin-top:14px;padding:7px 24px;font-size:9px;border-top:3px double #cbd5e1!important}
+    input,textarea{font-size:10.5px!important;padding:1px 2px!important}
+    .add-row,.toolbar,.archive,.inv-row .del{display:none!important}
+    @page{size:A4;margin:10mm 10mm}
+    *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
   }
 
   @media (max-width:768px){
