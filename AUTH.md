@@ -10,14 +10,17 @@
 | เข้าสู่ระบบ | `/` → แท็บ “เข้าสู่ระบบ” | `POST /api/auth/login` |
 | ออกจากระบบ | ปุ่ม “ออกจากระบบ” (หน้าแรก + ทุกหน้าเอกสาร) | ล้าง token ฝั่ง client |
 | ลืมรหัสผ่าน | `/` → “ลืมรหัสผ่าน?” | `POST /api/auth/forgot` |
-| ตั้งรหัสผ่านใหม่ | `/reset-password.html?token=...` | `POST /api/auth/reset` |
+| ตั้งรหัสผ่านใหม่ | `/reset-password?token=...` | `POST /api/auth/reset` |
 | เปลี่ยนรหัสผ่าน (ล็อกอินอยู่) | ⚙ ข้อมูลบริษัท → เปลี่ยนรหัสผ่าน | `POST /api/auth/change-password` |
 
 ---
 
-## 1. อัปเดตฐานข้อมูล (ต้องทำก่อน deploy)
+## 1. อัปเดตฐานข้อมูล
 
-รัน migration กับ D1:
+ระบบจะสร้าง/อัปเดตตารางให้อัตโนมัติเมื่อมีคำขอเข้าสู่ระบบครั้งแรกหลัง deploy
+(`ensureAuthSchema` ใน `functions/_utils.js`) — ไม่ต้องรัน migration ก็ใช้งานได้
+
+ถ้าต้องการรันเอง (แนะนำ เพราะเห็นผลชัดเจน):
 
 ```powershell
 cd D:\Qua_PRIMECESS\app-quotation
@@ -54,6 +57,7 @@ CREATE INDEX IF NOT EXISTS idx_password_resets_user ON password_resets(user_id);
 
 | ชื่อ | ตัวอย่าง | จำเป็น |
 |---|---|---|
+| `JWT_SECRET` | สตริงสุ่มยาว ๆ (เช่น 64 ตัวอักษร) | ✅ ควรตั้งใน production |
 | `RESEND_API_KEY` | `re_xxxxxxxx` | ✅ สำหรับส่งอีเมล |
 | `MAIL_FROM` | `ระบบเอกสาร <no-reply@yourdomain.com>` | แนะนำ |
 | `APP_ORIGIN` | `https://quotation-contractor.pages.dev` | แนะนำ |
@@ -76,7 +80,7 @@ CREATE INDEX IF NOT EXISTS idx_password_resets_user ON password_resets(user_id);
 - จำกัด **3 คำขอ / 15 นาที** ต่อบัญชี
 - ตอบข้อความกลาง ๆ เสมอ → ไม่เปิดเผยว่าอีเมลมีในระบบหรือไม่
 - เปลี่ยน/รีเซ็ตรหัสผ่าน → เพิ่ม `token_version` ทำให้ **token ล็อกอินเก่าใช้ไม่ได้ทั้งหมด**
-- `/reset-password.html` ตั้ง `noindex, nofollow`
+- `/reset-password` ตั้ง `noindex, nofollow`
 
 ---
 

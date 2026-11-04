@@ -55,7 +55,7 @@ export async function onRequestPost({ request, env }) {
   } catch {}
 
   const origin = (env.APP_ORIGIN || new URL(request.url).origin).replace(/\/$/, '');
-  const link = origin + '/reset-password.html?token=' + encodeURIComponent(token);
+  const link = origin + '/reset-password?token=' + encodeURIComponent(token);
   const safeEmail = String(user.email).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
   const mail = await sendMail(env, {
