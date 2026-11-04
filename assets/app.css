@@ -28,14 +28,16 @@
 @media print{#calPop,.dpick::after{display:none!important}}
 
 /* ── ปุ่ม/ช่องมาตรฐานของหน้าต่างตั้งค่า ── */
-.x-btn{appearance:none;border:1px solid #d1d5db;cursor:pointer;font-family:inherit;font-size:12px;font-weight:500;padding:6px 11px;border-radius:6px;background:#fff;color:#374151;transition:.12s}
-.x-btn:hover{background:#f3f4f6}
-.x-btn.pri{background:#c2410c;color:#fff;border-color:#c2410c}
-.x-btn.pri:hover{background:#9a3412}
-.x-btn.ok{background:#059669;color:#fff;border-color:#059669}
-.x-btn.ok:hover{background:#047857}
-.x-btn.danger{background:#dc2626;color:#fff;border-color:#dc2626}
-.x-btn:disabled{opacity:.5;cursor:not-allowed}
+.x-btn{appearance:none;border:1px solid #e2e8f0;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;padding:6px 12px;border-radius:8px;background:#fff;color:#374151;transition:.15s;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.x-btn:hover{background:#f8fafc;border-color:#c2410c;color:#9a3412;transform:translateY(-1px);box-shadow:0 4px 10px rgba(194,65,12,.08)}
+.x-btn:active{transform:none}
+.x-btn.pri{background:#c2410c;color:#fff;border-color:#c2410c;box-shadow:0 4px 14px rgba(194,65,12,.25)}
+.x-btn.pri:hover{background:#9a3412;border-color:#9a3412;box-shadow:0 6px 20px rgba(194,65,12,.3)}
+.x-btn.ok{background:#059669;color:#fff;border-color:#059669;box-shadow:0 4px 14px rgba(5,150,105,.2)}
+.x-btn.ok:hover{background:#047857;border-color:#047857;box-shadow:0 6px 20px rgba(5,150,105,.25)}
+.x-btn.danger{background:#dc2626;color:#fff;border-color:#dc2626;box-shadow:0 4px 14px rgba(220,38,38,.2)}
+.x-btn.danger:hover{background:#b91c1c;border-color:#b91c1c;box-shadow:0 6px 20px rgba(220,38,38,.25)}
+.x-btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important;box-shadow:none!important}
 
 /* ── หน้าต่างตั้งค่า (Modal) ── */
 .x-overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:200;display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto}
@@ -78,25 +80,26 @@
 .gate-hint{font-size:10.5px;color:#9ca3af;margin-top:14px;line-height:1.6}
 
 /* ── แผงจัดการเอกสาร (รายการใบที่ทำไว้) ── */
-.docs{border-top:1px solid #e5e7eb;border-bottom:1px solid #e5e7eb;background:#f8fafc;padding:10px 14px;margin:0 0 12px}
+.docs{border-top:1px solid #e5e7eb;border-bottom:1px solid #e5e7eb;background:#f8fafc;padding:10px 14px;margin:0 0 14px;border-radius:10px}
 .docs.hide{display:none}
 .docs-hd{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
-.docs-hd b{font-size:12.5px;color:#1a1f36}
+.docs-hd b{font-size:13px;color:#1a1f36;font-weight:700}
 .docs-hd .sp{margin-left:auto;display:flex;gap:5px;flex-wrap:wrap}
-.docs-search{flex:1;min-width:150px;border:1px solid #d1d5db;border-radius:6px;padding:5px 9px;font-family:inherit;font-size:12px}
-.docs-list{max-height:190px;overflow:auto;border:1px solid #e5e7eb;border-radius:7px;background:#fff}
-.docs-empty{padding:16px;text-align:center;font-size:11.5px;color:#9ca3af}
-.doc-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border-bottom:1px solid #f1f5f9;font-size:12px;cursor:pointer}
+.docs-search{flex:1;min-width:150px;border:1px solid #e5e7eb;border-radius:8px;padding:6px 10px;font-family:inherit;font-size:12.5px;background:#fff;color:#111827;box-shadow:0 1px 3px rgba(15,23,42,.04)}
+.docs-search:focus{outline:0;border-color:#fdba74;box-shadow:0 0 0 3px rgba(251,146,60,.14)}
+.docs-list{max-height:190px;overflow:auto;border:1px solid #e5e7eb;border-radius:9px;background:#fff;box-shadow:inset 0 1px 3px rgba(15,23,42,.04)}
+.docs-empty{padding:20px;text-align:center;font-size:12px;color:#9ca3af;line-height:1.75}
+.doc-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid #f1f5f9;font-size:12.5px;cursor:pointer;transition:background .1s}
 .doc-row:last-child{border-bottom:0}
-.doc-row:hover{background:#f0f9ff}
+.doc-row:hover{background:#fffaf5}
 .doc-row.active{background:#fff7ed;box-shadow:inset 3px 0 0 #c2410c}
 .doc-row .d-info{flex:1;min-width:0}
-.doc-row .d-info b{display:block;font-size:12px;color:#111827;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.doc-row .d-info small{color:#6b7280;font-size:10.5px}
-.doc-row .d-amt{font-weight:700;font-size:12px;color:#111827;white-space:nowrap}
-.doc-row .d-act{display:flex;gap:4px;flex-shrink:0}
-.doc-row .d-act button{border:1px solid #d1d5db;background:#fff;border-radius:5px;font-size:10.5px;padding:3px 8px;cursor:pointer;font-family:inherit;color:#374151}
-.doc-row .d-act button:hover{background:#f3f4f6}
+.doc-row .d-info b{display:block;font-size:12.5px;font-weight:700;color:#111827;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.doc-row .d-info small{color:#6b7280;font-size:11px}
+.doc-row .d-amt{font-weight:700;font-size:12.5px;color:#111827;white-space:nowrap}
+.doc-row .d-act{display:flex;gap:5px;flex-shrink:0}
+.doc-row .d-act button{border:1px solid #e5e7eb;background:#fff;border-radius:6px;font-size:10.5px;padding:4px 10px;cursor:pointer;font-family:inherit;color:#374151;font-weight:500;transition:.12s;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.doc-row .d-act button:hover{background:#fff7ed;border-color:#fdba74;color:#9a3412;transform:translateY(-1px)}
 .doc-row .d-act button.d:hover{background:#fef2f2;border-color:#fecaca;color:#dc2626}
 
 /* ── แถวโฟลเดอร์สำรอง ── */
@@ -108,9 +111,10 @@
 @media print{.docs,.docs-panel,.gate,.x-overlay{display:none!important}.wrap{display:none!important}}
 
 /* ── สถานะบันทึกบนแผงเอกสาร (เงียบ ๆ ไม่เด้ง toast) ── */
-.docs-hd .save-state{font-size:10.5px;color:#059669;opacity:0;transition:opacity .2s;white-space:nowrap;font-weight:600}
-.docs-hd .save-state.ok{opacity:1;color:#059669}
-.docs-hd .save-state.err{opacity:1;color:#dc2626}
+.docs-hd .save-state{font-size:10.5px;color:#059669;opacity:0;transition:opacity .25s,transform .2s;white-space:nowrap;font-weight:600;padding:3px 8px;border-radius:999px;background:#ecfdf5;border:1px solid #a7f3d0;transform:translateY(-2px)}
+.docs-hd .save-state.ok{opacity:1;color:#047857;background:#ecfdf5;border-color:#a7f3d0;transform:translateY(0)}
+.docs-hd .save-state.ok::before{content:"✓";margin-right:4px;font-size:10px}
+.docs-hd .save-state.err{opacity:1;color:#991b1b;background:#fef2f2;border-color:#fecaca;transform:translateY(0)}
 
 /* ── Toast (แจ้งเตือนไม่ต้องกดปิด) ── */
 .toast-wrap{position:fixed;right:18px;bottom:18px;z-index:10050;display:flex;flex-direction:column;gap:9px;align-items:flex-end;pointer-events:none;max-width:min(380px,calc(100vw - 32px))}

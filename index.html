@@ -15,13 +15,17 @@
   header .mark{width:56px;height:56px;border-radius:14px;background:#c2410c;color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 12px}
   header h1{margin:0 0 4px;font-size:23px;color:#1a1f36}
   header p{margin:0;font-size:13px;color:#6b7280}
-  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
-  .card{display:block;text-decoration:none;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(15,23,42,.06);transition:.14s}
-  .card:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(15,23,42,.12);border-color:#c2410c}
-  .card .ic{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:10px;color:#fff}
-  .card h2{margin:0 0 4px;font-size:16px;color:#1a1f36}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+  .card{display:block;text-decoration:none;background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:22px;box-shadow:0 2px 8px rgba(15,23,42,.05);transition:.16s ease}
+  .card:hover{transform:translateY(-3px);box-shadow:0 14px 28px rgba(15,23,42,.1);border-color:#fdba74}
+  .card .ic{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px;color:#fff;background:linear-gradient(135deg,#fb923c,#c2410c);box-shadow:0 4px 14px rgba(194,65,12,.2)}
+  .card:nth-child(2) .ic{background:linear-gradient(135deg,#60a5fa,#2563eb);box-shadow:0 4px 14px rgba(37,99,235,.2)}
+  .card:nth-child(3) .ic{background:linear-gradient(135deg,#34d399,#0f766e);box-shadow:0 4px 14px rgba(15,118,110,.2)}
+  .card:nth-child(4) .ic{background:linear-gradient(135deg,#a78bfa,#7c3aed);box-shadow:0 4px 14px rgba(124,58,237,.2)}
+  .card h2{margin:0 0 6px;font-size:17px;color:#1a1f36;font-weight:700}
   .card p{margin:0;font-size:12.5px;color:#6b7280;line-height:1.6}
   .card ul{margin:10px 0 0;padding-left:18px;font-size:11.5px;color:#6b7280;line-height:1.7}
+  .card ul li{margin-bottom:2px}
   .panel{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:18px 20px;margin-top:16px;box-shadow:0 1px 3px rgba(15,23,42,.05)}
   .panel h3{margin:0 0 10px;font-size:14px;color:#1a1f36;display:flex;align-items:center;gap:7px}
   .panel p,.panel li{font-size:12.5px;color:#4b5563;line-height:1.75}
@@ -33,10 +37,11 @@
   /* ── Auth / account ── */
   .auth-input{width:100%;padding:10px 12px;margin-bottom:8px;border:1px solid #d1d5db;border-radius:8px;font-family:inherit;font-size:14px}
   .auth-input:focus{outline:none;border-color:#c2410c;box-shadow:0 0 0 3px rgba(194,65,12,.12)}
-  .auth-btn{width:100%;padding:10px 14px;border-radius:8px;border:1px solid #c2410c;background:#c2410c;color:#fff;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer}
-  .auth-btn:hover{filter:brightness(.95)}
+  .auth-btn{width:100%;padding:10px 14px;border-radius:8px;border:1px solid #c2410c;background:linear-gradient(160deg,#c2410c,#9a3412);color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(194,65,12,.25);transition:.15s}
+  .auth-btn:hover{filter:brightness(1.05);transform:translateY(-1px);box-shadow:0 6px 18px rgba(194,65,12,.35)}
   .auth-btn:disabled{opacity:.6;cursor:wait}
-  .auth-btn.reg{background:#2563eb;border-color:#2563eb}
+  .auth-btn.reg{background:linear-gradient(160deg,#2563eb,#1d4ed8);border-color:#1d4ed8;box-shadow:0 4px 14px rgba(37,99,235,.25)}
+  .auth-btn.reg:hover{filter:brightness(1.05);box-shadow:0 6px 18px rgba(37,99,235,.35)}
   .auth-tab{flex:1;padding:8px 10px;border-radius:8px;border:1px solid #d1d5db;background:#fff;font-family:inherit;font-size:13px;font-weight:600;color:#374151;cursor:pointer}
   .auth-tab.active{background:#1a1f36;border-color:#1a1f36;color:#fff}
   .auth-link{font-size:12.5px;color:#c2410c;text-decoration:none;background:none;border:none;cursor:pointer;font-family:inherit;padding:0}
@@ -98,7 +103,7 @@
 
   <div class="cards">
     <a class="card" href="quotation.html">
-      <div class="ic" style="background:#c2410c">📝</div>
+      <div class="ic">📝</div>
       <h2>ใบเสนอราคา</h2>
       <p>Quotation — แบ่งหมวดหมู่ คิดค่าวัสดุ/ค่าแรง พร้อมจำนวนเงินเป็นตัวหนังสือ</p>
       <ul>
