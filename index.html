@@ -147,6 +147,16 @@
       ย้ายเครื่องหรือใช้หลายเครื่อง → กด <b>“ส่งออก (.json)”</b> แล้วนำไปกด <b>“นำเข้า”</b> ที่เครื่องปลายทาง</p>
   </div>
 
+  <div class="panel" style="background:#fffbeb;border-color:#fde68a">
+    <h3 style="color:#92400e">👥 ทะเบียนลูกค้า</h3>
+    <p style="color:#78350f">ระบบจะจำ <b>ชื่อลูกค้า / ที่อยู่ / เลขผู้เสียภาษี / ผู้ติดต่อ</b> จากใบเสนอราคาและใบแจ้งหนี้ให้อัตโนมัติ<br>
+      ครั้งต่อไปเปิดใบใหม่ กด <b>“👥 เลือกลูกค้าเก่า”</b> แล้วเลือกรายชื่อได้เลย — ไม่ต้องพิมพ์ซ้ำ</p>
+    <div class="row">
+      <button class="x-btn" type="button" onclick="CUSTOMERS.openManager()">เปิดทะเบียนลูกค้า</button>
+      <span id="custCount" style="font-size:12px;color:#92400e;align-self:center">—</span>
+    </div>
+  </div>
+
   <div class="panel" id="pwdWarnPanel" style="background:#eff6ff;border-color:#bfdbfe;display:none">
     <h3 style="color:#1e40af">🔐 บัญชีและการเข้าสู่ระบบ</h3>
     <p style="color:#1e3a8a">บัญชีนี้ใช้สำหรับเข้าสู่ระบบจากทุกเครื่อง — ข้อมูลบริษัทและเอกสารเก็บบน Cloud (D1)<br>
@@ -193,6 +203,7 @@
 
 <script src="assets/toast.js"></script>
 <script src="assets/api.js"></script>
+<script src="assets/customers.js"></script>
 <script src="assets/gate.js"></script>
 <script src="assets/profile.js"></script>
 <script>
@@ -396,6 +407,18 @@ async function afterLogin() {
     if (e && e.message === 'Unauthorized') { API.signOut('/'); return; }
   }
   showApp();
+  refreshCustomerCount();
+}
+
+function refreshCustomerCount() {
+  if (typeof CUSTOMERS === 'undefined') { setTimeout(refreshCustomerCount, 200); return; }
+  CUSTOMERS.onChange(() => {
+    const el = document.getElementById('custCount');
+    if (!el) return;
+    const n = CUSTOMERS.list().length;
+    el.textContent = n ? (n + ' รายชื่อในทะเบียน') : 'ยังไม่มีรายชื่อ — ระบบจะเก็บให้เมื่อบันทึกใบเสนอราคา';
+  });
+  CUSTOMERS.ensure();
 }
 
 // boot

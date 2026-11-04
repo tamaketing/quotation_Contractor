@@ -9,6 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script src="assets/toast.js"></script>
 <script src="assets/api.js"></script>
+<script src="assets/customers.js"></script>
 <script src="assets/thai.js"></script>
 <script src="assets/docnum.js"></script>
 <script src="assets/profile.js"></script>
@@ -333,6 +334,7 @@
     <div class="grid2">
       <div class="card">
         <div class="section-title"><i>B</i> ผู้ซื้อ — Buyer / Customer</div>
+        <div id="custPicker"></div>
         <div class="field-label">ชื่อผู้ซื้อ / บริษัท</div>
         <input id="buyerName" placeholder="ชื่อลูกค้า / บริษัทผู้ซื้อ">
         <div class="field-label">ที่อยู่</div>
@@ -831,7 +833,29 @@ function fillFromInvoice(inv) {
     nextNo: nextReceiptNo,
     setNo: (d, n) => { d.docNo = n; },
     archive: () => ARCHIVE.pick(docForDisk),
-    onSaved: rec => ARCHIVE.scheduleWrite(diskName(rec.data), rec.data)
+    onSaved: rec => {
+      ARCHIVE.scheduleWrite(diskName(rec.data), rec.data);
+      CUSTOMERS.rememberFromDoc(rec.data, {
+        name: 'buyerName', address: 'buyerAddr', taxId: 'buyerTax',
+        contact: 'buyerContact', project: 'prjName'
+      });
+    }
+  });
+
+  /* ตัวเลือกลูกค้าเก่า */
+  CUSTOMERS.attachPicker($('custPicker'), {
+    label: 'เลือกลูกค้าเก่า',
+    currentName: () => ($('buyerName') ? $('buyerName').value : ''),
+    onPick: c => {
+      if (c.name && $('buyerName')) $('buyerName').value = c.name;
+      if (c.address && $('buyerAddr')) $('buyerAddr').value = c.address;
+      if (c.taxId && $('buyerTax')) $('buyerTax').value = c.taxId;
+      if ((c.contact || c.phone) && $('buyerContact') && !$('buyerContact').value.trim()) {
+        $('buyerContact').value = c.contact || c.phone;
+      }
+      if (c.project && $('prjName') && !$('prjName').value.trim()) $('prjName').value = c.project;
+      calc(); scheduleSave();
+    }
   });
 
   ARCHIVE.init({ status: docs.panel.querySelector('.arc-st'), saved: docs.panel.querySelector('.arc-lasted') });

@@ -212,6 +212,7 @@ tr:hover .row-del{display:inline-block;vertical-align:middle}
   <!-- Info -->
   <div class="info-row">
     <div class="cust-block">
+      <div id="custPicker"></div>
       <p class="cust-row"><b>เสนอราคา</b> <span class="tw" id="custTitle" contenteditable="true">ช่างต่อ</span></p>
       <p class="cust-row"><b>บริษัท</b> <span class="tw" id="cusName" contenteditable="true">ชื่อบริษัท / หน่วยงาน</span></p>
       <p class="cust-row"><b>ที่อยู่</b> <span class="tw" id="cusAddr" contenteditable="true">ที่อยู่ผู้รับบริการ</span></p>
@@ -310,6 +311,7 @@ tr:hover .row-del{display:inline-block;vertical-align:middle}
 <script src="assets/docnum.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script src="assets/toast.js"></script>
+<script src="assets/customers.js"></script>
 <script src="assets/profile.js"></script>
 <script src="assets/archive.js"></script>
 <script src="assets/docs-api.js"></script>
@@ -543,8 +545,26 @@ function docForDisk(){const d=collect();return{base:diskName(d),data:d};}
       docs._push(rec);load(d);
     },
     archive:()=>ARCHIVE.pick(docForDisk),
-    onSaved:rec=>ARCHIVE.scheduleWrite(diskName(rec.data),rec.data)
+    onSaved:rec=>{
+      ARCHIVE.scheduleWrite(diskName(rec.data),rec.data);
+      /* จำข้อมูลลูกค้าไว้ให้เลือกครั้งหน้า (เงียบ ๆ) */
+      CUSTOMERS.rememberFromDoc(rec.data,{name:'cusName',address:'cusAddr',project:'prjName'});
+    }
   });
+
+  /* ตัวเลือกลูกค้าเก่า */
+  CUSTOMERS.attachPicker($('custPicker'),{
+    label:'เลือกลูกค้าเก่า',
+    currentName:()=>$('cusName').textContent,
+    onPick:c=>{
+      if(c.name)$('cusName').textContent=c.name;
+      if(c.address)$('cusAddr').textContent=c.address;
+      if(c.project&&!$('prjName').textContent.trim())$('prjName').textContent=c.project;
+      calc();
+      if(docs)docs.scheduleSave();
+    }
+  });
+
   ARCHIVE.init({status:docs.panel.querySelector('.arc-st'),saved:docs.panel.querySelector('.arc-lasted')});
   ARCHIVE.restore();
 

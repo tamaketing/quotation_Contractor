@@ -112,6 +112,31 @@ export function ensureAuthSchema(env) {
     } catch (e) {
       /* มีคอลัมน์อยู่แล้ว — ปกติ */
     }
+    /* ทะเบียนลูกค้า (ใช้เลือกลูกค้าเก่าในใบเสนอราคา/ใบแจ้งหนี้/ใบเสร็จ) */
+    try {
+      await env.DB.prepare(
+        `CREATE TABLE IF NOT EXISTS customers (
+          id TEXT PRIMARY KEY,
+          company_id TEXT NOT NULL,
+          name TEXT NOT NULL DEFAULT '',
+          address TEXT DEFAULT '',
+          tax_id TEXT DEFAULT '',
+          contact TEXT DEFAULT '',
+          phone TEXT DEFAULT '',
+          email TEXT DEFAULT '',
+          project TEXT DEFAULT '',
+          note TEXT DEFAULT '',
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+          FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE
+        )`
+      ).run();
+      await env.DB.prepare(
+        'CREATE INDEX IF NOT EXISTS idx_customers_company ON customers(company_id)'
+      ).run();
+    } catch (e) {
+      console.error('ensureAuthSchema (customers):', e);
+    }
     return true;
   })();
   return _authSchemaReady;

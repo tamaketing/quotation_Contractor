@@ -51,5 +51,9 @@ const API = (function () {
     updateDoc(type, id, data) { return request('/api/' + type + '/' + encodeURIComponent(id), { method: 'PUT', body: JSON.stringify(data) }); },
     deleteDoc(type, id) { return request('/api/' + type + '/' + encodeURIComponent(id), { method: 'DELETE' }); },
     nextDocNo(prefix, year) { return request('/api/docnum/next', { method: 'POST', body: JSON.stringify({ prefix, year }) }); },
+    listCustomers() { return request('/api/customers'); },
+    createCustomer(data) { return request('/api/customers', { method: 'POST', body: JSON.stringify(data) }); },
+    updateCustomer(id, data) { return request('/api/customers/' + encodeURIComponent(id), { method: 'PUT', body: JSON.stringify(data) }); },
+    deleteCustomer(id) { return request('/api/customers/' + encodeURIComponent(id), { method: 'DELETE' }); },
   };
 })();

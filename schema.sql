@@ -41,6 +41,24 @@ CREATE TABLE IF NOT EXISTS password_resets (
 );
 CREATE INDEX IF NOT EXISTS idx_password_resets_user ON password_resets(user_id);
 
+-- ทะเบียนลูกค้า (ใช้เลือกลูกค้าเก่าในเอกสาร)
+CREATE TABLE IF NOT EXISTS customers (
+  id TEXT PRIMARY KEY,
+  company_id TEXT NOT NULL,
+  name TEXT NOT NULL DEFAULT '',
+  address TEXT DEFAULT '',
+  tax_id TEXT DEFAULT '',
+  contact TEXT DEFAULT '',
+  phone TEXT DEFAULT '',
+  email TEXT DEFAULT '',
+  project TEXT DEFAULT '',
+  note TEXT DEFAULT '',
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_customers_company ON customers(company_id);
+
 CREATE TABLE IF NOT EXISTS sessions (
   token TEXT PRIMARY KEY,
   user_id TEXT NOT NULL,

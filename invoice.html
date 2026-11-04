@@ -9,6 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script src="assets/toast.js"></script>
 <script src="assets/api.js"></script>
+<script src="assets/customers.js"></script>
 <script src="assets/thai.js"></script>
 <script src="assets/docnum.js"></script>
 <script src="assets/profile.js"></script>
@@ -351,6 +352,7 @@
     <div class="grid2">
       <div class="card">
         <div class="section-title"><i>B</i> BILL TO — ข้อมูลลูกค้า</div>
+        <div id="custPicker"></div>
         <div class="field-label">Customer / Company Name</div>
         <input id="cusName" placeholder="ชื่อลูกค้า / บริษัท">
         <div class="field-label">Address / Contact</div>
@@ -526,7 +528,7 @@ function persist(){renderList();document.getElementById('invCount').textContent=
 function getCurrent(){return invoices.find(x=>x.id===currentId)||null}
 
 async function saveToDisk(data){return ARCHIVE.write(diskName(data),data)}
-async function saveCurrent(data,silent){const now=Date.now();let rec=getCurrent();const say=(m,type,sub)=>{if(typeof TOAST!=='undefined')TOAST[type](m,sub);};try{if(!rec){const r=await API.createDoc('invoices',{docNo:data.invNo||'',data});const id=r.id;rec={id,updatedAt:now,data};invoices.unshift(rec);currentId=id;}else{await API.updateDoc('invoices',rec.id,{docNo:data.invNo||'',data});rec.data=data;rec.updatedAt=now;invoices=invoices.filter(x=>x.id!==currentId);invoices.unshift(rec);}persist();window.dispatchEvent(new CustomEvent('doc:saved',{detail:{ok:true,silent:!!silent}}));if(!silent)say('บันทึกแล้ว','success','ข้อมูลถูกเก็บไว้บน Cloud');}catch(e){console.error(e);window.dispatchEvent(new CustomEvent('doc:saved',{detail:{ok:false,msg:e.message,silent:!!silent}}));say('บันทึกไม่สำเร็จ','error',e.message);}const disk=await saveToDisk(data);const st=document.getElementById('saveStatus');const ls=document.getElementById('lastSaved');const t=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});if(disk){st.innerHTML='<b style="color:#059669">Saved</b>';ls.textContent=disk+' • '+t;}else if(ARCHIVE.has()){st.innerHTML='<b style="color:#059669">Saved</b>';ls.textContent=t;}else{st.innerHTML='<b style="color:#6b7280">Saved (local)</b>';ls.textContent='• '+t;}}
+async function saveCurrent(data,silent){const now=Date.now();let rec=getCurrent();const say=(m,type,sub)=>{if(typeof TOAST!=='undefined')TOAST[type](m,sub);};try{if(!rec){const r=await API.createDoc('invoices',{docNo:data.invNo||'',data});const id=r.id;rec={id,updatedAt:now,data};invoices.unshift(rec);currentId=id;}else{await API.updateDoc('invoices',rec.id,{docNo:data.invNo||'',data});rec.data=data;rec.updatedAt=now;invoices=invoices.filter(x=>x.id!==currentId);invoices.unshift(rec);}persist();if(typeof CUSTOMERS!=='undefined')CUSTOMERS.rememberFromDoc(data,{name:'cusName',address:'cusAddr',taxId:'cusTax',project:'prjName'});window.dispatchEvent(new CustomEvent('doc:saved',{detail:{ok:true,silent:!!silent}}));if(!silent)say('บันทึกแล้ว','success','ข้อมูลถูกเก็บไว้บน Cloud');}catch(e){console.error(e);window.dispatchEvent(new CustomEvent('doc:saved',{detail:{ok:false,msg:e.message,silent:!!silent}}));say('บันทึกไม่สำเร็จ','error',e.message);}const disk=await saveToDisk(data);const st=document.getElementById('saveStatus');const ls=document.getElementById('lastSaved');const t=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});if(disk){st.innerHTML='<b style="color:#059669">Saved</b>';ls.textContent=disk+' • '+t;}else if(ARCHIVE.has()){st.innerHTML='<b style="color:#059669">Saved</b>';ls.textContent=t;}else{st.innerHTML='<b style="color:#6b7280">Saved (local)</b>';ls.textContent='• '+t;}}
 function scheduleAutoSave(){clearTimeout(saveTimer);document.getElementById('saveStatus').innerHTML='<b style="color:#d97706">Editing...</b>';saveTimer=setTimeout(async()=>{await saveCurrent(collect(),true)},900)}
 function updateDirStatus(){ARCHIVE.setStatus()}
 
@@ -555,6 +557,18 @@ async function manualSave(){const data=collect();await saveCurrent(data);}
   FIELDS.forEach(k=>{const el=document.getElementById(k);if(!el)return;el.addEventListener('input',()=>{calc();scheduleAutoSave()});el.addEventListener('change',()=>{calc();scheduleAutoSave()})});
   DOCNUM.watch(document.getElementById('invNo'),()=>invoices,r=>r.data.invNo,()=>currentId);
   document.getElementById('searchBox').addEventListener('input',renderList);
+  CUSTOMERS.attachPicker(document.getElementById('custPicker'),{
+    label:'เลือกลูกค้าเก่า',
+    currentName:()=>gv('cusName'),
+    onPick:c=>{
+      if(c.name)document.getElementById('cusName').value=c.name;
+      if(c.address)document.getElementById('cusAddr').value=c.address;
+      if(c.taxId)document.getElementById('cusTax').value=c.taxId;
+      if(c.project&&!gv('prjName').trim())document.getElementById('prjName').value=c.project;
+      calc();
+      scheduleAutoSave();
+    }
+  });
   ARCHIVE.init({status:document.getElementById('dirStatus'),saved:document.getElementById('lastSaved')});
 
   /* ข้อมูลบริษัท + โหลดจาก Cloud */
