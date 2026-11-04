@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /reset-password.html
 Sitemap: https://quotation-contractor.pages.dev/sitemap.xml
 
 User-agent: Googlebot

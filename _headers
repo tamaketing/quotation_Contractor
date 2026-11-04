@@ -7,10 +7,10 @@
 /assets/*
   Cache-Control: no-cache
 
-# ความปลอดภัยพื้นฐาน + ไม่ให้ search engine เก็บเว็บนี้
+# ความปลอดภัยพื้นฐาน + อนุญาตให้ search engine / LLM index หน้าเว็บ
 /*
   X-Content-Type-Options: nosniff
   X-Frame-Options: SAMEORIGIN
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(), microphone=(), camera=()
-  X-Robots-Tag: index, follow  # ← เปลี่ยนจาก noindex, nofollow เป็น index, follow
+  X-Robots-Tag: index, follow

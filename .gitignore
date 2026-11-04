@@ -18,3 +18,5 @@ desktop.ini
 .idea/
 node_modules/
 *.log
+.dev.vars
+.wrangler/

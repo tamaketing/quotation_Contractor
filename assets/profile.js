@@ -327,12 +327,20 @@ const PROFILE = (function () {
       r.readAsText(f); pf.value = '';
     });
 
-    ov.querySelector('#profPwd').addEventListener('click', () => {
+    ov.querySelector('#profPwd').addEventListener('click', async () => {
       const oldP = prompt('รหัสผ่านเดิม:');
       if (oldP === null) return;
-      const newP = prompt('รหัสผ่านใหม่ (อย่างน้อย 4 ตัวอักษร):');
+      if (!oldP) { alert('กรุณากรอกรหัสผ่านเดิม'); return; }
+      const newP = prompt('รหัสผ่านใหม่ (อย่างน้อย 6 ตัวอักษร):');
       if (newP === null) return;
-      GATE.changePassword(oldP, newP).then(r => alert(r.msg));
+      if (!newP || newP.length < 6) { alert('รหัสผ่านใหม่ต้องยาวอย่างน้อย 6 ตัวอักษร'); return; }
+      try {
+        const r = await API.changePassword(oldP, newP);
+        if (r && r.token) API.setToken(r.token);
+        alert((r && r.message) || 'เปลี่ยนรหัสผ่านเรียบร้อยแล้ว');
+      } catch (e) {
+        alert(e.message || 'เปลี่ยนรหัสผ่านไม่สำเร็จ');
+      }
     });
 
     ov._refresh = () => {

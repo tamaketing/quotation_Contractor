@@ -36,6 +36,15 @@ const API = (function () {
     },
     getProfile() { return request('/api/profile'); },
     updateProfile(data) { return request('/api/profile', { method: 'PUT', body: JSON.stringify(data) }); },
+    forgotPassword(email) { return request('/api/auth/forgot', { method: 'POST', body: JSON.stringify({ email }) }); },
+    resetPassword(token, password) { return request('/api/auth/reset', { method: 'POST', body: JSON.stringify({ token, password }) }); },
+    changePassword(currentPassword, newPassword) {
+      return request('/api/auth/change-password', { method: 'POST', body: JSON.stringify({ currentPassword, newPassword }) });
+    },
+    signOut(redirect) {
+      setToken(null); setUser(null);
+      try { window.location.replace(redirect || '/'); } catch { window.location.href = redirect || '/'; }
+    },
     listDocs(type) { return request('/api/' + type); },
     getDoc(type, id) { return request('/api/' + type + '/' + encodeURIComponent(id)); },
     createDoc(type, data) { return request('/api/' + type, { method: 'POST', body: JSON.stringify(data) }); },

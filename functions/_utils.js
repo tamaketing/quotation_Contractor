@@ -32,6 +32,22 @@ export function randomSalt() {
   return btoa(String.fromCharCode(...b));
 }
 
+/* token แบบสุ่ม 32 bytes → base64url (ใช้ในลิงก์รีเซ็ตรหัสผ่าน) */
+export function randomToken(bytes = 32) {
+  const b = new Uint8Array(bytes);
+  crypto.getRandomValues(b);
+  return btoa(String.fromCharCode(...b)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+export async function sha256Hex(str) {
+  const buf = await crypto.subtle.digest('SHA-256', enc.encode(str));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+export function nowSec() {
+  return Math.floor(Date.now() / 1000);
+}
+
 // Minimal JWT (HS256) using Web Crypto
 const DEFAULT_SECRET = 'change-me-in-production-set-JWT_SECRET-env';
 
@@ -69,11 +85,49 @@ export function getBearer(request) {
   return m ? m[1] : null;
 }
 
+/* ── Auto-migrate ตารางที่เกี่ยวกับระบบสมาชิก (ทำครั้งเดียวต่อ isolate) ── */
+let _authSchemaReady = null;
+export function ensureAuthSchema(env) {
+  if (_authSchemaReady) return _authSchemaReady;
+  _authSchemaReady = (async () => {
+    try {
+      await env.DB.prepare(
+        `CREATE TABLE IF NOT EXISTS password_resets (
+          token_hash TEXT PRIMARY KEY,
+          user_id TEXT NOT NULL,
+          expires_at INTEGER NOT NULL,
+          used INTEGER NOT NULL DEFAULT 0,
+          created_at INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )`
+      ).run();
+      await env.DB.prepare(
+        'CREATE INDEX IF NOT EXISTS idx_password_resets_user ON password_resets(user_id)'
+      ).run();
+    } catch (e) {
+      console.error('ensureAuthSchema (password_resets):', e);
+    }
+    try {
+      await env.DB.prepare('ALTER TABLE users ADD COLUMN token_version INTEGER NOT NULL DEFAULT 0').run();
+    } catch (e) {
+      /* มีคอลัมน์อยู่แล้ว — ปกติ */
+    }
+    return true;
+  })();
+  return _authSchemaReady;
+}
+
 export async function requireUser(request, env) {
   const token = getBearer(request);
   const secret = (env && env.JWT_SECRET) || DEFAULT_SECRET;
   const payload = await verifyJwt(token, secret);
   if (!payload || !payload.sub) return null;
-  const row = await env.DB.prepare('SELECT id, email, company_id, role FROM users WHERE id = ?').bind(payload.sub).first();
-  return row || null;
+  await ensureAuthSchema(env);
+  const row = await env.DB.prepare(
+    'SELECT id, email, company_id, role, token_version FROM users WHERE id = ?'
+  ).bind(payload.sub).first();
+  if (!row) return null;
+  /* token ต้องมี version ตรงกับผู้ใช้ — เปลี่ยน/รีเซ็ตรหัสผ่านแล้ว version จะเพิ่ม */
+  if ((payload.ver || 0) !== (row.token_version || 0)) return null;
+  return row;
 }

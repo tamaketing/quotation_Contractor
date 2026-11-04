@@ -30,32 +30,65 @@
   .warn h3{color:#92400e}
   .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
   footer{text-align:center;margin-top:26px;font-size:11px;color:#9ca3af;line-height:1.8}
+  /* ── Auth / account ── */
+  .auth-input{width:100%;padding:10px 12px;margin-bottom:8px;border:1px solid #d1d5db;border-radius:8px;font-family:inherit;font-size:14px}
+  .auth-input:focus{outline:none;border-color:#c2410c;box-shadow:0 0 0 3px rgba(194,65,12,.12)}
+  .auth-btn{width:100%;padding:10px 14px;border-radius:8px;border:1px solid #c2410c;background:#c2410c;color:#fff;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer}
+  .auth-btn:hover{filter:brightness(.95)}
+  .auth-btn:disabled{opacity:.6;cursor:wait}
+  .auth-btn.reg{background:#2563eb;border-color:#2563eb}
+  .auth-tab{flex:1;padding:8px 10px;border-radius:8px;border:1px solid #d1d5db;background:#fff;font-family:inherit;font-size:13px;font-weight:600;color:#374151;cursor:pointer}
+  .auth-tab.active{background:#1a1f36;border-color:#1a1f36;color:#fff}
+  .auth-link{font-size:12.5px;color:#c2410c;text-decoration:none;background:none;border:none;cursor:pointer;font-family:inherit;padding:0}
+  .auth-link:hover{text-decoration:underline}
+  .auth-msg{margin-top:12px;font-size:12.5px;text-align:center;line-height:1.6;padding:8px 10px;border-radius:8px;display:none}
+  .auth-msg.err{display:block;color:#991b1b;background:#fef2f2;border:1px solid #fecaca}
+  .auth-msg.ok{display:block;color:#065f46;background:#ecfdf5;border:1px solid #a7f3d0}
+  .account-bar{display:flex;justify-content:flex-end;align-items:center;gap:10px;max-width:920px;margin:0 auto 10px;font-size:12.5px;color:#475569;flex-wrap:wrap}
+  .account-bar button{padding:6px 12px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;font-family:inherit;font-size:12.5px;cursor:pointer;color:#334155}
+  .account-bar button:hover{background:#f1f5f9}
 </style>
 </head>
 <body>
 
-<div id="authPanel" style="max-width:420px;margin:60px auto;background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:28px;box-shadow:0 4px 16px rgba(0,0,0,.08)">
-  <h2 style="margin:0 0 6px;font-size:20px;color:#1a1f36;text-align:center">🔐 เข้าสู่ระบบ</h2>
-  <p style="margin:0 0 18px;font-size:12.5px;color:#6b7280;text-align:center">บริการเอกสารรับเหมา (Cloud) — ข้อมูลแยกตามบริษัท</p>
-  <div id="authTabs" style="display:flex;gap:8px;margin-bottom:14px">
-    <button id="tabLogin" class="x-btn" style="flex:1;background:#c2410c;color:#fff;border-color:#c2410c">เข้าสู่ระบบ</button>
-    <button id="tabReg" class="x-btn" style="flex:1">สมัครสมาชิก</button>
+<div id="authPanel" style="max-width:440px;margin:50px auto;background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:26px;box-shadow:0 4px 16px rgba(0,0,0,.08)">
+  <div style="text-align:center;margin-bottom:16px">
+    <div style="width:50px;height:50px;border-radius:13px;background:#c2410c;color:#fff;display:flex;align-items:center;justify-content:center;font-size:23px;margin:0 auto 10px">🏗️</div>
+    <h2 id="authTitle" style="margin:0 0 4px;font-size:20px;color:#1a1f36">เข้าสู่ระบบ</h2>
+    <p style="margin:0;font-size:12.5px;color:#6b7280">ระบบเอกสารรับเหมา — ข้อมูลแยกตามบริษัท</p>
+  </div>
+  <div id="authTabs" style="display:flex;gap:8px;margin-bottom:16px">
+    <button id="tabLogin" class="auth-tab active">เข้าสู่ระบบ</button>
+    <button id="tabReg" class="auth-tab">สมัครสมาชิก</button>
   </div>
   <div id="loginForm">
-    <input id="lEmail" type="email" placeholder="อีเมล" style="width:100%;padding:10px;margin-bottom:8px;border:1px solid #d1d5db;border-radius:8px;font-family:inherit">
-    <input id="lPwd" type="password" placeholder="รหัสผ่าน" style="width:100%;padding:10px;margin-bottom:12px;border:1px solid #d1d5db;border-radius:8px;font-family:inherit">
-    <button id="lBtn" class="x-btn" style="width:100%;background:#c2410c;color:#fff;border-color:#c2410c">เข้าสู่ระบบ</button>
+    <input id="lEmail" class="auth-input" type="email" placeholder="อีเมล" autocomplete="email">
+    <input id="lPwd" class="auth-input" type="password" placeholder="รหัสผ่าน" autocomplete="current-password">
+    <button id="lBtn" class="auth-btn">เข้าสู่ระบบ</button>
+    <div style="text-align:center;margin-top:12px"><button id="goForgot" class="auth-link">ลืมรหัสผ่าน?</button></div>
   </div>
   <div id="regForm" style="display:none">
-    <input id="rCompany" placeholder="ชื่อบริษัท" style="width:100%;padding:10px;margin-bottom:8px;border:1px solid #d1d5db;border-radius:8px;font-family:inherit">
-    <input id="rEmail" type="email" placeholder="อีเมล" style="width:100%;padding:10px;margin-bottom:8px;border:1px solid #d1d5db;border-radius:8px;font-family:inherit">
-    <input id="rPwd" type="password" placeholder="รหัสผ่าน (≥6 ตัว)" style="width:100%;padding:10px;margin-bottom:12px;border:1px solid #d1d5db;border-radius:8px;font-family:inherit">
-    <button id="rBtn" class="x-btn" style="width:100%;background:#2563eb;color:#fff;border-color:#2563eb">สมัครสมาชิก</button>
+    <input id="rCompany" class="auth-input" placeholder="ชื่อบริษัท" autocomplete="organization">
+    <input id="rEmail" class="auth-input" type="email" placeholder="อีเมล" autocomplete="email">
+    <input id="rPwd" class="auth-input" type="password" placeholder="รหัสผ่าน (อย่างน้อย 6 ตัว)" autocomplete="new-password">
+    <input id="rPwd2" class="auth-input" type="password" placeholder="ยืนยันรหัสผ่าน" autocomplete="new-password">
+    <button id="rBtn" class="auth-btn reg">สมัครสมาชิก</button>
+    <p style="margin:10px 0 0;font-size:11.5px;color:#6b7280;text-align:center">สมัครแล้วระบบจะสร้างบริษัทใหม่ให้ และเข้าสู่ระบบทันที</p>
   </div>
-  <p id="authMsg" style="margin-top:10px;font-size:12.5px;color:#dc2626;text-align:center;display:none"></p>
+  <div id="forgotForm" style="display:none">
+    <p style="margin:0 0 10px;font-size:12.5px;color:#4b5563;line-height:1.65">กรอกอีเมลที่ใช้สมัคร ระบบจะส่งลิงก์ตั้งรหัสผ่านใหม่ไปให้ (ลิงก์มีอายุ 30 นาที)</p>
+    <input id="fEmail" class="auth-input" type="email" placeholder="อีเมล" autocomplete="email">
+    <button id="fBtn" class="auth-btn">ส่งลิงก์รีเซ็ตรหัสผ่าน</button>
+    <div style="text-align:center;margin-top:12px"><button id="backLogin" class="auth-link">← กลับไปเข้าสู่ระบบ</button></div>
+  </div>
+  <div id="authMsg" class="auth-msg"></div>
 </div>
 
 <div class="box" id="appBox" style="display:none">
+  <div class="account-bar" id="accountBar" style="display:none">
+    <span>👤 <b id="acctEmail"></b></span>
+    <button id="logoutBtn" type="button">ออกจากระบบ</button>
+  </div>
   <header>
     <div class="mark">🏗️</div>
     <h1>ระบบเอกสารรับเหมา</h1>
@@ -114,21 +147,19 @@
       ย้ายเครื่องหรือใช้หลายเครื่อง → กด <b>“ส่งออก (.json)”</b> แล้วนำไปกด <b>“นำเข้า”</b> ที่เครื่องปลายทาง</p>
   </div>
 
-  <div class="panel" id="pwdWarnPanel" style="background:#fef2f2;border-color:#fecaca;display:none">
-    <h3 style="color:#991b1b">🔐 ยังใช้รหัสผ่านเริ่มต้นอยู่</h3>
-    <p style="color:#7f1d1d">เว็บนี้เป็นบริการสาธารณะ — รหัสผ่านเริ่มต้น <b>primecess2569</b> เป็นที่รู้จักของทุกคน  
-    กรุณาเปลี่ยนรหัสผ่านทันทีผ่านปุ่ม <b>“⚙ ข้อมูลบริษัท”</b> → เปลี่ยนรหัสผ่าน (ต้องมีอย่างน้อย 4 ตัวอักษร)  
-    มิฉะนั้นข้อมูลบริษัทของคุณอาจถูกเข้าถึงโดยผู้อื่น</p>
+  <div class="panel" id="pwdWarnPanel" style="background:#eff6ff;border-color:#bfdbfe;display:none">
+    <h3 style="color:#1e40af">🔐 บัญชีและการเข้าสู่ระบบ</h3>
+    <p style="color:#1e3a8a">บัญชีนี้ใช้สำหรับเข้าสู่ระบบจากทุกเครื่อง — ข้อมูลบริษัทและเอกสารเก็บบน Cloud (D1)<br>
+      เปลี่ยนรหัสผ่านได้ที่ปุ่ม <b>“⚙ ข้อมูลบริษัท”</b> → <b>เปลี่ยนรหัสผ่าน</b> หรือออกจากระบบด้วยปุ่มมุมขวาบน</p>
   </div>
 
   <div class="panel warn">
     <h3>⚠️ ข้อควรระวังเรื่องข้อมูล</h3>
     <ul>
-      <li>เอกสารทั้งหมดถูกเก็บไว้ใน <b>เบราว์เซอร์ของเครื่องนี้</b> ไม่ได้ส่งขึ้นเซิร์ฟเวอร์</li>
-      <li>ถ้าล้างข้อมูลเว็บ หรือใช้หมดแบบไม่ระบุตัวตน (Incognito) เอกสารจะหาย — <b>ต้องกด Export เก็บไว้เป็นระยะ</b></li>
-      <li>แนะนำให้เก็บไฟล์ .json ไว้ใน OneDrive / Google Drive เป็นประจำ</li>
-      <li>ห้ามเปิดจากเครื่องสาธารณะหรือคอมพิวเตอร์ร่วม ถ้ามีข้อมูลงานจริงอยู่ — หากจำเป็นให้ใช้ปุ่ม “ล้างข้อมูลทั้งหมด” ก่อนออก</li>
-    <li>รหัสผ่าน gate เป็นรหัสร่วมของเครื่องนี้เท่านั้น — เปลี่ยนทันทีถ้ายังใช้ค่าเริ่มต้น</li>
+      <li>เอกสารและข้อมูลบริษัทถูกเก็บไว้บน <b>Cloud (Cloudflare D1)</b> — เปิดบัญชีเดิมจากเครื่องไหนก็เห็นข้อมูลเดียวกัน</li>
+      <li>ในเครื่องนี้เก็บเพียง <b>token การเข้าสู่ระบบ</b> และแคชข้อมูลบริษัท — ถ้าล้างข้อมูลเบราว์เซอร์จะต้องล็อกอินใหม่ แต่เอกสารไม่หาย</li>
+      <li>ข้อมูลบางช่อง (ชื่อผู้เสนอราคา / อายุใบเสนอราคา / อัตรา VAT) ยังเก็บเฉพาะเครื่องนี้</li>
+      <li>ควร Export ไฟล์ .json เก็บไว้เป็นสำเนาเป็นระยะ และห้ามใช้เครื่องสาธารณะโดยไม่กด “ออกจากระบบ”</li>
     </ul>
   </div>
 
@@ -145,11 +176,11 @@
   </div>
 
   <div class="panel" style="background:#fff;border-color:#fecaca">
-    <h3 style="color:#991b1b">🗑️ ล้างข้อมูลทั้งหมดในเครื่องนี้</h3>
-    <p>สำหรับคอมพิวเตอร์สาธารณะ/เครื่องร่วม — กดปุ่มนี้เพื่อลบเอกสาร, ข้อมูลบริษัท, รหัสผ่าน และประวัติทั้งหมดออกจากเบราว์เซอร์นี้  
-    <b>กู้คืนไม่ได้</b> (แนะนำ Export เก็บไว้ก่อน)</p>
+    <h3 style="color:#991b1b">🗑️ ออกจากระบบและล้างแคชในเครื่องนี้</h3>
+    <p>สำหรับคอมพิวเตอร์สาธารณะ/เครื่องร่วม — กดปุ่มนี้เพื่อลบ token การเข้าสู่ระบบและแคชในเบราว์เซอร์นี้  
+    <b>เอกสารบน Cloud จะไม่ถูกลบ</b> (เข้าสู่ระบบใหม่ก็ยังเห็นข้อมูลเดิม)</p>
     <div class="row">
-      <button id="resetAllBtn" class="x-btn" style="background:#dc2626;color:#fff;border-color:#dc2626">ล้างข้อมูลทั้งหมด</button>
+      <button id="resetAllBtn" class="x-btn" style="background:#dc2626;color:#fff;border-color:#dc2626">ล้างแคชและออกจากระบบ</button>
     </div>
     <p id="resetMsg" style="margin-top:8px;font-size:12px;color:#6b7280;display:none"></p>
   </div>
@@ -183,37 +214,25 @@ function renderCoSummary() {
 renderCoSummary();
 document.addEventListener('profile:updated', renderCoSummary);
 
-/* แจ้งเตือนถ้ายังใช้รหัสผ่านเริ่มต้น (ตรวจ hash จริง) */
-function showPwdWarnIfNeeded() {
-  try {
-    if (localStorage.getItem('quota_gate_is_default') === '1') {
-      const pw = document.getElementById('pwdWarnPanel');
-      if (pw) pw.style.display = '';
-    }
-  } catch (e) {}
-}
-if (typeof GATE !== 'undefined' && typeof GATE.ensureHash === 'function') {
-  GATE.ensureHash().then(showPwdWarnIfNeeded).catch(() => {});
-} else {
-  showPwdWarnIfNeeded();
-}
-
-/* ล้างข้อมูลทั้งหมด */
+/* ล้างแคชและออกจากระบบ */
 const resetBtn = document.getElementById('resetAllBtn');
 if (resetBtn) {
   resetBtn.addEventListener('click', async () => {
-    if (!confirm('ยืนยันล้างข้อมูลทั้งหมดในเครื่องนี้?\\nเอกสาร/ข้อมูลบริษัท/รหัสผ่านจะหายและกู้คืนไม่ได้')) return;
+    if (!confirm('ออกจากระบบและล้างแคชในเบราว์เซอร์นี้?\nเอกสารบน Cloud จะไม่ถูกลบ')) return;
     try {
+      API.setToken(null); API.setUser(null);
       const keys = Object.keys(localStorage);
       keys.forEach(k => {
-        if (k.startsWith('quota_') || k.startsWith('constr_') || k.startsWith('docnum_')) localStorage.removeItem(k);
+        if (k === 'quota_api_token' || k === 'quota_api_user' || k === 'quota_profile_v1' || k.startsWith('docnum_')) {
+          localStorage.removeItem(k);
+        }
       });
       sessionStorage.clear();
       if (window.indexedDB && indexedDB.deleteDatabase) {
         try { indexedDB.deleteDatabase('quota_archive_db'); } catch (e) {}
       }
       const msg = document.getElementById('resetMsg');
-      if (msg) { msg.style.display = ''; msg.textContent = 'ล้างข้อมูลเรียบร้อยแล้ว — กำลังโหลดหน้าใหม่'; }
+      if (msg) { msg.style.display = ''; msg.textContent = 'ล้างแคชเรียบร้อย — กำลังโหลดหน้าใหม่'; }
       setTimeout(() => location.reload(), 900);
     } catch (e) {
       alert('เกิดข้อผิดพลาด: ' + e.message);
@@ -221,94 +240,165 @@ if (resetBtn) {
   });
 }
 
-document.getElementById('ver').textContent = 'เวอร์ชัน 4.0 (Cloud)';
+document.getElementById('ver').textContent = 'เวอร์ชัน 4.1 (สมาชิก / Cloud)';
 
 // --- Auth flow ---
 const authPanel = document.getElementById('authPanel');
 const appBox = document.getElementById('appBox');
 const authMsg = document.getElementById('authMsg');
-function showAuth(msg) {
+
+function setMsg(text, type) {
+  if (!authMsg) return;
+  authMsg.textContent = text || '';
+  authMsg.className = 'auth-msg' + (text ? ' ' + (type || 'err') : '');
+}
+function showAuth(msg, type) {
   if (authPanel) authPanel.style.display = '';
   if (appBox) appBox.style.display = 'none';
-  if (msg && authMsg) { authMsg.style.display = ''; authMsg.textContent = msg; }
+  if (msg) setMsg(msg, type);
 }
 function showApp() {
   if (authPanel) authPanel.style.display = 'none';
   if (appBox) appBox.style.display = '';
-  if (authMsg) authMsg.style.display = 'none';
+  setMsg('');
+  const u = API.getUser();
+  const bar = document.getElementById('accountBar');
+  const em = document.getElementById('acctEmail');
+  if (em) em.textContent = (u && u.email) || '';
+  if (bar) bar.style.display = 'flex';
 }
 
-// tabs
-const tabLogin = document.getElementById('tabLogin');
-const tabReg = document.getElementById('tabReg');
-if (tabLogin && tabReg) {
-  tabLogin.addEventListener('click', () => {
-    document.getElementById('loginForm').style.display = '';
-    document.getElementById('regForm').style.display = 'none';
-    tabLogin.style.background = '#c2410c'; tabLogin.style.color = '#fff'; tabLogin.style.borderColor = '#c2410c';
-    tabReg.style.background = ''; tabReg.style.color = ''; tabReg.style.borderColor = '';
-  });
-  tabReg.addEventListener('click', () => {
-    document.getElementById('loginForm').style.display = 'none';
-    document.getElementById('regForm').style.display = '';
-    tabReg.style.background = '#2563eb'; tabReg.style.color = '#fff'; tabReg.style.borderColor = '#2563eb';
-    tabLogin.style.background = ''; tabLogin.style.color = ''; tabLogin.style.borderColor = '';
-  });
+function setTab(mode) {
+  const login = document.getElementById('loginForm');
+  const reg = document.getElementById('regForm');
+  const forgot = document.getElementById('forgotForm');
+  if (login) login.style.display = mode === 'login' ? '' : 'none';
+  if (reg) reg.style.display = mode === 'reg' ? '' : 'none';
+  if (forgot) forgot.style.display = mode === 'forgot' ? '' : 'none';
+  const tabs = document.getElementById('authTabs');
+  if (tabs) tabs.style.display = mode === 'forgot' ? 'none' : 'flex';
+  document.getElementById('tabLogin').classList.toggle('active', mode === 'login');
+  document.getElementById('tabReg').classList.toggle('active', mode === 'reg');
+  const title = document.getElementById('authTitle');
+  if (title) title.textContent = mode === 'reg' ? 'สมัครสมาชิก' : mode === 'forgot' ? 'ลืมรหัสผ่าน' : 'เข้าสู่ระบบ';
+  setMsg('');
+}
+
+document.getElementById('tabLogin').addEventListener('click', () => setTab('login'));
+document.getElementById('tabReg').addEventListener('click', () => setTab('reg'));
+document.getElementById('goForgot').addEventListener('click', () => setTab('forgot'));
+document.getElementById('backLogin').addEventListener('click', () => setTab('login'));
+
+async function withBtn(btn, fn) {
+  if (!btn) return fn();
+  const old = btn.textContent;
+  btn.disabled = true;
+  try { await fn(); } finally { btn.disabled = false; btn.textContent = old; }
 }
 
 async function tryLogin() {
   const email = document.getElementById('lEmail').value.trim();
   const password = document.getElementById('lPwd').value;
-  try {
-    const res = await API.login(email, password);
-    API.setToken(res.token); API.setUser(res.user);
-    await afterLogin();
-  } catch (e) { showAuth(e.message); }
+  if (!email || !password) return setMsg('กรุณากรอกอีเมลและรหัสผ่าน');
+  await withBtn(document.getElementById('lBtn'), async () => {
+    try {
+      const res = await API.login(email, password);
+      API.setToken(res.token); API.setUser(res.user);
+      await afterLogin();
+    } catch (e) {
+      setMsg(e.message === 'Invalid credentials' ? 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' : (e.message || 'เข้าสู่ระบบไม่สำเร็จ'));
+    }
+  });
 }
+
 async function tryRegister() {
   const companyName = document.getElementById('rCompany').value.trim();
   const email = document.getElementById('rEmail').value.trim();
   const password = document.getElementById('rPwd').value;
-  try {
-    const res = await API.register(email, password, companyName);
-    API.setToken(res.token); API.setUser(res.user);
-    await afterLogin();
-  } catch (e) { showAuth(e.message); }
+  const password2 = document.getElementById('rPwd2').value;
+  if (!companyName) return setMsg('กรุณากรอกชื่อบริษัท');
+  if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return setMsg('กรุณากรอกอีเมลให้ถูกต้อง');
+  if (!password || password.length < 6) return setMsg('รหัสผ่านต้องยาวอย่างน้อย 6 ตัวอักษร');
+  if (password !== password2) return setMsg('รหัสผ่านทั้งสองช่องไม่ตรงกัน');
+  await withBtn(document.getElementById('rBtn'), async () => {
+    try {
+      const res = await API.register(email, password, companyName);
+      API.setToken(res.token); API.setUser(res.user);
+      await afterLogin();
+    } catch (e) {
+      setMsg(e.message === 'Email already registered' ? 'อีเมลนี้ถูกใช้สมัครแล้ว' : (e.message || 'สมัครสมาชิกไม่สำเร็จ'));
+    }
+  });
 }
+
+async function tryForgot() {
+  const email = document.getElementById('fEmail').value.trim();
+  if (!email) return setMsg('กรุณากรอกอีเมล');
+  await withBtn(document.getElementById('fBtn'), async () => {
+    try {
+      const res = await API.forgotPassword(email);
+      if (res.delivery === 'debug' && res.debugLink) {
+        authMsg.className = 'auth-msg ok';
+        authMsg.textContent = (res.message || '') + ' ';
+        const a = document.createElement('a');
+        a.href = res.debugLink;
+        a.textContent = 'เปิดลิงก์ตั้งรหัสผ่านใหม่';
+        a.style.cssText = 'color:#c2410c;font-weight:600;text-decoration:underline';
+        authMsg.appendChild(a);
+      } else {
+        setMsg(res.message || 'ตรวจสอบอีเมลของคุณ', res.delivery === 'unavailable' ? 'err' : 'ok');
+      }
+    } catch (e) {
+      setMsg(e.message || 'ส่งลิงก์ไม่สำเร็จ');
+    }
+  });
+}
+
 document.getElementById('lBtn').addEventListener('click', tryLogin);
 document.getElementById('rBtn').addEventListener('click', tryRegister);
+document.getElementById('fBtn').addEventListener('click', tryForgot);
+document.getElementById('lPwd').addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
+document.getElementById('rPwd2').addEventListener('keydown', e => { if (e.key === 'Enter') tryRegister(); });
+document.getElementById('fEmail').addEventListener('keydown', e => { if (e.key === 'Enter') tryForgot(); });
+
+const logoutBtn = document.getElementById('logoutBtn');
+if (logoutBtn) logoutBtn.addEventListener('click', () => {
+  if (!confirm('ออกจากระบบ?')) return;
+  API.signOut('/');
+});
 
 async function afterLogin() {
-  showApp();
-  // load profile from backend into PROFILE if available
   try {
     const p = await API.getProfile();
     if (p && p.company) {
       const c = p.company;
       if (typeof PROFILE !== 'undefined' && PROFILE.set) {
+        const ex = PROFILE.get();
         PROFILE.set({
-          coName: c.name || '', coNameEn: c.name_en || '', coBranch: c.branch || '',
-          coTax: c.tax_id || '', coAddr: c.address || '', coPhone: c.phone || '',
-          coEmail: c.email || '', bankInfo: c.bank_info || ''
-        });
+          ...ex,
+          coName: c.name || ex.coName || '',
+          coNameEn: c.name_en || ex.coNameEn || '',
+          coBranch: c.branch || ex.coBranch || '',
+          coTax: c.tax_id || ex.coTax || '',
+          coAddr: c.address || ex.coAddr || '',
+          coPhone: c.phone || ex.coPhone || '',
+          coEmail: c.email || ex.coEmail || '',
+          bankInfo: c.bank_info || ex.bankInfo || '',
+          logo: c.logo || ex.logo || ''
+        }, true, true);
+        PROFILE.apply();
       }
       renderCoSummary();
     }
-  } catch (e) { /* ignore */ }
+  } catch (e) {
+    if (e && e.message === 'Unauthorized') { API.signOut('/'); return; }
+  }
+  showApp();
 }
 
 // boot
-if (API.isLoggedIn()) {
-  afterLogin();
-} else {
-  showAuth();
-}
-
-if (typeof GATE !== 'undefined' && !API.isLoggedIn()) {
-  // keep gate only as extra; auth panel is primary
-}
-// Do not block auth flow with legacy gate on this page
-// GATE.init();
+if (API.isLoggedIn()) afterLogin();
+else showAuth();
 </script>
 </body>
 </html>

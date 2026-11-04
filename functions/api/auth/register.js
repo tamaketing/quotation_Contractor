@@ -22,6 +22,6 @@ export async function onRequestPost({ request, env }) {
     .bind(userId, email, hash, salt, companyId, 'owner').run();
 
   const secret = env.JWT_SECRET || 'change-me-in-production-set-JWT_SECRET-env';
-  const token = await signJwt({ sub: userId, company: companyId, email }, secret);
+  const token = await signJwt({ sub: userId, company: companyId, email, ver: 0 }, secret);
   return json({ token, user: { id: userId, email, companyId, role: 'owner' } }, 201);
 }

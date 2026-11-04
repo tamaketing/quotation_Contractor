@@ -99,6 +99,7 @@
 
 <div class="toolbar">
   <button onclick="location.href='/'" style="background:#1a1f36;color:#fff;border-color:#1a1f36">🏠 หน้าแรก</button>
+  <button onclick="if(confirm('ออกจากระบบ?'))API.signOut('/')" style="background:#fff;color:#b91c1c;border-color:#fecaca">ออกจากระบบ</button>
   <b>📄 หนังสือส่งมอบงานจ้าง</b>
   <button class="ghost" onclick="addItem()">+ รายการงาน</button>
   <button class="ghost" onclick="importInvoice()">นำเข้าจากใบแจ้งหนี้</button>

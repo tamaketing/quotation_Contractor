@@ -179,6 +179,7 @@ tr:hover .row-del{display:inline-block;vertical-align:middle}
 
 <div class="toolbar">
   <button onclick="location.href='/'" style="background:#1a1f36;color:#fff;border-color:#1a1f36">🏠 หน้าแรก</button>
+  <button onclick="if(confirm('ออกจากระบบ?'))API.signOut('/')" style="background:#fff;color:#b91c1c;border-color:#fecaca">ออกจากระบบ</button>
   <div class="brand"><span></span> ใบเสนอราคา — QUOTATION <b id="ver" style="font-weight:500;color:#9ca3af;font-size:10.5px">v4.0</b></div>
   <button onclick="addItem()">+ รายการ</button>
   <button onclick="addCat()">+ หมวด</button>
