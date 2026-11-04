@@ -103,6 +103,7 @@
   <b>📄 หนังสือส่งมอบงานจ้าง</b>
   <button class="ghost" onclick="addItem()">+ รายการงาน</button>
   <button class="ghost" onclick="importInvoice()">นำเข้าจากใบแจ้งหนี้</button>
+  <button class="ghost" onclick="document.getElementById('fiQuo').click()">นำเข้าจากใบเสนอราคา</button>
   <button class="ghost" onclick="save()">บันทึก</button>
   <button class="ghost" onclick="exportJSON()">Export</button>
   <button class="ghost" onclick="document.getElementById('fi').click()">Import</button>
@@ -116,6 +117,7 @@
   <button onclick="window.print()">🖨️ พิมพ์ / บันทึก PDF</button>
   <input type="file" id="fi" accept=".json" hidden onchange="importJSON(this)">
   <input type="file" id="fiInv" accept=".json" hidden onchange="fromInvoice(this)">
+  <input type="file" id="fiQuo" accept=".json" hidden onchange="fromQuotation(this)">
 </div>
 
 <div class="wrap" style="max-width:210mm;margin:0 auto 12px"><div id="docsMount"></div></div>
@@ -374,6 +376,39 @@ function fillFromInvoice(inv) {
   if (!(inv.items || []).length) addItem({});
   renum(); renderText(); save();
   if (typeof TOAST !== 'undefined') TOAST.info('นำข้อมูลจากใบแจ้งหนี้แล้ว', 'ตรวจสอบยอดเงินและรายละเอียดอีกครั้ง');
+}
+
+/* ── ดึงข้อมูลจากใบเสนอราคา ── */
+function fromQuotation(el) {
+  const f = el.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    try {
+      const d = JSON.parse(e.target.result);
+      const q = Array.isArray(d) ? d[0] : d;
+      if (!q || typeof q !== 'object') throw new Error('bad');
+      const p = PROFILE.get();
+      write('invNo', q.quoteNo || '');
+      write('invDate', THAI.isoToBE(q.quoteDate || ''));
+      write('toCo', q.cusName || '');
+      write('prjName', q.prjName || '');
+      write('prjSite', q.prjSite || '');
+      write('prjContract', q.prjContract || '');
+      const sub = (q.rows || []).reduce((a, it) => {
+        if (it.t === 'i') return a + (+it.qty || 0) * ((+it.mat || 0) + (+it.lab || 0));
+        return a;
+      }, 0);
+      const gross = sub + sub * (+q.vatR || 0) / 100;
+      write('amount', fmt(gross));
+      $('tb').innerHTML = '';
+      (q.rows || []).forEach(it => { if (it.t === 'i') addItem({ desc: it.desc, qty: numFmt(it.qty), unit: it.unit }); else if (it.t === 'c') addCat(it.label); else addSub(); });
+      if (!(q.rows || []).length) addItem({});
+      renum(); renderText(); save();
+      if (typeof TOAST !== 'undefined') TOAST.info('ดึงข้อมูลจากใบเสนอราคาแล้ว', 'ตรวจสอบยอดเงินก่อนบันทึก');
+    } catch { if (typeof TOAST !== 'undefined') TOAST.error('อ่านไฟล์ใบเสนอราคาไม่สำเร็จ'); }
+    el.value = '';
+  };
+  r.readAsText(f);
 }
 
 /* ── export / import หนังสือ ── */
