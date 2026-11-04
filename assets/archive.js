@@ -2,6 +2,13 @@
    archive.js — บันทึกไฟล์ .json ลงโฟลเดอร์จริงบนเครื่องของผู้ใช้
    ใช้ร่วมกันทุกเอกสาร · ต้องรันบน https หรือ localhost เท่านั้น
    ══════════════════════════════════════════════════════════════ */
+/* แจ้งเตือนแบบไม่ต้องกดปิด (ถ้าโหลด toast.js แล้ว) */
+function archiveToast(msg, type, sub) {
+  const t = (typeof TOAST !== 'undefined') ? TOAST : null;
+  if (t && typeof t[type || 'info'] === 'function') t[type || 'info'](msg, sub);
+  else if ((type || 'info') === 'error') alert(sub ? msg + ': ' + sub : msg);
+}
+
 const ARCHIVE = (function () {
 
   const DB = 'quota_archive_db', STORE = 'handles';
@@ -104,9 +111,8 @@ const ARCHIVE = (function () {
 
   async function pick(getDoc) {
     if (!supported()) {
-      alert('เบราว์เซอร์นี้ไม่รองรับการบันทึกลงโฟลเดอร์\n\n' +
-        '· ใช้ Chrome หรือ Edge\n· ต้องเปิดผ่านลิงก์ https://… ไม่ใช่เปิดไฟล์ในเครื่อง\n\n' +
-        'ถ้าใช้ไม่ได้ ให้กดปุ่ม Export เก็บไฟล์ .json ไว้ใน OneDrive แทน');
+      archiveToast('เบราว์เซอร์นี้บันทึกลงโฟลเดอร์ไม่ได้', 'warn',
+        'ใช้ Chrome หรือ Edge ผ่านลิงก์ https:// หรือกด Export เก็บไฟล์ .json แทน');
       return false;
     }
     try {
@@ -119,13 +125,12 @@ const ARCHIVE = (function () {
       const d = typeof getDoc === 'function' ? getDoc() : null;
       if (d) res = await write(d.base, d.data);
       setSaved(res);
-      alert('ตั้งโฟลเดอร์สำรองเรียบร้อยแล้ว\n\nโฟลเดอร์: ' + (dirHandle.name || '') +
-        '\nทุกครั้งที่แก้ไข ระบบจะเขียนไฟล์ .json ลงไปยังโฟลเดอร์นี้โดยอัตโนมัติ' +
-        (res ? '\n\nบันทึกเอกสารปัจจุบันแล้ว: ' + res : ''));
+      archiveToast('ตั้งโฟลเดอร์สำรองแล้ว', 'success',
+        (dirHandle.name || '') + ' — ระบบจะเขียนไฟล์ .json อัตโนมัติทุกครั้งที่แก้');
       return true;
     } catch (e) {
       if (e && e.name === 'AbortError') return false;
-      alert('ตั้งโฟลเดอร์ไม่สำเร็จ: ' + (e && e.message ? e.message : e));
+      archiveToast('ตั้งโฟลเดอร์ไม่สำเร็จ', 'error', e && e.message ? e.message : String(e));
       return false;
     }
   }

@@ -71,7 +71,8 @@ window.DOCNUM = (function () {
 
       if (dup && n !== warned) {
         warned = n;
-        alert('เลขที่ "' + n + '" ซ้ำกับเอกสารที่มีอยู่แล้ว');
+        if (typeof TOAST !== 'undefined') TOAST.warn('เลขที่เอกสารซ้ำ', 'เลขที่ "' + n + '" มีอยู่ในรายการแล้ว');
+        else alert('เลขที่ "' + n + '" ซ้ำกับเอกสารที่มีอยู่แล้ว');
       }
       if (!dup) warned = '';
     }

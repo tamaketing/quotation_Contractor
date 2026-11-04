@@ -2,6 +2,13 @@
    profile.js — ข้อมูลบริษัทของผู้ใช้ (ตั้งค่าครั้งเดียว ใช้ได้ทุกเอกสาร)
    เก็บใน localStorage ของเครื่องผู้ใช้ ไม่ถูกส่งออกไปที่ไหน
    ══════════════════════════════════════════════════════════════ */
+/* แจ้งเตือนแบบไม่ต้องกดปิด (ถ้าโหลด toast.js แล้ว) */
+function uiToast(msg, type, sub) {
+  const t = (typeof TOAST !== 'undefined') ? TOAST : null;
+  if (t && typeof t[type || 'success'] === 'function') t[type || 'success'](msg, sub);
+  else if ((type || 'success') === 'error') alert(sub ? msg + ': ' + sub : msg);
+}
+
 const PROFILE = (function () {
 
   const KEY = 'quota_profile_v1';
@@ -263,7 +270,7 @@ const PROFILE = (function () {
     file.addEventListener('change', () => {
       if (!file.files[0]) return;
       shrinkLogo(file.files[0]).then(d => { pendingLogo = d; removeLogo = false; drawLogo(get()); })
-        .catch(err => alert(err.message));
+        .catch(err => uiToast(err.message, 'error'));
       file.value = '';
     });
     ov.querySelector('#logoDel').addEventListener('click', () => { pendingLogo = null; removeLogo = true; drawLogo(get()); });
@@ -285,15 +292,15 @@ const PROFILE = (function () {
         try {
           await API.updateProfile(toCloud(saved));
           ov.classList.remove('open');
-          alert('บันทึกข้อมูลบริษัทเรียบร้อยแล้ว');
+          uiToast('บันทึกข้อมูลบริษัทแล้ว', 'success', 'ใช้กับทุกเอกสารอัตโนมัติ');
         } catch (e) {
           console.error('Profile save to cloud error:', e);
-          alert('บันทึกในเครื่องแล้ว แต่ซิงก์ไป Cloud ไม่สำเร็จ: ' + (e.message || ''));
+          uiToast('บันทึกในเครื่องแล้ว แต่ซิงก์ Cloud ไม่สำเร็จ', 'warn', e.message || '');
           ov.classList.remove('open');
         }
       } else {
         ov.classList.remove('open');
-        alert('บันทึกข้อมูลบริษัทเรียบร้อยแล้ว');
+        uiToast('บันทึกข้อมูลบริษัทแล้ว', 'success');
       }
     });
 
@@ -321,8 +328,8 @@ const PROFILE = (function () {
             try { await API.updateProfile(toCloud(saved)); } catch (err) { console.error(err); }
           }
           openModal();
-          alert('นำเข้าข้อมูลบริษัทเรียบร้อยแล้ว');
-        } catch { alert('ไฟล์ไม่ถูกต้อง'); }
+          uiToast('นำเข้าข้อมูลบริษัทแล้ว', 'success');
+        } catch { uiToast('ไฟล์ไม่ถูกต้อง', 'error'); }
       };
       r.readAsText(f); pf.value = '';
     });
@@ -330,16 +337,16 @@ const PROFILE = (function () {
     ov.querySelector('#profPwd').addEventListener('click', async () => {
       const oldP = prompt('รหัสผ่านเดิม:');
       if (oldP === null) return;
-      if (!oldP) { alert('กรุณากรอกรหัสผ่านเดิม'); return; }
+      if (!oldP) { uiToast('กรุณากรอกรหัสผ่านเดิม', 'warn'); return; }
       const newP = prompt('รหัสผ่านใหม่ (อย่างน้อย 6 ตัวอักษร):');
       if (newP === null) return;
-      if (!newP || newP.length < 6) { alert('รหัสผ่านใหม่ต้องยาวอย่างน้อย 6 ตัวอักษร'); return; }
+      if (!newP || newP.length < 6) { uiToast('รหัสผ่านใหม่ต้องยาวอย่างน้อย 6 ตัวอักษร', 'warn'); return; }
       try {
         const r = await API.changePassword(oldP, newP);
         if (r && r.token) API.setToken(r.token);
-        alert((r && r.message) || 'เปลี่ยนรหัสผ่านเรียบร้อยแล้ว');
+        uiToast((r && r.message) || 'เปลี่ยนรหัสผ่านแล้ว', 'success', 'เครื่องอื่นต้องเข้าสู่ระบบใหม่');
       } catch (e) {
-        alert(e.message || 'เปลี่ยนรหัสผ่านไม่สำเร็จ');
+        uiToast('เปลี่ยนรหัสผ่านไม่สำเร็จ', 'error', e.message || '');
       }
     });
 

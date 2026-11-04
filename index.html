@@ -191,6 +191,7 @@
   </footer>
 </div>
 
+<script src="assets/toast.js"></script>
 <script src="assets/api.js"></script>
 <script src="assets/gate.js"></script>
 <script src="assets/profile.js"></script>
@@ -235,7 +236,8 @@ if (resetBtn) {
       if (msg) { msg.style.display = ''; msg.textContent = 'ล้างแคชเรียบร้อย — กำลังโหลดหน้าใหม่'; }
       setTimeout(() => location.reload(), 900);
     } catch (e) {
-      alert('เกิดข้อผิดพลาด: ' + e.message);
+      if (typeof TOAST !== 'undefined') TOAST.error('เกิดข้อผิดพลาด', e.message);
+      else alert('เกิดข้อผิดพลาด: ' + e.message);
     }
   });
 }

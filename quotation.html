@@ -309,6 +309,7 @@ tr:hover .row-del{display:inline-block;vertical-align:middle}
 <script src="assets/thai.js"></script>
 <script src="assets/docnum.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="assets/toast.js"></script>
 <script src="assets/profile.js"></script>
 <script src="assets/archive.js"></script>
 <script src="assets/docs-api.js"></script>
@@ -451,7 +452,8 @@ function importJSON(el){
       if(!confirm('นำเข้าใบเสนอราคา '+arr.length+' ฉบับ?'))return;
       arr.forEach(x=>docs.addOne(x));
       el.value='';
-    }catch{alert('ไฟล์ไม่ถูกต้อง')}
+      if (typeof TOAST !== 'undefined') TOAST.success('นำเข้าใบเสนอราคาแล้ว', arr.length + ' ฉบับ');
+    }catch{if (typeof TOAST !== 'undefined') TOAST.error('ไฟล์ไม่ถูกต้อง');}
   };
   r.readAsText(f);el.value='';
 }
@@ -504,21 +506,6 @@ function docForDisk(){const d=collect();return{base:diskName(d),data:d};}
 
   PROFILE.apply();
   PROFILE.mountButton(document.querySelector('.toolbar'));
-
-  /* Toast แจ้งสถานะบันทึก */
-  const toast = document.createElement('div');
-  toast.id = 'saveToast';
-  toast.style.cssText = 'position:fixed;bottom:20px;right:20px;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;color:#fff;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9999;';
-  document.body.appendChild(toast);
-  let toastTimer = null;
-  window.addEventListener('doc:saved', e => {
-    const ok = e.detail && e.detail.ok;
-    toast.textContent = ok ? '✅ บันทึกแล้ว' : ('❌ บันทึกไม่สำเร็จ: ' + (e.detail && e.detail.msg || ''));
-    toast.style.background = ok ? '#059669' : '#dc2626';
-    toast.style.opacity = '1';
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { toast.style.opacity = '0'; }, 2000);
-  });
 
   // Load profile from Cloud
   API.getProfile().then(p => {

@@ -106,3 +106,35 @@
 .arc .arc-lasted{color:#9ca3af}
 @media (max-width:560px){.arc .arc-st{flex:1 1 100%;order:-1}}
 @media print{.docs,.docs-panel,.gate,.x-overlay{display:none!important}.wrap{display:none!important}}
+
+/* ── สถานะบันทึกบนแผงเอกสาร (เงียบ ๆ ไม่เด้ง toast) ── */
+.docs-hd .save-state{font-size:10.5px;color:#059669;opacity:0;transition:opacity .2s;white-space:nowrap;font-weight:600}
+.docs-hd .save-state.ok{opacity:1;color:#059669}
+.docs-hd .save-state.err{opacity:1;color:#dc2626}
+
+/* ── Toast (แจ้งเตือนไม่ต้องกดปิด) ── */
+.toast-wrap{position:fixed;right:18px;bottom:18px;z-index:10050;display:flex;flex-direction:column;gap:9px;align-items:flex-end;pointer-events:none;max-width:min(380px,calc(100vw - 32px))}
+.toast{position:relative;display:flex;gap:10px;align-items:flex-start;overflow:hidden;pointer-events:auto;background:#fff;border:1px solid #e5e7eb;border-left:3px solid #10b981;border-radius:12px;padding:11px 34px 12px 12px;box-shadow:0 12px 32px rgba(15,23,42,.16),0 2px 6px rgba(15,23,42,.06);font-family:inherit;font-size:13px;line-height:1.55;color:#1f2937;min-width:210px;cursor:pointer;opacity:0;transform:translateY(14px) scale(.97);transition:opacity .2s ease,transform .24s cubic-bezier(.2,.9,.3,1.15)}
+.toast.in{opacity:1;transform:none}
+.toast.out{opacity:0;transform:translateY(6px) scale(.98)}
+.toast .t-ic{flex:0 0 22px;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:#10b981;margin-top:1px}
+.toast .t-ic svg{width:13px;height:13px;display:block}
+.toast .t-bd{flex:1;min-width:0}
+.toast .t-msg{font-weight:600;word-break:break-word}
+.toast .t-sub{margin-top:2px;font-size:11.5px;color:#6b7280;word-break:break-word}
+.toast .t-x{position:absolute;top:6px;right:6px;border:0;background:transparent;color:#9ca3af;font-size:16px;line-height:1;padding:2px 5px;cursor:pointer;border-radius:5px;font-family:inherit}
+.toast .t-x:hover{background:#f3f4f6;color:#4b5563}
+.toast .t-bar{position:absolute;left:0;bottom:0;height:2px;width:100%;background:currentColor;opacity:.35;animation:tbar linear forwards}
+@keyframes tbar{from{width:100%}to{width:0}}
+.toast.error{border-left-color:#ef4444}
+.toast.error .t-ic{background:#ef4444}
+.toast.warn{border-left-color:#f59e0b}
+.toast.warn .t-ic{background:#f59e0b}
+.toast.info{border-left-color:#3b82f6}
+.toast.info .t-ic{background:#3b82f6}
+.toast.success .t-bar{color:#10b981}
+.toast.error .t-bar{color:#ef4444}
+.toast.warn .t-bar{color:#f59e0b}
+.toast.info .t-bar{color:#3b82f6}
+@media (max-width:560px){.toast-wrap{left:12px;right:12px;bottom:12px;max-width:none;align-items:stretch}.toast{min-width:0}}
+@media print{.toast-wrap{display:none!important}}

@@ -15,6 +15,7 @@ const DOCS = (function () {
     panel.innerHTML =
       '<div class="docs-hd">' +
       '<b>📁 ' + opt.title + 'ที่ทำไว้ (<span class="cnt">0</span>)</b>' +
+      '<span class="save-state" aria-live="polite"></span>' +
       '<input class="docs-search" placeholder="ค้นหาเลขที่ / ลูกค้า / โครงการ...">' +
       '<div class="sp">' +
       '<button type="button" class="x-btn" data-a="new">+ ใบใหม่</button>' +
@@ -34,8 +35,18 @@ const DOCS = (function () {
     let list = [];
     let curId = null;
     let loading = false;
+    let saving = false;         // กันกดบันทึกซ้ำระหว่างกำลังบันทึก
+    let queuedSave = null;      // คิวบันทึกครั้งถัดไป (true = auto)
+    let lastSavedId = null;
+    let lastSavedJson = null;
 
     function esc(s){return String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+
+    /* แจ้งเตือนแบบไม่ขัดจังหวะ — ไม่มี alert() ในเส้นทางบันทึก */
+    function notify(msg, type, sub) {
+      if (typeof TOAST !== 'undefined' && TOAST && typeof TOAST[type] === 'function') TOAST[type](msg, sub);
+      else if (type === 'error') alert(sub ? msg + ': ' + sub : msg);
+    }
 
     async function loadList() {
       loading = true;
@@ -60,11 +71,38 @@ const DOCS = (function () {
 
     async function persist() { render(); }
 
+    function setState(kind, text) {
+      const el = panel.querySelector('.save-state');
+      if (!el) return;
+      clearTimeout(setState._t);
+      el.textContent = text || '';
+      el.className = 'save-state' + (kind ? ' ' + kind : '');
+      if (kind === 'ok') {
+        setState._t = setTimeout(() => { el.className = 'save-state'; el.textContent = ''; }, 2600);
+      }
+    }
+
+    function markSaved(rec) {
+      lastSavedId = rec ? rec.id : null;
+      try { lastSavedJson = rec ? JSON.stringify(rec.data) : null; } catch (e) { lastSavedJson = null; }
+    }
+
     async function save(silent) {
+      if (saving) { queuedSave = queuedSave === false ? false : !silent; return; }
       const data = opt.collect();
+      let json = null;
+      try { json = JSON.stringify(data); } catch (e) {}
+      const existing = cur();
+      /* ไม่มีอะไรเปลี่ยน → ไม่ยิงเซิร์ฟเวอร์ซ้ำ แค่บอกว่าเซฟแล้ว */
+      if (existing && existing.id === lastSavedId && json && json === lastSavedJson) {
+        setState('ok', '✓ บันทึกแล้ว');
+        if (!silent) notify('บันทึกแล้ว', 'success', 'ข้อมูลล่าสุดถูกเก็บไว้แล้ว');
+        return;
+      }
+      saving = true;
       const now = Date.now();
-      let rec = cur();
       try {
+        let rec = existing;
         if (!rec) {
           const r = await API.createDoc(API_TYPE, { docNo: (data[opt.noField||'docNo']||data.quoteNo||data.invNo||data.docNo||''), data });
           rec = { id: r.id, updatedAt: now, data };
@@ -74,14 +112,21 @@ const DOCS = (function () {
           rec.data = data; rec.updatedAt = now;
           list = list.filter(x=>x.id!==curId); list.unshift(rec);
         }
+        markSaved(rec);
+        setState('ok', '✓ บันทึกแล้ว');
         if (typeof opt.onSaved === 'function') opt.onSaved(rec);
-        try { window.dispatchEvent(new CustomEvent('doc:saved', { detail: { ok: true } })); } catch (e) {}
+        try { window.dispatchEvent(new CustomEvent('doc:saved', { detail: { ok: true, silent: !!silent } })); } catch (e) {}
+        if (!silent) notify('บันทึกแล้ว', 'success', 'ข้อมูลถูกเก็บไว้บน Cloud');
       } catch (e) {
         console.error('save failed', e);
-        try { window.dispatchEvent(new CustomEvent('doc:saved', { detail: { ok: false, msg: e.message } })); } catch (e2) {}
-        if (!silent) alert('บันทึกไม่สำเร็จ: ' + e.message);
+        setState('err', 'บันทึกไม่สำเร็จ');
+        try { window.dispatchEvent(new CustomEvent('doc:saved', { detail: { ok: false, msg: e.message, silent: !!silent } })); } catch (e2) {}
+        notify('บันทึกไม่สำเร็จ', 'error', e.message);
+      } finally {
+        saving = false;
+        render();
+        if (queuedSave !== null) { const q = queuedSave; queuedSave = null; save(q); }
       }
-      render();
     }
 
     function scheduleSave() {
@@ -118,6 +163,7 @@ const DOCS = (function () {
       if (curId && curId !== id) await save(true);
       curId = id;
       opt.load(rec.data);
+      markSaved(rec);
       render();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -126,13 +172,14 @@ const DOCS = (function () {
       const rec = list.find(x => x.id === id);
       if (!rec) return;
       if (!confirm('ลบ ' + opt.summary(rec).no + ' ?\nการกระทำนี้ย้อนกลับไม่ได้')) return;
-      try { await API.deleteDoc(API_TYPE, id); } catch (e) { alert('ลบไม่สำเร็จ: ' + e.message); return; }
+      try { await API.deleteDoc(API_TYPE, id); } catch (e) { notify('ลบไม่สำเร็จ', 'error', e.message); return; }
       list = list.filter(x => x.id !== id);
       if (curId === id) {
         curId = null;
-        if (list.length) { curId = list[0].id; opt.load(list[0].data); }
-        else { const d = await opt.blank(); const r = await API.createDoc(API_TYPE, { docNo: (d[opt.noField]||d.quoteNo||d.docNo||''), data: d }); const rec2 = { id: r.id, updatedAt: Date.now(), data: d }; list = [rec2]; curId = rec2.id; opt.load(d); }
+        if (list.length) { curId = list[0].id; opt.load(list[0].data); markSaved(list[0]); }
+        else { const d = await opt.blank(); const r = await API.createDoc(API_TYPE, { docNo: (d[opt.noField]||d.quoteNo||d.docNo||''), data: d }); const rec2 = { id: r.id, updatedAt: Date.now(), data: d }; list = [rec2]; curId = rec2.id; opt.load(d); markSaved(rec2); }
       }
+      notify('ลบเอกสารแล้ว', 'success');
       render();
     }
 
@@ -144,13 +191,15 @@ const DOCS = (function () {
         const rec = { id: r.id, updatedAt: Date.now(), data: d };
         list.unshift(rec); curId = rec.id;
         render(); opt.load(d);
+        markSaved(rec);
+        notify('สร้างใบใหม่แล้ว', 'success');
         window.scrollTo({ top: 0, behavior: 'smooth' });
-      } catch (e) { alert('สร้างใบใหม่ไม่สำเร็จ: ' + e.message); }
+      } catch (e) { notify('สร้างใบใหม่ไม่สำเร็จ', 'error', e.message); }
     }
 
     async function dup() {
       const c = cur();
-      if (!c) return alert('ยังไม่มีใบให้ทำซ้ำ');
+      if (!c) return notify('ยังไม่มีใบให้ทำซ้ำ', 'info');
       const d = JSON.parse(JSON.stringify(c.data));
       const n = opt.nextNo ? await opt.nextNo(d) : null;
       if (n && opt.setNo) opt.setNo(d, n);
@@ -159,12 +208,14 @@ const DOCS = (function () {
         const rec = { id: r.id, updatedAt: Date.now(), data: d };
         list.unshift(rec); curId = rec.id;
         render(); opt.load(d);
-      } catch (e) { alert('ทำซ้ำไม่สำเร็จ: ' + e.message); }
+        markSaved(rec);
+        notify('ทำสำเนาใบใหม่แล้ว', 'success');
+      } catch (e) { notify('ทำซ้ำไม่สำเร็จ', 'error', e.message); }
     }
 
     async function zip() {
-      if (!list.length) return alert('ยังไม่มีเอกสารให้ส่งออก');
-      if (!window.JSZip) return alert('ยังโหลดไลบรารี ZIP ไม่สำเร็จ (ต้องต่อเน็ตครั้งแรก)');
+      if (!list.length) return notify('ยังไม่มีเอกสารให้ส่งออก', 'info');
+      if (!window.JSZip) return notify('โหลดไลบรารี ZIP ไม่สำเร็จ', 'warn', 'ต้องต่ออินเทอร์เน็ตครั้งแรกก่อน');
       // fetch full list already in memory
       const zip = new JSZip();
       const byYear = {};
@@ -214,7 +265,7 @@ const DOCS = (function () {
         curId = curId || list[0].id;
         if (curId) {
           const rec = list.find(x => x.id === curId);
-          if (rec) opt.load(rec.data);
+          if (rec) { opt.load(rec.data); markSaved(rec); }
         }
       } else {
         const d = await opt.blank();
@@ -223,6 +274,7 @@ const DOCS = (function () {
           const rec = { id: r.id, updatedAt: Date.now(), data: d };
           list = [rec]; curId = rec.id;
           opt.load(d);
+          markSaved(rec);
         } catch (e) { console.error(e); }
       }
       render();

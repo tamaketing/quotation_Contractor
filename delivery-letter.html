@@ -204,6 +204,7 @@
 
 <script src="assets/api.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="assets/toast.js"></script>
 <script src="assets/thai.js"></script>
 <script src="assets/profile.js"></script>
 <script src="assets/archive.js"></script>
@@ -337,7 +338,7 @@ function fromInvoice(el) {
     try {
       const d = JSON.parse(e.target.result);
       fillFromInvoice(Array.isArray(d) ? d[0] : d);
-    } catch { alert('อ่านไฟล์ใบแจ้งหนี้ไม่สำเร็จ'); }
+    } catch { if (typeof TOAST !== 'undefined') TOAST.error('อ่านไฟล์ใบแจ้งหนี้ไม่สำเร็จ'); }
     el.value = '';
   };
   r.readAsText(f);
@@ -372,7 +373,7 @@ function fillFromInvoice(inv) {
   (inv.items || []).forEach(it => addItem({ desc: it.desc, qty: numFmt(it.qty), unit: it.unit }));
   if (!(inv.items || []).length) addItem({});
   renum(); renderText(); save();
-  alert('นำข้อมูลจากใบแจ้งหนี้เข้าแล้ว — กรุณาตรวจสอบยอดเงินและรายละเอียดอีกครั้ง');
+  if (typeof TOAST !== 'undefined') TOAST.info('นำข้อมูลจากใบแจ้งหนี้แล้ว', 'ตรวจสอบยอดเงินและรายละเอียดอีกครั้ง');
 }
 
 /* ── export / import หนังสือ ── */
@@ -395,7 +396,8 @@ function importJSON(el) {
       if (!confirm('นำเข้าหนังสือ ' + arr.length + ' ฉบับ?')) return;
       arr.forEach(x => docs._push({ id: 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 4), updatedAt: Date.now(), data: x }));
       load(arr[0]);
-    } catch { alert('ไฟล์ไม่ถูกต้อง'); }
+      if (typeof TOAST !== 'undefined') TOAST.success('นำเข้าหนังสือแล้ว', arr.length + ' ฉบับ');
+    } catch { if (typeof TOAST !== 'undefined') TOAST.error('ไฟล์ไม่ถูกต้อง'); }
     el.value = '';
   };
   r.readAsText(f);
@@ -463,21 +465,6 @@ function docForDisk() { const d = collect(); return { base: diskName(d), data: d
   THAI.init(scheduleSave);
   renderText();
   document.addEventListener('profile:updated', () => { renderText(); scheduleSave(); });
-
-  /* Toast */
-  const toast = document.createElement('div');
-  toast.id = 'saveToast';
-  toast.style.cssText = 'position:fixed;bottom:20px;right:20px;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;color:#fff;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9999;';
-  document.body.appendChild(toast);
-  let toastTimer = null;
-  window.addEventListener('doc:saved', e => {
-    const ok = e.detail && e.detail.ok;
-    toast.textContent = ok ? '✅ บันทึกแล้ว' : ('❌ บันทึกไม่สำเร็จ: ' + (e.detail && e.detail.msg || ''));
-    toast.style.background = ok ? '#059669' : '#dc2626';
-    toast.style.opacity = '1';
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { toast.style.opacity = '0'; }, 2000);
-  });
 })();
 </script>
 </body>

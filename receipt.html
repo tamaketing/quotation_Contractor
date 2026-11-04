@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link href="assets/app.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="assets/toast.js"></script>
 <script src="assets/api.js"></script>
 <script src="assets/thai.js"></script>
 <script src="assets/docnum.js"></script>
@@ -718,7 +719,8 @@ function importJSON(el) {
       });
       load(arr[arr.length - 1]);
       calc(); docs.save(true);
-    } catch { alert('ไฟล์ไม่ถูกต้อง'); }
+      if (typeof TOAST !== 'undefined') TOAST.success('นำเข้าใบเสร็จแล้ว', arr.length + ' ฉบับ');
+    } catch { if (typeof TOAST !== 'undefined') TOAST.error('ไฟล์ไม่ถูกต้อง'); }
     el.value = '';
   };
   r.readAsText(f);
@@ -734,7 +736,7 @@ function importInvoiceFile(el) {
       const inv = Array.isArray(d) ? d[0] : d;
       if (!confirm('นำข้อมูลจากใบแจ้งหนี้ ' + (inv.invNo || '') + ' มาทับใบเสร็จที่เปิดอยู่?')) return;
       fillFromInvoice(inv);
-    } catch { alert('อ่านไฟล์ใบแจ้งหนี้ไม่สำเร็จ'); }
+    } catch { if (typeof TOAST !== 'undefined') TOAST.error('อ่านไฟล์ใบแจ้งหนี้ไม่สำเร็จ'); }
     el.value = '';
   };
   r.readAsText(f);
@@ -776,7 +778,7 @@ function fillFromInvoice(inv) {
   });
   if (!(inv.items || []).length) addRow();
   renumber(); fitAllDesc(); fitCardText(); calc(); docs && docs.save(true);
-  alert('นำข้อมูลจากใบแจ้งหนี้เข้าแล้ว — กรุณาตรวจสอบยอดเงิน จำนวนเงิน และเลขที่ใบกำกับภาษีก่อนพิมพ์');
+  if (typeof TOAST !== 'undefined') TOAST.info('นำข้อมูลจากใบแจ้งหนี้แล้ว', 'ตรวจสอบยอดเงินและเลขที่ใบกำกับภาษีก่อนพิมพ์');
 }
 
 /* ── Init ── */
@@ -849,20 +851,7 @@ function fillFromInvoice(inv) {
     fitCardText(); calc(); scheduleSave();
   });
 
-  /* Toast */
-  const toast = document.createElement('div');
-  toast.id = 'saveToast';
-  toast.style.cssText = 'position:fixed;bottom:20px;right:20px;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;color:#fff;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9999;';
-  document.body.appendChild(toast);
-  let toastTimer = null;
-  window.addEventListener('doc:saved', e => {
-    const ok = e.detail && e.detail.ok;
-    toast.textContent = ok ? '✅ บันทึกแล้ว' : ('❌ บันทึกไม่สำเร็จ: ' + (e.detail && e.detail.msg || ''));
-    toast.style.background = ok ? '#059669' : '#dc2626';
-    toast.style.opacity = '1';
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { toast.style.opacity = '0'; }, 2000);
-  });
+  /* Toast — ใช้ TOAST (assets/toast.js) ไม่ต้องกดปิด */
 
   document.querySelectorAll('#tbody .desc').forEach(ta => {
     ta.addEventListener('input', function () {
