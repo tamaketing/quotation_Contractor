@@ -103,7 +103,7 @@
   <b>📄 หนังสือส่งมอบงานจ้าง</b>
   <button class="ghost" onclick="addItem()">+ รายการงาน</button>
   <button class="ghost" onclick="importInvoice()">นำเข้าจากใบแจ้งหนี้</button>
-  <button class="ghost" onclick="document.getElementById('fiQuo').click()">นำเข้าจากใบเสนอราคา</button>
+  <button class="ghost" onclick="openQuotationPicker()">📄 ดึงจากใบเสนอราคา</button>
   <button class="ghost" onclick="save()">บันทึก</button>
   <button class="ghost" onclick="exportJSON()">Export</button>
   <button class="ghost" onclick="document.getElementById('fi').click()">Import</button>
@@ -409,6 +409,48 @@ function fromQuotation(el) {
     el.value = '';
   };
   r.readAsText(f);
+}
+
+function openQuotationPicker() {
+  try {
+    API.listDocs('quotations').then(res => {
+      const items = (res.items || []).map(r => ({ id: r.id, data: r }));
+      if (!items.length) { if (typeof TOAST !== 'undefined') TOAST.info('ยังไม่มีใบเสนอราคา'); return; }
+      const overlay = document.createElement('div');
+      overlay.className = 'x-overlay open';
+      overlay.id = 'quoPickerOverlay';
+      overlay.innerHTML = '<div class="x-modal" style="max-width:420px"><div class="x-modal-hd"><h3>📄 เลือกใบเสนอราคา</h3><button type="button" class="x-close" onclick="document.getElementById(\'quoPickerOverlay\').remove()">&times;</button></div><div class="x-modal-bd" style="max-height:50vh;overflow:auto"><div style="display:grid;gap:8px">' +
+        items.map(q => '<button type="button" onclick="fillFromQuotation(\'' + q.id + '\')" style="text-align:left;padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;font-family:inherit;font-size:12.5px;cursor:pointer;transition:.12s;box-shadow:0 1px 3px rgba(15,23,42,.04)">' +
+          '<b style="font-weight:600;color:#1a1f36">' + (q.data.quoteNo || '—') + '</b> <small style="color:#9ca3af;font-size:10.5px">' + (q.data.cusName || '—') + '</small><br><span style="font-size:11px;color:#6b7280">' + (q.data.prjName || '') + '</span></button>').join('') +
+        '</div></div><div class="x-modal-ft"><button type="button" class="x-btn" onclick="document.getElementById(\'quoPickerOverlay\').remove()">ปิด</button></div></div>';
+      document.body.appendChild(overlay);
+    }).catch(e => { if (typeof TOAST !== 'undefined') TOAST.error('โหลดใบเสนอราคาไม่สำเร็จ', e.message); });
+  } catch (e) { if (typeof TOAST !== 'undefined') TOAST.error('เกิดข้อผิดพลาด', e.message); }
+}
+function fillFromQuotation(id) {
+  API.getDoc('quotations', id).then(q => {
+    const d = q.data || q;
+    const p = PROFILE.get();
+    write('invNo', d.quoteNo || '');
+    write('invDate', THAI.isoToBE(d.quoteDate || ''));
+    write('toCo', d.cusName || '');
+    write('prjName', d.prjName || '');
+    write('prjSite', d.prjSite || '');
+    write('prjContract', d.prjContract || '');
+    const sub = (d.rows || []).reduce((a, it) => {
+      if (it.t === 'i') return a + (+it.qty || 0) * ((+it.mat || 0) + (+it.lab || 0));
+      return a;
+    }, 0);
+    const gross = sub + sub * (+d.vatR || 0) / 100;
+    write('amount', fmt(gross));
+    $('tb').innerHTML = '';
+    (d.rows || []).forEach(it => { if (it.t === 'i') addItem({ desc: it.desc, qty: numFmt(it.qty), unit: it.unit }); else if (it.t === 'c') addCat(it.label); else addSub(); });
+    if (!(d.rows || []).length) addItem({});
+    renum(); renderText(); save();
+    if (typeof TOAST !== 'undefined') TOAST.info('ดึงข้อมูลจากใบเสนอราคาแล้ว', 'ตรวจสอบยอดเงินก่อนบันทึก');
+  }).catch(e => { if (typeof TOAST !== 'undefined') TOAST.error('ดึงข้อมูลไม่สำเร็จ', e.message); });
+  const o = document.getElementById('quoPickerOverlay');
+  if (o) o.remove();
 }
 
 /* ── export / import หนังสือ ── */

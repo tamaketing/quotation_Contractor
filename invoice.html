@@ -286,13 +286,12 @@
   <button class="success" onclick="manualSave()">Save</button>
   <button onclick="exportJSON()">Export</button>
   <button onclick="document.getElementById('fi').click()">Import</button>
-  <button onclick="document.getElementById('fiQuo').click()">นำเข้าจากใบเสนอราคา</button>
+  <button onclick="openQuotationPicker()">📄 ดึงจากใบเสนอราคา</button>
   <button class="primary" onclick="window.print()">Print / PDF</button>
   <button onclick="pickDirectory()">Archive Folder</button>
   <button onclick="createNew()">New Invoice</button>
   <button onclick="duplicateCurrent()">Duplicate</button>
   <input type="file" id="fi" accept=".json" onchange="importJSON(this)">
-  <input type="file" id="fiQuo" accept=".json" hidden onchange="importFromQuotation(this)">
 </div>
 
 <!-- Archive -->
@@ -550,24 +549,39 @@ function renderList(){const box=document.getElementById('invoiceList');const q=(
 function exportJSON(){const data=collect();const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=sanitize((data.invNo||'invoice')+'_'+(data.cusName||'')+'.json');a.click();}
 async function exportAllZIP(){if(!invoices.length){if(typeof TOAST!=='undefined')TOAST.info('ยังไม่มีใบแจ้งหนี้ให้ส่งออก');return;}if(window.JSZip){const zip=new JSZip();const byYear={};invoices.forEach(r=>{const y=(r.data.invDate||'').slice(0,4)||'unknown';if(!byYear[y])byYear[y]=[];byYear[y].push(r);});for(const[y,arr]of Object.entries(byYear)){const folder=zip.folder(y);arr.forEach(r=>{const d=r.data;folder.file(sanitize((d.invNo||r.id)+'_'+(d.cusName||'')+'.json'),JSON.stringify(d,null,2));});}zip.file('README.txt','Backup: '+new Date().toLocaleString()+'\nTotal: '+invoices.length+' invoices\n');const blob=await zip.generateAsync({type:'blob'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='invoices_'+new Date().toISOString().slice(0,10)+'.zip';a.click();}else{const b=new Blob([JSON.stringify(invoices.map(r=>r.data),null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='invoices_backup.json';a.click();if(typeof TOAST!=='undefined')TOAST.info('ส่งออกเป็น JSON แล้ว','ยังโหลด JSZip ไม่ได้');}}
 async function importJSON(el){const file=el.files[0];if(!file)return;const r=new FileReader();r.onload=async e=>{try{const data=JSON.parse(e.target.result);const arr=Array.isArray(data)?data:[data];if(!arr.length)return;if(!confirm('Import '+arr.length+' invoices?'))return;for(const d of arr){try{const r=await API.createDoc('invoices',{docNo:d.invNo||'',data:d});invoices.unshift({id:r.id,updatedAt:Date.now(),data:d});}catch(err){console.error(err);}}currentId=invoices.length?invoices[0].id:null;if(currentId){const rec=invoices.find(x=>x.id===currentId);if(rec)load(rec.data);}persist();if(typeof TOAST!=='undefined')TOAST.success('นำเข้าแล้ว '+arr.length+' ใบ');}catch{if(typeof TOAST!=='undefined')TOAST.error('ไฟล์ไม่ถูกต้อง');}el.value='';};r.readAsText(file);el.value='';}
-async function importFromQuotation(el){
-  const file=el.files[0];if(!file)return;
-  const r=new FileReader();
-  r.onload=async e=>{
-    try{
-      const d=JSON.parse(e.target.result);
-      const q=Array.isArray(d)?d[0]:d;
-      if(!confirm('ดึงข้อมูลจากใบเสนอราคา '+(q.quoteNo||'')+' เข้าสู่ใบแจ้งหนี้ที่เปิดอยู่?')){el.value='';return;}
-      const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v==null?'':v;};
-      set('cusName',q.cusName||'');set('cusAddr',q.cusAddr||'');set('cusTax',q.cusTax||'');
-      set('prjName',q.prjName||'');set('prjSite',q.prjSite||'');set('prjContract',q.prjContract||'');
-      if(typeof TOAST!=='undefined')TOAST.info('ดึงข้อมูลจากใบเสนอราคาแล้ว','ตรวจสอบยอดเงินก่อนบันทึก');
-      calc();scheduleAutoSave();
-    }catch{if(typeof TOAST!=='undefined')TOAST.error('อ่านไฟล์ใบเสนอราคาไม่สำเร็จ');}
-    el.value='';
-  };
-  r.readAsText(file);
+function openQuotationPicker() {
+  try {
+    API.listDocs('quotations').then(res => {
+      const items = (res.items || []).map(r => ({ id: r.id, data: r }));
+      if (!items.length) { if (typeof TOAST !== 'undefined') TOAST.info('ยังไม่มีใบเสนอราคา'); return; }
+      const overlay = document.createElement('div');
+      overlay.className = 'x-overlay open';
+      overlay.id = 'quoPickerOverlay';
+      overlay.innerHTML = '<div class="x-modal" style="max-width:420px"><div class="x-modal-hd"><h3>📄 เลือกใบเสนอราคา</h3><button type="button" class="x-close" onclick="document.getElementById(\'quoPickerOverlay\').remove()">&times;</button></div><div class="x-modal-bd" style="max-height:50vh;overflow:auto"><div style="display:grid;gap:8px">' +
+        items.map(q => '<button type="button" onclick="fillFromQuotation(\'' + q.id + '\')" style="text-align:left;padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;font-family:inherit;font-size:12.5px;cursor:pointer;transition:.12s;box-shadow:0 1px 3px rgba(15,23,42,.04)">' +
+          '<b style="font-weight:600;color:#1a1f36">' + (q.data.quoteNo || '—') + '</b> <small style="color:#9ca3af;font-size:10.5px">' + (q.data.cusName || '—') + '</small><br><span style="font-size:11px;color:#6b7280">' + (q.data.prjName || '') + '</span></button>').join('') +
+        '</div></div><div class="x-modal-ft"><button type="button" class="x-btn" onclick="document.getElementById(\'quoPickerOverlay\').remove()">ปิด</button></div></div>';
+      document.body.appendChild(overlay);
+    }).catch(e => { if (typeof TOAST !== 'undefined') TOAST.error('โหลดใบเสนอราคาไม่สำเร็จ', e.message); });
+  } catch (e) { if (typeof TOAST !== 'undefined') TOAST.error('เกิดข้อผิดพลาด', e.message); }
 }
+function fillFromQuotation(id) {
+  API.getDoc('quotations', id).then(q => {
+    const d = q.data || q;
+    const set = (k, v) => { const el = document.getElementById(k); if (el) el.value = (v == null ? '' : v); };
+    set('cusName', d.cusName || '');
+    set('cusAddr', d.cusAddr || '');
+    set('cusTax', d.cusTax || '');
+    set('prjName', d.prjName || '');
+    set('prjSite', d.prjSite || '');
+    set('prjContract', d.prjContract || '');
+    if (typeof TOAST !== 'undefined') TOAST.info('ดึงข้อมูลจากใบเสนอราคาแล้ว', 'ตรวจสอบก่อนบันทึก');
+    calc(); scheduleAutoSave();
+  }).catch(e => { if (typeof TOAST !== 'undefined') TOAST.error('ดึงข้อมูลไม่สำเร็จ', e.message); });
+  const o = document.getElementById('quoPickerOverlay');
+  if (o) o.remove();
+}
+
 async function manualSave(){const data=collect();await saveCurrent(data);}
 
 /* ═══════ INIT ═══════ */
