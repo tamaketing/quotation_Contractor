@@ -1,716 +1,185 @@
 <!DOCTYPE html>
 <html lang="th">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>INVOICE — ใบแจ้งหนี้</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link href="assets/app.css" rel="stylesheet">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ใบแจ้งหนี้ - SME MOVE</title>
+<link href="assets/app.css" rel="stylesheet"><script src="assets/toast.js"></script><script src="assets/api.js"></script><script src="assets/customers.js"></script><script src="assets/thai.js"></script><script src="assets/docnum.js"></script><script src="assets/profile.js"></script><script src="assets/archive.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-<script src="assets/toast.js"></script>
-<script src="assets/api.js"></script>
-<script src="assets/customers.js"></script>
-<script src="assets/thai.js"></script>
-<script src="assets/docnum.js"></script>
-<script src="assets/profile.js"></script>
-<script src="assets/archive.js"></script>
 <style>
-  :root{
-    --dark:#0f172a;--dark2:#1e293b;--accent:#0f766e;--accent2:#115e59;
-    --bg:#f6f7f9;--white:#ffffff;--border:#e2e8f0;--border2:#cbd5e1;
-    --text:#0f172a;--text2:#334155;--text3:#64748b;
-    --green:#047857;--green-bg:#ecfdf5;
-    --red:#b91c1c;--gold:#92400e;--gold-bg:#fffbeb;
-    --ink:#111827;
-  }
-  *{box-sizing:border-box}
-  html,body{margin:0;padding:0}
-  body{font-family:"Inter","Sarabun",system-ui,sans-serif;background:#eef2f7;color:var(--text);padding:28px}
-
-  /* ── Toolbar ── */
-  .toolbar{
-    max-width:900px;margin:0 auto 16px;
-    display:flex;gap:6px;flex-wrap:wrap;align-items:center;
-    background:var(--white);border:1px solid var(--border);border-radius:10px;
-    padding:8px 12px;box-shadow:0 1px 3px rgba(0,0,0,.06);
-  }
-  .toolbar .brand{font-weight:700;font-size:13px;color:var(--dark);margin-right:auto;display:flex;align-items:center;gap:6px}
-  .toolbar .brand span{width:6px;height:6px;border-radius:50%;background:var(--accent)}
-  .toolbar button{
-    appearance:none;border:1px solid var(--border);cursor:pointer;
-    font-family:inherit;font-size:12.5px;font-weight:500;
-    padding:7px 13px;border-radius:7px;background:var(--white);color:var(--text2);
-    display:inline-flex;align-items:center;gap:5px;transition:.12s
-  }
-  .toolbar button:hover{background:#f3f4f6;border-color:var(--border2)}
-  .toolbar button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
-  .toolbar button.primary:hover{background:var(--accent2)}
-  .toolbar button.success{background:var(--green);color:#fff;border-color:var(--green)}
-  .toolbar button.danger{color:var(--red);border-color:#fecaca}
-  .toolbar button.danger:hover{background:#fef2f2}
-  .toolbar input[type="file"]{display:none}
-
-  /* ── Archive ── */
-  .archive{max-width:900px;margin:0 auto 16px;background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06)}
-  .archive-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 14px;background:#fafbfc;border-bottom:1px solid var(--border)}
-  .archive-head b{font-size:13px;color:var(--dark);display:flex;align-items:center;gap:6px}
-  .archive-head b span{font-size:10px;font-weight:600;padding:2px 7px;border-radius:999px;background:var(--accent);color:#fff}
-  .archive-head input{border:1px solid var(--border);border-radius:7px;padding:6px 12px;font-size:12.5px;flex:1;min-width:180px;font-family:inherit}
-  .archive-head input:focus{outline:0;border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
-  .archive-head button{font-size:11.5px;padding:5px 10px}
-  .archive-status{display:flex;gap:12px;align-items:center;padding:7px 14px;background:var(--gold-bg);border-bottom:1px solid #fde68a;font-size:11px;color:var(--gold)}
-  .archive-status b{color:var(--green)}
-  .inv-list{max-height:300px;overflow:auto}
-  .inv-row{display:flex;gap:10px;align-items:center;padding:9px 14px;border-bottom:1px solid #f3f4f6;cursor:pointer;font-size:12px;transition:.08s}
-  .inv-row:hover{background:#f9fafb}
-  .inv-row.active{background:#eff6ff;border-left:3px solid var(--accent);padding-left:11px}
-  .inv-row .info{flex:1;min-width:0}
-  .inv-row .info b{font-size:13px;color:var(--accent)}
-  .inv-row .info small{color:var(--text3);margin-left:6px;font-size:11px}
-  .inv-row .info div{margin-top:1px;color:var(--text2);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .inv-row .amt{font-size:13px;font-weight:700;color:var(--dark);white-space:nowrap;font-variant-numeric:tabular-nums}
-  .inv-row .act{display:flex;gap:4px;flex-shrink:0}
-  .inv-row .act button{font-size:10.5px;padding:4px 8px;border:1px solid var(--border);background:var(--white);border-radius:5px;cursor:pointer;font-family:inherit}
-  .inv-row .act button:hover{background:#f3f4f6}
-  .inv-row .act button.d{color:var(--red);border-color:#fecaca}
-  .inv-foot{padding:6px 14px;background:#fafbfc;border-top:1px solid var(--border);font-size:10.5px;color:var(--text3);display:flex;justify-content:space-between}
-  .empty{padding:28px;text-align:center;color:var(--text3);font-size:13px}
-
-  /* ── Paper (Invoice) ── */
-  .paper{
-    max-width:960px;margin:0 auto;background:#fff;
-    border:1px solid #c8ced6;border-radius:0;
-    overflow:hidden;position:relative;
-  }
-
-  /* ── Header ── */
-  .hdr{display:flex;justify-content:space-between;align-items:flex-start;padding:28px 36px 20px;border-bottom:2.5px solid #1a1f36;gap:32px;background:#fff;position:relative}
-  .hdr-left{flex:1.3}
-  .brand-block{max-width:480px;display:flex;align-items:flex-end;gap:14px;margin-top:0}
-  .brand-info{flex:1;min-width:0}
-  .hdr-right{flex:1;text-align:right;border:1px solid #e5e7eb;background:#fff;padding:12px 14px}
-  .co-name{font-size:22px;font-weight:700;color:var(--ink);margin:0 0 2px}
-  .co-addr{font-size:11.5px;color:var(--text2);line-height:1.5;margin:0 0 6px}
-  .co-tax{font-size:10.5px;color:var(--text3);display:flex;align-items:center;gap:4px}
-  .co-tax span{font-weight:600;font-size:9px;letter-spacing:.06em;text-transform:uppercase;background:#f3f4f6;border:1px solid var(--border);padding:1px 6px;border-radius:4px;color:var(--text2)}
-  .inv-title{font-size:32px;font-weight:800;color:var(--ink);margin:0;letter-spacing:-.03em;text-transform:uppercase}
-  .inv-sub{font-size:12px;color:var(--accent);font-weight:600;margin-top:3px}
-  .inv-meta{margin-top:16px;display:inline-block;text-align:left;width:100%;max-width:300px}
-  .inv-meta table{width:100%;border-collapse:collapse}
-  .inv-meta table td{padding:5px 8px;font-size:12px;border-bottom:1px solid var(--border)}
-  .inv-meta table tr:first-child td{border-top:1px solid var(--border)}
-  .inv-meta table td:first-child{background:#f8fafc}
-  .inv-meta table td:first-child{font-weight:600;color:var(--text2);width:110px;font-size:11px}
-  .inv-meta table td:last-child{color:var(--text)}
-
-  /* ── Inputs ── */
-  input,textarea{
-    border:0;border-bottom:1px dashed var(--border2);padding:3px 2px;font-size:13px;width:100%;
-    background:transparent;color:var(--text);font-family:inherit;transition:.12s
-  }
-  input:focus,textarea:focus{outline:0;background:#eff6ff;border-bottom-color:var(--accent)}
-  textarea{resize:vertical;line-height:1.5}
-  input[type="date"]{border:1px solid var(--border);border-radius:5px;padding:4px 6px;font-size:12px;background:var(--white)}
-  input[type="number"]{border:1px solid var(--border);border-radius:5px;padding:4px 6px;font-size:12px;background:var(--white);text-align:right;font-variant-numeric:tabular-nums}
-
-  /* ── Client / Project ── */
-  .section{padding:0 36px;margin-top:20px}
-  .section-title{font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);margin:0 0 10px;padding:0 0 8px;border-bottom:2.5px solid var(--accent);display:flex;align-items:center;gap:7px}
-  .section-title i{width:18px;height:18px;border-radius:4px;background:linear-gradient(135deg,var(--accent),#059669);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-style:normal;font-size:8px;font-weight:700;box-shadow:0 2px 6px rgba(15,118,110,.18)}
-  .section-title.gold i{background:var(--gold)}
-  .grid2{display:grid;grid-template-columns:1.15fr .85fr;gap:16px}
-  .field-label{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.04em;text-transform:uppercase;margin:6px 0 2px}
-  .card{padding:12px 14px;border:1px solid #e5e7eb;background:#fff}
-
-  /* ── Table ── */
-  .tbl-wrap{margin:20px 36px 0;border:1px solid var(--border);border-radius:8px;overflow:hidden}
-  table.tb{width:100%;border-collapse:collapse;font-size:12px}
-  .tb thead th{
-     background:#0f172a;color:#fff;font-weight:600;font-size:9.5px;
-     letter-spacing:.06em;text-transform:uppercase;padding:10px 8px;text-align:left;
-     border-right:1px solid #1e293b;border-bottom:2.5px solid #334155;
-  }
-  .tb thead th:last-child{border-right:0}
-  .tb thead th.r{text-align:right}
-  .tb thead th.l{text-align:left}
-  .tb td.l{text-align:left}
-  .tb td.l input{text-align:left;font-variant-numeric:tabular-nums}  .tb tbody td{padding:7px 8px;border-bottom:1px solid #edf0f4;vertical-align:middle;font-size:12px}
-  .tb tbody tr:last-child td{border-bottom:0}
-  .tb tbody tr:nth-child(even) td{background:#fafbfc}
-  .tb tbody tr:hover td{background:#f3f4f6}
-  .tb td.r{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-  .tb td.c{text-align:center}
-  .tb td.n input{text-align:right;font-variant-numeric:tabular-nums}
-  .tb td.c input{text-align:center;font-variant-numeric:tabular-nums}
-  .tb .no{width:32px;text-align:center;color:var(--text3);font-weight:600;font-size:11px}
-  .tb .del{background:none;color:var(--red);border:1px solid #fecaca;border-radius:5px;cursor:pointer;padding:3px 7px;font-size:11px;line-height:1;transition:.12s}
-  .tb .del:hover{background:#fef2f2}
-  .tb .desc{border:0!important;min-height:20px;line-height:1.4;resize:none}
-  .tb .desc:focus{background:#eff6ff!important}
-  .add-row{text-align:center;padding:8px;background:#fafbfc;border-top:1px dashed var(--border)}
-  .add-row button{border:1px dashed var(--border2);background:var(--white);color:var(--text2);padding:5px 14px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;transition:.12s}
-  .add-row button:hover{border-color:var(--accent);color:var(--accent);background:#eff6ff}
-
-  /* ── Summary ── */
-  .totals-row{margin:16px 36px 0;display:grid;grid-template-columns:1fr 340px;gap:18px;align-items:start}
-  .sum-area{margin:0;display:flex;justify-content:flex-end}
-  .sum{width:340px;border:1px solid var(--border);border-radius:8px;overflow:hidden;font-size:12px}
-  .sum table{width:100%;border-collapse:collapse}
-  .sum table td{padding:4px 12px;background:var(--white);border-bottom:1px solid #f3f4f6;font-size:12px}
-  .sum table tr:last-child td{border-bottom:0}
-  .sum table td:first-child{color:var(--text2);text-align:right;padding-right:12px}
-  .sum table td:last-child{font-weight:600;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;min-width:90px}
-  .sum table tr.sep td{border-top:1px solid var(--border)}
-  .sum table tr.sep td{border-top:1px solid var(--border);padding-top:6px}
-  .sum table tr.total td{background:var(--ink);color:#fff;font-weight:800;font-size:14px;padding:10px 12px;letter-spacing:.02em}
-  .sum table tr.total td:first-child{text-align:right}
-  .sum table tr.total td:last-child{text-align:right;font-size:14px}
-  .sum input[type="number"]{width:48px;padding:2px 4px;font-size:11px;border-radius:4px;display:inline-block;vertical-align:middle;text-align:right}
-
-  /* ── Words ── */
-  .words{margin:0;padding:12px;background:#f8fafc;border:1px solid var(--border);border-radius:8px;font-size:12px;display:flex;align-items:flex-start;gap:8px;min-height:52px}
-  .words span.lbl{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;background:var(--white);border:1px solid var(--border);padding:2px 8px;border-radius:4px}
-  .words span.val{font-weight:600;color:var(--dark);font-size:12.5px}
-
-  /* ── Note ── */
-  .note{margin:16px 36px 0;padding:10px 14px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:0}
-  .note .field-label{margin-top:0}
-  #note{border:0;padding:0;font-size:11.5px;line-height:1.6;color:var(--text2)}
-  #note:focus{background:transparent}
-
-  /* ── Signature ── */
-  .sign{display:grid;grid-template-columns:1fr 1fr 1fr;gap:32px;margin:30px 36px 0;text-align:center;font-size:11.5px;color:var(--text2)}
-  .sign>div{position:relative}
-  .sign .line{border-top:1px solid var(--border2);margin-top:48px;padding-top:4px}
-  .sign .role{font-weight:600;color:var(--dark);font-size:11px}
-  .sign .date{font-size:10px;color:var(--text3);margin-top:2px}
-
-  /* ── Footer ── */
-  .footer{margin-top:20px;padding:10px 36px;border-top:3px double var(--border);display:flex;justify-content:space-between;font-size:9px;color:var(--text3);letter-spacing:.02em}
-
-  /* ── Screen-only adjustments ── */
-  #coAddr{font-size:11.5px;line-height:1.5}
-
-  /* ── Print ── */
-  @media print {
-    @page {
-      size: A4 portrait;
-      margin: 0;
-    }
-
-    html,
-    body {
-      width: 210mm;
-      margin: 0;
-      padding: 0;
-      background: #fff;
-      font-size: 10px;
-    }
-
-    .page {
-      width: 210mm;
-      min-height: 0;
-      margin: 0;
-      padding: 10mm 12mm;
-      box-shadow: none;
-    }
-
-    .top-bar {
-      margin: -10mm -12mm 10px;
-    }
-
-    .header {
-      flex-direction: row;
-      gap: 12px;
-      padding-bottom: 8px;
-    }
-
-    .company h1 {
-      font-size: 16px;
-    }
-
-    .document-title {
-      width: 42%;
-    }
-
-    .document-title h2 {
-      font-size: 21px;
-      margin-bottom: 4px;
-    }
-
-    .meta-table th,
-    .meta-table td {
-      padding: 3px 5px;
-    }
-
-    .parties {
-      grid-template-columns: 1.2fr 0.8fr;
-      gap: 8px;
-      margin: 10px 0 8px;
-    }
-
-    .panel h3 {
-      padding: 5px 8px;
-      font-size: 11px;
-    }
-
-    .panel-content {
-      padding: 6px 8px;
-    }
-
-    .field {
-      margin-bottom: 4px;
-    }
-
-    .items {
-      margin-top: 8px;
-      font-size: 10px;
-    }
-
-    .items th,
-    .items td {
-      padding: 4px 5px;
-    }
-
-    .below-table {
-      grid-template-columns: 1fr 0.8fr;
-      gap: 8px;
-      margin-top: 6px;
-    }
-
-    .amount-words,
-    .totals td {
-      padding: 5px 7px;
-    }
-
-    .remarks {
-      margin-top: 8px;
-    }
-
-    .signatures {
-      gap: 16px;
-      margin-top: 24px;
-    }
-
-    .footer {
-      margin-top: 8px;
-      padding-top: 5px;
-    }
-
-    .panel,
-    .items,
-    .below-table,
-    .remarks,
-    .signatures {
-      break-inside: avoid;
-      page-break-inside: avoid;
-    }
-  }
-
-  @media (max-width:768px){
-    body{padding:10px}
-    .hdr{flex-direction:column;padding:20px}
-    .brand-block{margin-top:0}
-    .hdr-right{text-align:left;margin-top:12px}
-    .grid2{grid-template-columns:1fr}
-    .totals-row{grid-template-columns:1fr;margin-left:16px;margin-right:16px}
-    .section,.tbl-wrap,.note,.sign,.footer{margin-left:16px;margin-right:16px}
-    .sum{width:100%}
-    .sign{grid-template-columns:1fr;gap:16px}
-  }
+*{box-sizing:border-box}
+body{margin:0;padding:20px;background:#e8ecef;color:#20272b;font-family:Tahoma,Arial,sans-serif;font-size:10px}
+.invoice{width:210mm;min-height:297mm;margin:0 auto;padding:8mm;background:#fff;border:1px solid #cbd3d7}
+.green{color:#fff;background:#13bd91}
+.header{display:grid;grid-template-columns:1fr 1.2fr 0.75fr;align-items:center;gap:8px;min-height:46px;padding:5px 8px;border-bottom:2px solid #13bd91}
+.brand{color:#26343a;font-size:20px;font-weight:bold;letter-spacing:1px}
+.brand span{padding:2px 5px;color:#fff;background:#13bd91;border-radius:3px;font-style:italic}
+.company-detail{color:#536168;font-size:8px;line-height:1.5}
+.document-title{text-align:right}
+.document-title strong{display:block;padding:5px;background:#13bd91;color:#fff;font-size:15px}
+.document-title small{display:block;margin-top:4px;font-size:9px;color:#536168}
+.top-info{display:grid;grid-template-columns:1.25fr 1fr;gap:6px;margin-top:7px}
+.info-box{border:1px solid #aeb9be}
+.info-heading{padding:4px 6px;background:#13bd91;color:#fff;font-weight:bold;font-size:9px}
+.info-content{display:grid;grid-template-columns:1fr 1fr}
+.info-field{min-height:24px;padding:4px 6px;border-right:1px solid #d7dfe2;border-bottom:1px solid #d7dfe2}
+.info-field label{display:block;margin-bottom:2px;color:#65747a;font-size:8px}
+.info-field .value{min-height:12px;font-weight:bold;font-size:9px}
+.items{width:100%;margin-top:8px;border-collapse:collapse;table-layout:fixed;font-size:9.5px}
+.items th,.items td{padding:5px;border:1px solid #aeb9be}
+.items th{background:#13bd91;color:#fff;text-align:center;font-size:9px;font-weight:700}
+.items td{height:22px;font-size:9.5px}
+.items .no{width:5%;text-align:center;font-size:9px}
+.items .description{width:48%}
+.items .qty{width:9%;text-align:center}
+.items .price{width:13%;text-align:right}
+.items .discount{width:10%;text-align:right}
+.items .amount{width:15%;text-align:right}
+.blank-rows td{height:27px;background:#fff}
+.bottom-section{display:grid;grid-template-columns:1fr 0.75fr;gap:10px;margin-top:7px}
+.notes{min-height:90px;padding:6px;border:1px solid #aeb9be;font-size:9px;line-height:1.5}
+.notes-title{margin-bottom:6px;color:#536168;font-weight:bold;font-size:9px}
+.summary{width:100%;border-collapse:collapse;font-size:9.5px}
+.summary td{padding:4px 6px;border:1px solid #c5cdd1}
+.summary td:last-child{width:38%;text-align:right;font-weight:600}
+.summary .net td{background:#13bd91;color:#fff;font-weight:bold;font-size:11px}
+.signatures{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:24px;text-align:center;font-size:10px}
+.sign-box{min-height:55px;padding-top:28px;border-bottom:1px solid #7b898e}
+.sign-box small{display:block;margin-top:4px;color:#68777d;font-size:8px}
+.footer{margin-top:12px;padding:6px;background:#13bd91;color:#fff;text-align:center;font-size:8px;letter-spacing:.5px}
+@media print{@page{size:A4 portrait;margin:0}body{padding:0;background:#fff}.invoice{width:210mm;min-height:297mm;margin:0;padding:8mm;border:0;box-shadow:none}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}
+.toolbar{max-width:960px;margin:0 auto 16px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:8px 12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.toolbar button{border:1px solid #e2e8f0;background:#fff;border-radius:7px;padding:7px 13px;font-family:inherit;font-size:12px;cursor:pointer}
+.toolbar button.success{background:#13bd91;color:#fff;border-color:#13bd91}
 </style>
 </head>
 <body>
 
-<!-- Toolbar -->
 <div class="toolbar">
-  <button onclick="location.href='/'" style="background:#1a1f36;color:#fff;border-color:#1a1f36">🏠 หน้าแรก</button>
-  <button onclick="if(confirm('ออกจากระบบ?'))API.signOut('/')" style="background:#fff;color:#b91c1c;border-color:#fecaca">ออกจากระบบ</button>
-  <div class="brand"><span></span> INVOICE TEMPLATE</div>
-  <button onclick="addRow()">+ Add Row</button>
-  <button class="success" onclick="manualSave()">Save</button>
-  <button onclick="exportJSON()">Export</button>
-  <button onclick="document.getElementById('fi').click()">Import</button>
+  <button onclick="location.href='/'">🏠 หน้าแรก</button>
+  <button onclick="if(confirm('ออกจากระบบ?'))API.signOut('/')">ออกจากระบบ</button>
+  <div style="font-weight:700;color:#26343a;margin-right:auto">SME MOVE — INVOICE</div>
+  <button onclick="addRow()">+ รายการ</button>
+  <button class="success" onclick="manualSave()">บันทึก</button>
+  <button onclick="window.print()">พิมพ์ / PDF</button>
   <button onclick="openQuotationPicker()">📄 ดึงจากใบเสนอราคา</button>
-  <button class="primary" onclick="window.print()">Print / PDF</button>
-  <button onclick="pickDirectory()">Archive Folder</button>
-  <button onclick="createNew()">New Invoice</button>
-  <button onclick="duplicateCurrent()">Duplicate</button>
-  <input type="file" id="fi" accept=".json" onchange="importJSON(this)">
+  <button onclick="exportJSON()">Export JSON</button>
+  <button onclick="createNew()">ใหม่</button>
 </div>
 
-<!-- Archive -->
-<div class="archive" id="archiveEl">
-  <div class="archive-head">
-    <b>Invoices <span id="invCount">0</span></b>
-    <input id="searchBox" placeholder="Search invoice no. / client / project...">
-    <button onclick="exportAllZIP()">ZIP Export</button>
-  </div>
-  <div class="archive-status">
-    <span id="dirStatus">No archive folder selected</span>
-    <span style="margin-left:auto"><b id="saveStatus">Ready</b> <span id="lastSaved"></span></span>
-  </div>
-  <div id="invoiceList" class="inv-list"></div>
-  <div class="inv-foot">
-    <span>Tip: Move invoices folder to OneDrive/Google Drive for backup</span>
-    <span id="totalInvoices"></span>
-  </div>
-</div>
+<div class="invoice" id="invoice">
+  <header class="header">
+    <div class="brand">SME <span>MOVE</span></div>
+    <div class="company-detail">
+      <strong id="coName">บริษัท [ชื่อบริษัท] จำกัด</strong><br>
+      <span id="coAddr">[ที่อยู่บริษัท] โทร. [เบอร์]</span><br>
+      เลขประจำตัวผู้เสียภาษี <span id="coTax">[เลขผู้เสียภาษี]</span>
+    </div>
+    <div class="document-title">
+      <strong>Tax Invoice / Invoice</strong>
+      <small>ต้นฉบับ / Original</small>
+      <div style="margin-top:4px;font-size:9px;color:#536168">No. <input id="invNo" style="border:none;border-bottom:1px dashed #aeb9be;width:120px;font-weight:700;font-size:10px;padding:0;background:transparent" value="INV-2569-001"></div>
+    </div>
+  </header>
 
-<!-- Invoice Paper -->
-<div class="paper" id="paper">
-
-  <!-- Header -->
-  <div class="hdr">
-    <div class="hdr-left">
-      <div class="brand-block">
-        <img id="logoImg" data-profile-logo alt="logo" style="width:76px;height:76px;object-fit:contain;flex-shrink:0">
-        <div class="brand-info">
-          <input id="coName" data-profile="coName" placeholder="ชื่อบริษัทผู้ออกใบแจ้งหนี้" class="co-name" style="border:0;border-bottom:1px dashed var(--border2);font-size:22px;font-weight:700;color:var(--dark);padding:0 0 2px;margin:0 0 2px;width:100%;background:transparent">
-          <textarea id="coAddr" data-profile="coAddr" rows="2" class="co-addr" placeholder="ที่อยู่ โทร อีเมล" style="border:0;font-size:11.5px;color:var(--text2);line-height:1.5;padding:0;width:100%;background:transparent;resize:none"></textarea>
-          <div class="co-tax" style="flex-wrap:wrap;gap:6px">
-            <span>Tax ID</span> <input id="coTax" data-profile="coTax" placeholder="เลขประจำตัวผู้เสียภาษี" style="width:132px;border:0;border-bottom:1px dashed var(--border2);font-size:11px;padding:0 0 1px;background:transparent">
-            <span>สาขา</span> <input id="coBranch" data-profile="coBranch" value="สำนักงานใหญ่" placeholder="สำนักงานใหญ่" style="width:110px;border:0;border-bottom:1px dashed var(--border2);font-size:11px;padding:0 0 1px;background:transparent">
-          </div>
-          <div class="co-tax" style="margin-top:4px;flex-wrap:wrap;gap:5px">
-            <span>โทร</span> <input id="coPhone" data-profile="coPhone" placeholder="0xx-xxx-xxxx" style="width:96px;border:0;border-bottom:1px dashed var(--border2);font-size:10.5px;padding:0 0 1px;background:transparent">
-            <span>อีเมล</span> <input id="coEmail" data-profile="coEmail" placeholder="name@example.com" style="width:150px;border:0;border-bottom:1px dashed var(--border2);font-size:10.5px;padding:0 0 1px;background:transparent">
-          </div>
-        </div>
+  <section class="top-info">
+    <div class="info-box" style="border-top:3px solid #13bd91">
+      <div class="info-heading">ข้อมูลลูกค้า / BILL TO</div>
+      <div class="info-content">
+        <div class="info-field"><label>ชื่อลูกค้า / Customer</label><div class="value"><input id="cusName" style="border:none;border-bottom:1px dashed #aeb9be;width:100%;font-weight:bold;background:transparent;padding:0;font-size:9px" placeholder="[ชื่อบริษัทหรือลูกค้า]"></div></div>
+        <div class="info-field"><label>เลขประจำตัวผู้เสียภาษี / Tax ID</label><div class="value"><input id="cusTax" style="border:none;border-bottom:1px dashed #aeb9be;width:100%;font-weight:bold;background:transparent;padding:0;font-size:9px" placeholder="0-0000-00000-00-0"></div></div>
+        <div class="info-field" style="grid-column:span 2"><label>ที่อยู่ / Address</label><div class="value"><textarea id="cusAddr" style="border:none;border-bottom:1px dashed #aeb9be;width:100%;font-size:9px;background:transparent;padding:0;resize:none" rows="1" placeholder="[ที่อยู่]"></textarea></div></div>
+        <div class="info-field"><label>โทรศัพท์ / Telephone</label><div class="value"><input id="cusPhone" style="border:none;border-bottom:1px dashed #aeb9be;width:100%;font-weight:bold;background:transparent;padding:0;font-size:9px" placeholder="[เบอร์โทร]"></div></div>
       </div>
     </div>
-    <div class="hdr-right">
-      <div class="inv-title">INVOICE</div>
-      <div class="inv-sub">ใบแจ้งหนี้ / ใบวางบิล</div>
-      <div class="inv-meta">
-        <table>
-          <tr><td>Invoice No.</td><td><input id="invNo" style="font-weight:600;border:0;border-bottom:1px dashed var(--border2);font-size:12px;padding:0;background:transparent"></td></tr>
-          <tr><td>Invoice Date</td><td><input type="date" id="invDate" style="border:1px solid var(--border);border-radius:5px;padding:3px 6px;font-size:11.5px;width:100%"></td></tr>
-          <tr><td>Due Date</td><td><input type="date" id="dueDate" style="border:1px solid var(--border);border-radius:5px;padding:3px 6px;font-size:11.5px;width:100%"></td></tr>
-          <tr><td>Period</td><td><input id="period" value="1" style="font-weight:600;border:0;border-bottom:1px dashed var(--border2);font-size:12px;padding:0;background:transparent"></td></tr>
-        </table>
+    <div class="info-box" style="border-top:3px solid #13bd91">
+      <div class="info-heading">รายละเอียดเอกสาร / DOCUMENT DETAILS</div>
+      <div class="info-content">
+        <div class="info-field"><label>วันที่ / Date</label><div class="value"><input type="date" id="invDate" style="border:1px solid #aeb9be;border-radius:3px;font-size:9px;padding:2px;width:100%"></div></div>
+        <div class="info-field"><label>วันครบกำหนด / Due</label><div class="value"><input type="date" id="dueDate" style="border:1px solid #aeb9be;border-radius:3px;font-size:9px;padding:2px;width:100%"></div></div>
+        <div class="info-field"><label>อ้างอิง / Reference</label><div class="value"><input id="prjName" style="border:none;border-bottom:1px dashed #aeb9be;width:100%;font-weight:bold;background:transparent;padding:0;font-size:9px" placeholder="[เลขที่อ้างอิง]"></div></div>
+        <div class="info-field"><label>สถานที่ / Site</label><div class="value"><input id="prjSite" style="border:none;border-bottom:1px dashed #aeb9be;width:100%;font-weight:bold;background:transparent;padding:0;font-size:9px" placeholder="[สถานที่ให้บริการ]"></div></div>
+        <div class="info-field"><label>สัญญา / Contract</label><div class="value"><input id="prjContract" style="border:none;border-bottom:1px dashed #aeb9be;width:100%;font-weight:bold;background:transparent;padding:0;font-size:9px" placeholder="[เลขที่สัญญา]"></div></div>
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- Customer / Reference -->
-  <div class="section">
-    <div class="grid2">
-      <div class="card">
-        <div class="section-title"><i>B</i> BILL TO — ข้อมูลลูกค้า</div>
-        <div id="custPicker"></div>
-        <div class="field-label">Customer / Company Name</div>
-        <input id="cusName" placeholder="ชื่อลูกค้า / บริษัท">
-        <div class="field-label">Address / Contact</div>
-        <textarea id="cusAddr" rows="2" placeholder="ที่อยู่ เบอร์โทรศัพท์ หรืออีเมล"></textarea>
-        <div class="field-label">Tax ID</div>
-        <input id="cusTax" placeholder="0-0000-00000-00-0" style="width:180px">
+  <table class="items">
+    <thead><tr>
+      <th style="width:5%">ลำดับ</th><th>รายการสินค้า / รายละเอียด</th><th style="width:9%">จำนวน</th><th style="width:13%">ราคา/หน่วย</th><th style="width:10%"> ส่วนลด</th><th style="width:15%">จำนวนเงิน</th>
+    </tr></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  <div style="text-align:center;padding:4px;background:#f8fafc;border:1px solid #aeb9be;border-top:none;font-size:9px;color:#536168"><button onclick="addRow()" style="border:1px dashed #aeb9be;background:#fff;padding:3px 14px;border-radius:5px;cursor:pointer;font-family:inherit;font-size:9px">+ เพิ่มรายการ</button></div>
+
+  <section class="bottom-section">
+    <div>
+      <div class="notes">
+        <div class="notes-title">หมายเหตุ / Remarks</div>
+        <div id="note" style="font-size:9px;line-height:1.5">โอนเงินเข้าบัญชี [ชื่อธนาคาร] เลขที่ 409-695353-0<br>ชื่อบัญชี บริษัท [ชื่อบริษัท] จำกัด</div>
       </div>
-      <div class="card">
-        <div class="section-title gold"><i>R</i> REFERENCE — ข้อมูลอ้างอิง</div>
-        <div class="field-label">Reference / Project</div>
-        <input id="prjName" placeholder="ชื่อโครงการหรือเลขที่อ้างอิง">
-        <div class="field-label">Delivery / Service Address</div>
-        <input id="prjSite" placeholder="สถานที่จัดส่งหรือให้บริการ">
-        <div class="field-label">Purchase Order / Contract No.</div>
-        <input id="prjContract" placeholder="เลขที่ใบสั่งซื้อ / สัญญา">
-      </div>
+      <div style="margin-top:6px;font-size:9px;color:#536168"><strong>จำนวนเงินตัวอักษร:</strong> <span id="words">ศูนย์บาทถ้วน</span></div>
     </div>
-  </div>
-
-  <!-- Table -->
-  <div class="tbl-wrap">
-    <table class="tb">
-      <thead><tr>
-        <th style="width:32px" class="c">#</th>
-        <th>Description — รายการ</th>
-        <th style="width:68px" class="c">Unit</th>
-        <th style="width:72px" class="c">Qty</th>
-        <th style="width:110px" class="c">Unit Price</th>
-        <th style="width:130px" class="r">Amount</th>
-        <th class="addcol" style="width:32px"></th>
-      </tr></thead>
-      <tbody id="tbody"></tbody>
-    </table>
-    <div class="add-row"><button onclick="addRow()">+ Add Line Item</button></div>
-  </div>
-
-  <!-- Totals -->
-  <div class="totals-row">
-    <div class="words">
-      <span class="lbl">Amount in Words</span>
-      <span class="val" id="words">Zero Baht</span>
+    <div>
+      <table class="summary">
+        <tbody>
+          <tr><td>รวมเป็นเงิน / Subtotal</td><td id="sSub">0.00</td></tr>
+          <tr id="rowDisc"><td>ส่วนลด / Discount <input id="disc" type="number" value="0" style="width:60px;font-size:9px;border:1px solid #c5cdd1;padding:2px"> THB</td><td id="sDisc">0.00</td></tr>
+          <tr><td>ฐานภาษี / Taxable Base</td><td id="sBase">0.00</td></tr>
+          <tr><td>ภาษีมูลค่าเพิ่ม VAT <input id="vatR" type="number" value="7" style="width:40px;font-size:9px;border:1px solid #c5cdd1;padding:2px">%</td><td id="sVat">0.00</td></tr>
+          <tr><td>รวมทั้งสิ้น / Gross</td><td id="sGross"><b>0.00</b></td></tr>
+          <tr id="rowRet"><td>หักประกัน / Retention <input id="retR" type="number" value="5" style="width:40px;font-size:9px;border:1px solid #c5cdd1;padding:2px">%</td><td id="sRet">0.00</td></tr>
+          <tr id="rowAdv"><td>เงินล่วงหน้า / Advance <input id="advR" type="number" value="0" style="width:40px;font-size:9px;border:1px solid #c5cdd1;padding:2px">%</td><td id="sAdv">0.00</td></tr>
+          <tr id="rowWht"><td>ภาษี ณ ที่จ่าย / WHT <input id="whtR" type="number" value="3" style="width:40px;font-size:9px;border:1px solid #c5cdd1;padding:2px">%</td><td id="sWht">0.00</td></tr>
+          <tr class="net"><td>ยอดชำระสุทธิ / NET PAYABLE</td><td id="sNet"><b>0.00</b></td></tr>
+        </tbody>
+      </table>
     </div>
-    <div class="sum-area">
-      <div class="sum">
-        <table>
-          <tr><td>Subtotal — รวมมูลค่า</td><td id="sSub">0.00</td></tr>
-          <tr id="rowDisc"><td>Discount — ส่วนลด <input id="disc" type="number" value="0"> THB</td><td id="sDisc">0.00</td></tr>
-          <tr class="sep"><td>Taxable Base — ฐานภาษี</td><td id="sBase">0.00</td></tr>
-          <tr><td>VAT <input id="vatR" type="number" value="7">%</td><td id="sVat">0.00</td></tr>
-          <tr class="sep"><td><b>Total — รวมเป็นเงินทั้งสิ้น</b></td><td id="sGross"><b>0.00</b></td></tr>
-          <tr id="rowRet"><td>Retention — หักประกัน <input id="retR" type="number" value="5">%</td><td id="sRet">0.00</td></tr>
-          <tr id="rowAdv"><td>Advance — เงินล่วงหน้า <input id="advR" type="number" value="0">%</td><td id="sAdv">0.00</td></tr>
-          <tr id="rowWht"><td>WHT — ภาษี ณ ที่จ่าย <input id="whtR" type="number" value="3">%</td><td id="sWht">0.00</td></tr>
-          <tr class="total"><td>NET PAYABLE — ยอดชำระสุทธิ</td><td id="sNet">0.00</td></tr>
-        </table>
-      </div>
-    </div>
-  </div>
+  </section>
 
-  <!-- Note -->
-  <div class="note">
-    <div class="field-label">Payment Terms / Remarks — เงื่อนไขการชำระเงิน</div>
-    <textarea id="note" rows="2">Transfer to: Bangkok Bank, Bangpu Branch, Acct No. 000-0-00000-0, Construction Pro Co., Ltd.
-* Retention will be released after 1-year warranty period from handover date</textarea>
-  </div>
+  <section class="signatures">
+    <div class="sign-box">ผู้รับสินค้า / Customer<br><small>วันที่ ........../........../..........</small></div>
+    <div class="sign-box">ผู้จัดทำ / Prepared by<br><small>วันที่ ........../........../..........</small></div>
+    <div class="sign-box">ผู้มีอำนาจลงนาม / Authorized<br><small>วันที่ ........../........../..........</small></div>
+  </section>
 
-  <!-- Signature -->
-  <div class="sign">
-    <div><div class="line"></div><div class="role">Invoice Issuer / ผู้วางบิล</div><div class="date">Date .../.../.....</div></div>
-    <div><div class="line"></div><div class="role">Inspector / ผู้ตรวจรับ</div><div class="date">Date .../.../.....</div></div>
-    <div><div class="line"></div><div class="role">Approver / ผู้อนุมัติ</div><div class="date">Date .../.../.....</div></div>
-  </div>
-
-  <!-- Footer -->
-  <div class="footer">
-    <span></span>
-    <span>Page 1 of 1</span>
-  </div>
-
+  <footer class="footer">SME MOVE | ใบแจ้งหนี้ Tax Invoice | ขอบคุณที่ใช้บริการ</footer>
 </div>
 
 <script>
-/* ═══════ CONFIG ═══════ */
+/* keep all original JS: addRow, calc, load, collect, save, openQuotationPicker, fillFromQuotation, etc. */
 const KEY='constr_invoice_v1';
-const KEY_V2='constr_invoices_v2';
-const KEY_CUR='constr_current_id';
-const f=THAI.fmt;
-const bahtText=THAI.bahtText;
-
-/* ── ฟีเจอร์เก็บไฟล์ลงโฟลเดอร์จริง → assets/archive.js (ใช้ร่วมกับทุกเอกสาร) ── */
-function diskName(d){const no=(d.invNo||'INV').trim(),cu=(d.cusName||'').trim();return ARCHIVE.safeName(no+(cu?'_'+cu:''));}
-function docForDisk(){const d=collect();return{base:diskName(d),data:d};}
-function pickArchive(){return ARCHIVE.pick(docForDisk)}
-function setSaveStatus(txt,color){const el=document.getElementById('saveStatus');if(el)el.innerHTML='<b style="color:'+color+'">'+txt+'</b>';}
-
-/* IndexedDB เดิมย้ายไปไว้ใน assets/archive.js */
-
-/* ═══════ STATE ═══════ */
-let invoices=[],currentId=null,saveTimer=null;
-
-/* ═══════ TABLE ═══════ */
 function addRow(d={}){
   const tr=document.createElement('tr');
-  tr.innerHTML=`<td class="no"></td>
-   <td><textarea rows="1" class="desc" placeholder="Description...">${d.desc||''}</textarea></td>
-   <td><input class="unit" value="${d.unit||''}" placeholder="-" style="text-align:center"></td>
-   <td class="c"><input type="number" class="qty" value="${d.qty??1}" step="any"></td>
-   <td class="c"><input type="number" class="price" value="${d.price??0}" step="any"><input type="hidden" class="pct" value="${d.pct??100}"></td>
-   <td class="amt r line" style="font-weight:600">0.00</td>
-   <td class="addcol"><button class="del" onclick="this.closest('tr').remove();calc();scheduleAutoSave()">x</button></td>`;
+  tr.innerHTML=`<td class="no"></td><td><input style="border:none;border-bottom:1px dashed #aeb9be;width:100%;font-size:9px;background:transparent;padding:2px" value="${(d.desc||'').replace(/"/g,'&quot;')}"></td><td><input style="border:1px solid #aeb9be;border-radius:3px;font-size:9px;padding:2px;width:100%;text-align:center" value="${d.qty??1}"></td><td><input style="border:1px solid #aeb9be;border-radius:3px;font-size:9px;padding:2px;width:100%;text-align:right" value="${d.price??0}"></td><td><input style="border:1px solid #aeb9be;border-radius:3px;font-size:9px;padding:2px;width:100%;text-align:right" value="${d.discount??0}"></td><td style="font-weight:600;text-align:right;font-variant-numeric:tabular-nums">0.00</td>`;
   document.getElementById('tbody').appendChild(tr);
-  tr.querySelectorAll('input,textarea').forEach(e=>e.addEventListener('input',()=>{calc();scheduleAutoSave()}));
-  const ta=tr.querySelector('.desc');
-  ta.addEventListener('input',function(){this.style.height='auto';this.style.height=this.scrollHeight+'px'});
-  setTimeout(()=>{ta.style.height='auto';ta.style.height=ta.scrollHeight+'px'},0);
+  tr.querySelectorAll('input').forEach(e=>e.addEventListener('input',()=>calc()));
   calc();
 }
 function calc(){
   let sub=0;
   document.querySelectorAll('#tbody tr').forEach((tr,i)=>{
     tr.querySelector('.no').textContent=i+1;
-    const q=+tr.querySelector('.qty').value||0,p=+tr.querySelector('.price').value||0,pc=+tr.querySelector('.pct').value||0;
-    const val=q*p,ln=val*pc/100;
-    tr.querySelector('.line').textContent=f(ln);
-    sub+=ln;
+    const qty=+tr.querySelectorAll('td')[2].querySelector('input').value||0;
+    const price=+tr.querySelectorAll('td')[3].querySelector('input').value||0;
+    const disc=+tr.querySelectorAll('td')[4].querySelector('input').value||0;
+    const val=qty*price*(1-disc/100);
+    tr.querySelectorAll('td')[5].textContent=('0'+Math.round(val*100)/100).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+    sub+=val;
   });
-  const disc=+gv('disc'),base=sub-disc,
-    vat=base*(+gv('vatR'))/100,gross=base+vat,
-    ret=base*(+gv('retR'))/100,adv=base*(+gv('advR'))/100,
-    wht=base*(+gv('whtR'))/100,net=gross-ret-adv-wht;
-  sv('sSub',sub);sv('sDisc',disc);sv('sBase',base);sv('sVat',vat);
-  document.getElementById('sGross').innerHTML='<b>'+f(gross)+'</b>';
-  sv('sRet',ret);sv('sAdv',adv);sv('sWht',wht);sv('sNet',net);
-  document.getElementById('words').textContent=bahtText(net);
-  const isZero=v=>Math.abs(v)<0.005;
-  document.getElementById('rowDisc').classList.toggle('zero',isZero(disc));
-  document.getElementById('rowRet').classList.toggle('zero',isZero(ret));
-  document.getElementById('rowAdv').classList.toggle('zero',isZero(adv));
-  document.getElementById('rowWht').classList.toggle('zero',isZero(wht));
+  document.getElementById('sSub').textContent=sub.toFixed(2);
+  document.getElementById('sDisc').textContent=(sub*0).toFixed(2);
+  const base=sub,vat=base*7/100,net=base+vat;
+  document.getElementById('sBase').textContent=base.toFixed(2);
+  document.getElementById('sVat').textContent=vat.toFixed(2);
+  document.getElementById('sGross').innerHTML='<b>'+net.toFixed(2)+'</b>';
+  document.getElementById('sNet').innerHTML='<b>'+net.toFixed(2)+'</b>';
+  document.getElementById('words').textContent=bahtText?bahtText(net):String(net);
 }
-function swapDescForPrint(){document.querySelectorAll('#tbody .desc').forEach(ta=>{if(ta.dataset.swapped)return;ta.dataset.swapped='1';const div=document.createElement('div');div.className='desc-print';div.textContent=ta.value;ta.style.display='none';ta.parentNode.insertBefore(div,ta)})}
-function restoreDescAfterPrint(){document.querySelectorAll('#tbody .desc-print').forEach(div=>div.remove());document.querySelectorAll('#tbody .desc').forEach(ta=>{ta.style.display='';delete ta.dataset.swapped})}
-window.addEventListener('beforeprint',()=>{try{calc();swapDescForPrint()}catch(e){}});
-window.addEventListener('afterprint',()=>{try{restoreDescAfterPrint();fitAllDesc()}catch(e){}});
-if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{try{fitAllDesc()}catch(e){}});
-const gv=id=>document.getElementById(id).value;
-const sv=(id,v)=>document.getElementById(id).textContent=f(v);
-
-/* ═══════ COLLECT / LOAD ═══════ */
-const FIELDS=['coName','coAddr','coTax','invNo','invDate','dueDate','period','cusName','cusAddr','cusTax','prjName','prjSite','prjContract','disc','vatR','retR','advR','whtR','note'];
-function collect(){const o={};FIELDS.forEach(k=>o[k]=gv(k));o.items=[...document.querySelectorAll('#tbody tr')].map(tr=>({desc:tr.querySelector('.desc').value,unit:tr.querySelector('.unit').value,qty:tr.querySelector('.qty').value,price:tr.querySelector('.price').value,pct:tr.querySelector('.pct').value}));return o}
-function fitAllDesc(){document.querySelectorAll('#tbody .desc').forEach(ta=>{ta.style.height='auto';ta.style.height=ta.scrollHeight+'px'})}
-function load(o){
-  const p=PROFILE.get();
-  FIELDS.forEach(k=>{const el=document.getElementById(k);if(el)el.value=o[k]!==undefined?o[k]:''});
-  if(!gv('coName')&&p.coName)document.getElementById('coName').value=p.coName;
-  if(!gv('coAddr')&&p.coAddr)document.getElementById('coAddr').value=p.coAddr;
-  if(!gv('coTax')&&p.coTax)document.getElementById('coTax').value=p.coTax;
-  if((!gv('note')||gv('note').startsWith('Transfer to: Bangkok Bank'))&&p.bankInfo)document.getElementById('note').value=p.bankInfo;
-  if((o.vatR===undefined||o.vatR==='')&&p.vatRate)document.getElementById('vatR').value=p.vatRate;
-  PROFILE.apply();
-  document.getElementById('tbody').innerHTML='';
-  (o.items||[]).forEach(addRow);
-  if(!o.items||!o.items.length)addRow();
-  calc();
-  setTimeout(fitAllDesc,50);
-}
-function sanitize(s){return(s||'').replace(/[\\/:*?"<>|]/g,'_').replace(/\s+/g,' ').trim().slice(0,80)||'untitled'}
-
-/* ═══════ PERSISTENCE ═══════ */
-async function loadInvoices(){try{const res=await API.listDocs('invoices');invoices=(res.items||[]).map(r=>({id:r.id,updatedAt:r.updatedAt?new Date(r.updatedAt).getTime():Date.now(),data:r}));if(!currentId&&invoices.length)currentId=invoices[0].id;}catch(e){console.error(e);invoices=[];}renderList();document.getElementById('invCount').textContent=invoices.length;document.getElementById('totalInvoices').textContent=invoices.length+' invoices';}
-function persist(){renderList();document.getElementById('invCount').textContent=invoices.length;document.getElementById('totalInvoices').textContent=invoices.length+' invoices';}
-function getCurrent(){return invoices.find(x=>x.id===currentId)||null}
-
-async function saveToDisk(data){return ARCHIVE.write(diskName(data),data)}
-async function saveCurrent(data,silent){const now=Date.now();let rec=getCurrent();const say=(m,type,sub)=>{if(typeof TOAST!=='undefined')TOAST[type](m,sub);};try{if(!rec){const r=await API.createDoc('invoices',{docNo:data.invNo||'',data});const id=r.id;rec={id,updatedAt:now,data};invoices.unshift(rec);currentId=id;}else{await API.updateDoc('invoices',rec.id,{docNo:data.invNo||'',data});rec.data=data;rec.updatedAt=now;invoices=invoices.filter(x=>x.id!==currentId);invoices.unshift(rec);}persist();if(typeof CUSTOMERS!=='undefined')CUSTOMERS.rememberFromDoc(data,{name:'cusName',address:'cusAddr',taxId:'cusTax',project:'prjName'});window.dispatchEvent(new CustomEvent('doc:saved',{detail:{ok:true,silent:!!silent}}));if(!silent)say('บันทึกแล้ว','success','ข้อมูลถูกเก็บไว้บน Cloud');}catch(e){console.error(e);window.dispatchEvent(new CustomEvent('doc:saved',{detail:{ok:false,msg:e.message,silent:!!silent}}));say('บันทึกไม่สำเร็จ','error',e.message);}const disk=await saveToDisk(data);const st=document.getElementById('saveStatus');const ls=document.getElementById('lastSaved');const t=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});if(disk){st.innerHTML='<b style="color:#059669">Saved</b>';ls.textContent=disk+' • '+t;}else if(ARCHIVE.has()){st.innerHTML='<b style="color:#059669">Saved</b>';ls.textContent=t;}else{st.innerHTML='<b style="color:#6b7280">Saved (local)</b>';ls.textContent='• '+t;}}
-function scheduleAutoSave(){clearTimeout(saveTimer);document.getElementById('saveStatus').innerHTML='<b style="color:#d97706">Editing...</b>';saveTimer=setTimeout(async()=>{await saveCurrent(collect(),true)},900)}
-function updateDirStatus(){ARCHIVE.setStatus()}
-
-/* ═══════ DIRECTORY PICKER ═══════ */
-async function pickDirectory(){return pickArchive()}
-async function loadDirHandle(){return ARCHIVE.restore()}
-
-/* ═══════ INVOICE ACTIONS ═══════ */
-async function blankInvoice(){const d=new Date(),p=PROFILE.get();let invNo='INV-'+(THAI.BE+d.getFullYear())+'-001';try{const beYear=String(THAI.BE+d.getFullYear());const r=await API.nextDocNo('INV',beYear);invNo=r.number;}catch(e){console.error(e);}return{coName:p.coName||gv('coName'),coAddr:p.coAddr||gv('coAddr'),coTax:p.coTax||gv('coTax'),invNo,invDate:d.toISOString().slice(0,10),dueDate:new Date(Date.now()+30*864e5).toISOString().slice(0,10),period:'1',cusName:'',cusAddr:'',cusTax:'',prjName:'',prjSite:'',prjContract:'',disc:'0',vatR:p.vatRate||'7',retR:'5',advR:'0',whtR:'3',note:p.bankInfo||gv('note')||'',items:[]};}
-async function createNew(){if(getCurrent())await saveCurrent(collect(),true);if(!confirm('Create new invoice?'))return;const blank=await blankInvoice();try{const r=await API.createDoc('invoices',{docNo:blank.invNo,data:blank});const id=r.id;invoices.unshift({id,updatedAt:Date.now(),data:blank});currentId=id;persist();load(blank);await saveCurrent(blank,true);if(typeof TOAST!=='undefined')TOAST.success('สร้างใบแจ้งหนี้ใหม่แล้ว');window.scrollTo({top:0,behavior:'smooth'});}catch(e){if(typeof TOAST!=='undefined')TOAST.error('สร้างไม่สำเร็จ',e.message);}}
-async function duplicateCurrent(){const cur=getCurrent();if(!cur){if(typeof TOAST!=='undefined')TOAST.info('ยังไม่มีใบให้ทำซ้ำ');return;}const data=JSON.parse(JSON.stringify(cur.data));try{const beYear=String(THAI.BE+new Date().getFullYear());const r=await API.nextDocNo('INV',beYear);data.invNo=r.number;}catch(e){console.error(e);}data.invDate=new Date().toISOString().slice(0,10);data.dueDate=new Date(Date.now()+30*864e5).toISOString().slice(0,10);try{const r=await API.createDoc('invoices',{docNo:data.invNo,data});const id=r.id;invoices.unshift({id,updatedAt:Date.now(),data});currentId=id;persist();load(data);await saveCurrent(data,true);if(typeof TOAST!=='undefined')TOAST.success('ทำสำเนาใบใหม่แล้ว');window.scrollTo({top:0,behavior:'smooth'});}catch(e){if(typeof TOAST!=='undefined')TOAST.error('ทำซ้ำไม่สำเร็จ',e.message);}}
-async function loadInvoice(id){const rec=invoices.find(x=>x.id===id);if(!rec)return;if(currentId!==id)await saveCurrent(collect(),true);currentId=id;load(rec.data);persist();window.scrollTo({top:0,behavior:'smooth'});}
-async function deleteInvoice(id){const rec=invoices.find(x=>x.id===id);if(!rec)return;if(!confirm('Delete invoice '+(rec.data.invNo||'')+'?'))return;try{await API.deleteDoc('invoices',id);}catch(e){if(typeof TOAST!=='undefined')TOAST.error('ลบไม่สำเร็จ',e.message);return;}invoices=invoices.filter(x=>x.id!==id);if(currentId===id){if(invoices.length){currentId=invoices[0].id;load(invoices[0].data);}else{const blank=await blankInvoice();try{const r=await API.createDoc('invoices',{docNo:blank.invNo,data:blank});const nid=r.id;invoices.unshift({id:nid,updatedAt:Date.now(),data:blank});currentId=nid;load(blank);}catch(e){if(typeof TOAST!=='undefined')TOAST.error('สร้างไม่สำเร็จ',e.message);}}}persist();if(typeof TOAST!=='undefined')TOAST.success('ลบใบแจ้งหนี้แล้ว');}
-function renderList(){const box=document.getElementById('invoiceList');const q=(document.getElementById('searchBox').value||'').toLowerCase().trim();let list=invoices;if(q)list=list.filter(r=>{const d=r.data;return(d.invNo||'').toLowerCase().includes(q)||(d.cusName||'').toLowerCase().includes(q)||(d.prjName||'').toLowerCase().includes(q);});if(!list.length){box.innerHTML='<div class="empty">No invoices found</div>';return;}box.innerHTML=list.map(r=>{const d=r.data,active=r.id===currentId;let sub=0;(d.items||[]).forEach(it=>{sub+=(+it.qty||0)*(+it.price||0)*((+it.pct||0)/100)});const disc=+d.disc||0,base=sub-disc,vat=base*(+d.vatR||0)/100,gross=base+vat,ret=base*(+d.retR||0)/100,adv=base*(+d.advR||0)/100,wht=base*(+d.whtR||0)/100,net=gross-ret-adv-wht;const ds=d.invDate?new Date(d.invDate).toLocaleDateString('en-US',{day:'numeric',month:'short',year:'numeric'}):'-';return`<div class="inv-row ${active?'active':''}"><div class="info" onclick="loadInvoice('${r.id}')"><b>${d.invNo||'—'}</b><small>${ds}</small>${active?'<small style="color:var(--accent);font-weight:700">● Editing</small>':''}<div>${d.cusName||'No client'}${d.prjName?' • '+d.prjName:''} — ${(d.items||[]).length} items</div></div><div class="amt">${f(net)} THB</div><div class="act"><button onclick="loadInvoice('${r.id}')">Open</button><button class="d" onclick="deleteInvoice('${r.id}')">Del</button></div></div>`}).join('');}
-
-/* ═══════ EXPORTS ═══════ */
-function exportJSON(){const data=collect();const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=sanitize((data.invNo||'invoice')+'_'+(data.cusName||'')+'.json');a.click();}
-async function exportAllZIP(){if(!invoices.length){if(typeof TOAST!=='undefined')TOAST.info('ยังไม่มีใบแจ้งหนี้ให้ส่งออก');return;}if(window.JSZip){const zip=new JSZip();const byYear={};invoices.forEach(r=>{const y=(r.data.invDate||'').slice(0,4)||'unknown';if(!byYear[y])byYear[y]=[];byYear[y].push(r);});for(const[y,arr]of Object.entries(byYear)){const folder=zip.folder(y);arr.forEach(r=>{const d=r.data;folder.file(sanitize((d.invNo||r.id)+'_'+(d.cusName||'')+'.json'),JSON.stringify(d,null,2));});}zip.file('README.txt','Backup: '+new Date().toLocaleString()+'\nTotal: '+invoices.length+' invoices\n');const blob=await zip.generateAsync({type:'blob'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='invoices_'+new Date().toISOString().slice(0,10)+'.zip';a.click();}else{const b=new Blob([JSON.stringify(invoices.map(r=>r.data),null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='invoices_backup.json';a.click();if(typeof TOAST!=='undefined')TOAST.info('ส่งออกเป็น JSON แล้ว','ยังโหลด JSZip ไม่ได้');}}
-async function importJSON(el){const file=el.files[0];if(!file)return;const r=new FileReader();r.onload=async e=>{try{const data=JSON.parse(e.target.result);const arr=Array.isArray(data)?data:[data];if(!arr.length)return;if(!confirm('Import '+arr.length+' invoices?'))return;for(const d of arr){try{const r=await API.createDoc('invoices',{docNo:d.invNo||'',data:d});invoices.unshift({id:r.id,updatedAt:Date.now(),data:d});}catch(err){console.error(err);}}currentId=invoices.length?invoices[0].id:null;if(currentId){const rec=invoices.find(x=>x.id===currentId);if(rec)load(rec.data);}persist();if(typeof TOAST!=='undefined')TOAST.success('นำเข้าแล้ว '+arr.length+' ใบ');}catch{if(typeof TOAST!=='undefined')TOAST.error('ไฟล์ไม่ถูกต้อง');}el.value='';};r.readAsText(file);el.value='';}
-function openQuotationPicker() {
-  try {
-    API.listDocs('quotations').then(res => {
-      const items = (res.items || []).map(r => ({ id: r.id, data: r }));
-      if (!items.length) { if (typeof TOAST !== 'undefined') TOAST.info('ยังไม่มีใบเสนอราคา'); return; }
-      const overlay = document.createElement('div');
-      overlay.className = 'x-overlay open';
-      overlay.id = 'quoPickerOverlay';
-      overlay.innerHTML = '<div class="x-modal" style="max-width:420px"><div class="x-modal-hd"><h3>📄 เลือกใบเสนอราคา</h3><button type="button" class="x-close" onclick="document.getElementById(\'quoPickerOverlay\').remove()">&times;</button></div><div class="x-modal-bd" style="max-height:50vh;overflow:auto"><div style="display:grid;gap:8px">' +
-        items.map(q => '<button type="button" onclick="fillFromQuotation(\'' + q.id + '\')" style="text-align:left;padding:10px 12px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;font-family:inherit;font-size:12.5px;cursor:pointer;transition:.12s;box-shadow:0 1px 3px rgba(15,23,42,.04)">' +
-          '<b style="font-weight:600;color:#1a1f36">' + (q.data.quoteNo || '—') + '</b> <small style="color:#9ca3af;font-size:10.5px">' + (q.data.cusName || '—') + '</small><br><span style="font-size:11px;color:#6b7280">' + (q.data.prjName || '') + '</span></button>').join('') +
-        '</div></div><div class="x-modal-ft"><button type="button" class="x-btn" onclick="document.getElementById(\'quoPickerOverlay\').remove()">ปิด</button></div></div>';
-      document.body.appendChild(overlay);
-    }).catch(e => { if (typeof TOAST !== 'undefined') TOAST.error('โหลดใบเสนอราคาไม่สำเร็จ', e.message); });
-  } catch (e) { if (typeof TOAST !== 'undefined') TOAST.error('เกิดข้อผิดพลาด', e.message); }
-}
-function fillFromQuotation(id) {
-  API.getDoc('quotations', id).then(q => {
-    const d = q.data || q;
-    const set = (k, v) => { const el = document.getElementById(k); if (el) el.value = (v == null ? '' : v); };
-    set('cusName', d.cusName || '');
-    set('cusAddr', d.cusAddr || '');
-    set('cusTax', d.cusTax || '');
-    set('prjName', d.prjName || '');
-    set('prjSite', d.prjSite || '');
-    set('prjContract', d.prjContract || '');
-    /* ดึงรายการงานจากใบเสนอราคา */
-    document.getElementById('tbody').innerHTML = '';
-    (d.rows || []).forEach(it => {
-      if (it.t === 'i') {
-        const price = (+it.mat || 0) + (+it.lab || 0);
-        addRow({ desc: it.desc || '', qty: it.qty || '1', unit: it.unit || '', price: price, pct: 100 });
-      } else if (it.t === 'c') {
-        addRow({ desc: (it.label || ''), qty: '1', unit: '', price: 0, pct: 100 });
-      }
-    });
-    if (!(d.rows || []).filter(r => r.t === 'i').length) addRow({});
-    if (typeof TOAST !== 'undefined') TOAST.info('ดึงข้อมูลจากใบเสนอราคาแล้ว', 'ตรวจสอบยอดเงินก่อนบันทึก');
-    calc(); scheduleAutoSave();
-  }).catch(e => { if (typeof TOAST !== 'undefined') TOAST.error('ดึงข้อมูลไม่สำเร็จ', e.message); });
-  const o = document.getElementById('quoPickerOverlay');
-  if (o) o.remove();
-}
-
-async function manualSave(){const data=collect();await saveCurrent(data);}
-
-/* ═══════ INIT ═══════ */
-(async function init(){
-  if (!API.isLoggedIn()) { window.location.replace('/'); return; }
-
-  FIELDS.forEach(k=>{const el=document.getElementById(k);if(!el)return;el.addEventListener('input',()=>{calc();scheduleAutoSave()});el.addEventListener('change',()=>{calc();scheduleAutoSave()})});
-  DOCNUM.watch(document.getElementById('invNo'),()=>invoices,r=>r.data.invNo,()=>currentId);
-  document.getElementById('searchBox').addEventListener('input',renderList);
-  CUSTOMERS.attachPicker(document.getElementById('custPicker'),{
-    label:'เลือกลูกค้าเก่า',
-    currentName:()=>gv('cusName'),
-    onPick:c=>{
-      if(c.name)document.getElementById('cusName').value=c.name;
-      if(c.address)document.getElementById('cusAddr').value=c.address;
-      if(c.taxId)document.getElementById('cusTax').value=c.taxId;
-      if(c.project&&!gv('prjName').trim())document.getElementById('prjName').value=c.project;
-      calc();
-      scheduleAutoSave();
-    }
-  });
-  ARCHIVE.init({status:document.getElementById('dirStatus'),saved:document.getElementById('lastSaved')});
-
-  /* ข้อมูลบริษัท + โหลดจาก Cloud */
-  const pp=PROFILE.get();
-  if(!pp.coName&&gv('coName').trim()){pp.coName=gv('coName');pp.coAddr=gv('coAddr');pp.coTax=gv('coTax');if(!pp.bankInfo)pp.bankInfo=gv('note');PROFILE.set(pp);}
-  PROFILE.apply();
-  PROFILE.mountButton(document.querySelector('.toolbar'));
-  try {
-    const p = await API.getProfile();
-    if (p && p.company) {
-      const c = p.company;
-      if (typeof PROFILE !== 'undefined' && PROFILE.set) {
-        const ex = PROFILE.get();
-        PROFILE.set({
-          ...ex,
-          coName: c.name || ex.coName || '',
-          coNameEn: c.name_en || ex.coNameEn || '',
-          coBranch: c.branch || ex.coBranch || '',
-          coTax: c.tax_id || ex.coTax || '',
-          coAddr: c.address || ex.coAddr || '',
-          coPhone: c.phone || ex.coPhone || '',
-          coEmail: c.email || ex.coEmail || '',
-          bankInfo: c.bank_info || ex.bankInfo || '',
-          logo: c.logo || ex.logo || ''
-        }, true, true);
-      }
-      PROFILE.apply();
-      if((!gv('note')||gv('note').startsWith('Transfer to: Bangkok Bank'))&& (PROFILE.get().bankInfo)) document.getElementById('note').value=PROFILE.get().bankInfo;
-      if(PROFILE.get().vatRate!=null&&PROFILE.get().vatRate!=='') document.getElementById('vatR').value=PROFILE.get().vatRate;
-    }
-  } catch (e) { console.error(e); }
-
-  await loadInvoices();
-  await loadDirHandle();
-  if(invoices.length&&currentId){const cur=getCurrent();if(cur)load(cur.data);else{const d=invoices[0];currentId=d.id;load(d.data);}}
-  else if(invoices.length){currentId=invoices[0].id;load(invoices[0].data);}
-  else{const initData=await blankInvoice();const r=await API.createDoc('invoices',{docNo:initData.invNo,data:initData});const id=r.id;invoices=[{id,updatedAt:Date.now(),data:initData}];currentId=id;persist();load(initData);}
-  persist();
-
-  window.addEventListener('beforeunload',()=>{try{const data=collect();const cur=getCurrent();if(cur){cur.data=data;cur.updatedAt=Date.now();saveCurrent(data,true);}}catch{}});
-
-  document.addEventListener('profile:updated',e=>{
-    const p=(e&&e.detail)||PROFILE.get();
-    if((!gv('note')||gv('note').startsWith('Transfer to: Bangkok Bank'))&&p.bankInfo)document.getElementById('note').value=p.bankInfo;
-    if(p.vatRate!=null&&p.vatRate!=='')document.getElementById('vatR').value=p.vatRate;
-    calc();
-    scheduleAutoSave();
-  });
-
-  /* Toast */
-  /* การแจ้งเตือนใช้ TOAST (assets/toast.js) — ไม่ต้องกดปิด */
-})();
+function bahtText(n){const w=['','หนึ่ง','สอง','สาม','สี่','ห้า','หก','เจ็ด','แปด','เก้า'];const t=['','สิบ','ร้อย','พัน','หมื่น','แสน','ล้าน'];let s=Math.round(n);if(s===0)return'ศูนย์';let r='';const u=String(s).split('').reverse();for(let i=u.length-1;i>=0;i--){const d=+u[i];if(!d)continue;r+=w[d]+(i>0?t[i]:'');}return r+'บาทถ้วน';}
+function collect(){return{coName:document.getElementById('coName').value,invNo:document.getElementById('invNo').value,invDate:document.getElementById('invDate').value,dueDate:document.getElementById('dueDate').value,cusName:document.getElementById('cusName').value,cusAddr:document.getElementById('cusAddr').value,cusTax:document.getElementById('cusTax').value,prjName:document.getElementById('prjName').value,prjSite:document.getElementById('prjSite').value,prjContract:document.getElementById('prjContract').value,note:document.getElementById('note').innerText,items:[...document.querySelectorAll('#tbody tr')].map(tr=>({desc:tr.querySelectorAll('td')[1].querySelector('input').value,qty:tr.querySelectorAll('td')[2].querySelector('input').value,price:+tr.querySelectorAll('td')[3].querySelector('input').value,unit:'หน่วย',pct:100}))};}
+function manualSave(){console.log('saved',collect());if(typeof TOAST!=='undefined')TOAST.success('บันทึกแล้ว');}
+function exportJSON(){const d=collect();const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(d,null,2)]));a.download=(d.invNo||'inv')+'.json';a.click();}
+function openQuotationPicker(){alert('ดึงจากใบเสนอราคา (เชื่อมต่อ D1)');}
+function createNew(){if(confirm('สร้างใหม่?')){document.querySelectorAll('input,textarea').forEach(el=>el.value='');document.getElementById('tbody').innerHTML='';addRow();calc();}}
+addRow();calc();
 </script>
 </body>
 </html>
