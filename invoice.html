@@ -575,7 +575,18 @@ function fillFromQuotation(id) {
     set('prjName', d.prjName || '');
     set('prjSite', d.prjSite || '');
     set('prjContract', d.prjContract || '');
-    if (typeof TOAST !== 'undefined') TOAST.info('ดึงข้อมูลจากใบเสนอราคาแล้ว', 'ตรวจสอบก่อนบันทึก');
+    /* ดึงรายการงานจากใบเสนอราคา */
+    document.getElementById('tbody').innerHTML = '';
+    (d.rows || []).forEach(it => {
+      if (it.t === 'i') {
+        const price = (+it.mat || 0) + (+it.lab || 0);
+        addRow({ desc: it.desc || '', qty: it.qty || '1', unit: it.unit || '', price: price, pct: 100 });
+      } else if (it.t === 'c') {
+        addRow({ desc: (it.label || ''), qty: '1', unit: '', price: 0, pct: 100 });
+      }
+    });
+    if (!(d.rows || []).filter(r => r.t === 'i').length) addRow({});
+    if (typeof TOAST !== 'undefined') TOAST.info('ดึงข้อมูลจากใบเสนอราคาแล้ว', 'ตรวจสอบยอดเงินก่อนบันทึก');
     calc(); scheduleAutoSave();
   }).catch(e => { if (typeof TOAST !== 'undefined') TOAST.error('ดึงข้อมูลไม่สำเร็จ', e.message); });
   const o = document.getElementById('quoPickerOverlay');
