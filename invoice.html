@@ -1,31 +1,33 @@
 <!DOCTYPE html>
 <html lang="th">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ใบแจ้งหนี้ - SME MOVE</title>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ใบแจ้งหนี้</title>
 <link href="assets/app.css" rel="stylesheet"><script src="assets/toast.js"></script><script src="assets/api.js"></script><script src="assets/customers.js"></script><script src="assets/thai.js"></script><script src="assets/docnum.js"></script><script src="assets/profile.js"></script><script src="assets/archive.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <style>
 *{box-sizing:border-box}
-body{margin:0;padding:20px;background:#e8ecef;color:#20272b;font-family:Tahoma,Arial,sans-serif;font-size:10px}
-.invoice{width:210mm;min-height:297mm;margin:0 auto;padding:8mm;background:#fff;border:1px solid #cbd3d7}
-.green{color:#fff;background:#13bd91}
-.header{display:grid;grid-template-columns:1fr 1.2fr 0.75fr;align-items:center;gap:8px;min-height:46px;padding:5px 8px;border-bottom:2px solid #13bd91}
-.brand{color:#26343a;font-size:20px;font-weight:bold;letter-spacing:1px}
-.brand span{padding:2px 5px;color:#fff;background:#13bd91;border-radius:3px;font-style:italic}
-.company-detail{color:#536168;font-size:8px;line-height:1.5}
+body{margin:0;padding:22px 16px;background:#edf1f2;color:#243238;font-family:Tahoma,Arial,sans-serif;font-size:10px}
+.invoice{width:210mm;min-height:297mm;margin:0 auto;padding:7mm;background:#fff;border:1px solid #d6dddf;box-shadow:0 8px 28px rgba(28,45,50,.12)}
+.green{color:#fff;background:#19c99a}
+.header{display:grid;grid-template-columns:.9fr 1.25fr .9fr;align-items:center;gap:10px;min-height:48px;padding:5px 3px 7px;border-bottom:2px solid #19c99a}
+.brand{display:flex;align-items:center;min-width:0;min-height:30px}
+.brand-logo{display:block;width:auto;max-width:48mm;height:auto;max-height:18mm;object-fit:contain;object-position:left center}
+.company-detail{color:#43535a;font-size:8.5px;line-height:1.45;text-align:right}
 .document-title{text-align:right}
-.document-title strong{display:block;padding:5px;background:#13bd91;color:#fff;font-size:15px}
-.document-title small{display:block;margin-top:4px;font-size:9px;color:#536168}
-.top-info{display:grid;grid-template-columns:1.25fr 1fr;gap:6px;margin-top:7px}
-.info-box{border:1px solid #aeb9be}
-.info-heading{padding:4px 6px;background:#13bd91;color:#fff;font-weight:bold;font-size:9px}
+.document-title strong{display:block;padding:6px 8px;background:#19c99a;color:#fff;font-size:14px;letter-spacing:.2px}
+.document-title small{display:block;margin-top:5px;font-size:9px;color:#526168}
+.top-info{display:grid;grid-template-columns:1.2fr 1fr;gap:8px;margin-top:10px}
+.info-box{border:1px solid #aeb9be;border-top:2px solid #19c99a!important}
+.info-heading{padding:5px 7px;background:#19c99a;color:#fff;font-weight:bold;font-size:9px;letter-spacing:.15px}
 .info-content{display:grid;grid-template-columns:1fr 1fr}
-.info-field{min-height:24px;padding:4px 6px;border-right:1px solid #d7dfe2;border-bottom:1px solid #d7dfe2}
-.info-field label{display:block;margin-bottom:2px;color:#65747a;font-size:8px}
+.info-field{min-height:28px;padding:5px 7px;border-right:1px solid #d7dfe2;border-bottom:1px solid #d7dfe2}
+.info-field label{display:block;margin-bottom:3px;color:#596a70;font-size:8px}
 .info-field .value{min-height:12px;font-weight:bold;font-size:9px}
 .items{width:100%;margin-top:8px;border-collapse:collapse;table-layout:fixed;font-size:9.5px}
-.items th,.items td{padding:5px;border:1px solid #aeb9be}
-.items th{background:#13bd91;color:#fff;text-align:center;font-size:9px;font-weight:700}
-.items td{height:22px;font-size:9.5px}
+.items th,.items td{padding:6px;border:1px solid #aeb9be}
+.items th{background:#19c99a;color:#fff;text-align:center;font-size:9px;font-weight:700}
+.items td{height:25px;font-size:9.5px}
+#tbody{height:112mm}
+#tbody td{vertical-align:top}
 .items .no{width:5%;text-align:center;font-size:9px}
 .items .description{width:48%}
 .items .qty{width:9%;text-align:center}
@@ -33,21 +35,34 @@ body{margin:0;padding:20px;background:#e8ecef;color:#20272b;font-family:Tahoma,A
 .items .discount{width:10%;text-align:right}
 .items .amount{width:15%;text-align:right}
 .blank-rows td{height:27px;background:#fff}
-.bottom-section{display:grid;grid-template-columns:1fr 0.75fr;gap:10px;margin-top:7px}
-.notes{min-height:90px;padding:6px;border:1px solid #aeb9be;font-size:9px;line-height:1.5}
-.notes-title{margin-bottom:6px;color:#536168;font-weight:bold;font-size:9px}
+.bottom-section{display:grid;grid-template-columns:1fr .82fr;gap:12px;margin-top:10px}
+.notes{min-height:90px;padding:8px;border:1px solid #aeb9be;font-size:9px;line-height:1.55}
+.notes-title{margin-bottom:7px;color:#34474d;font-weight:bold;font-size:9px}
 .summary{width:100%;border-collapse:collapse;font-size:9.5px}
-.summary td{padding:4px 6px;border:1px solid #c5cdd1}
-.summary td:last-child{width:38%;text-align:right;font-weight:600}
-.summary .net td{background:#13bd91;color:#fff;font-weight:bold;font-size:11px}
-.signatures{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:24px;text-align:center;font-size:10px}
-.sign-box{min-height:55px;padding-top:28px;border-bottom:1px solid #7b898e}
-.sign-box small{display:block;margin-top:4px;color:#68777d;font-size:8px}
-.footer{margin-top:12px;padding:6px;background:#13bd91;color:#fff;text-align:center;font-size:8px;letter-spacing:.5px}
-@media print{@page{size:A4 portrait;margin:0}body{padding:0;background:#fff}.invoice{width:210mm;min-height:297mm;margin:0;padding:8mm;border:0;box-shadow:none}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}
-.toolbar{max-width:960px;margin:0 auto 16px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:8px 12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.toolbar button{border:1px solid #e2e8f0;background:#fff;border-radius:7px;padding:7px 13px;font-family:inherit;font-size:12px;cursor:pointer}
-.toolbar button.success{background:#13bd91;color:#fff;border-color:#13bd91}
+.summary td{padding:5px 7px;border:1px solid #c5cdd1}
+.summary td:last-child{width:38%;text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.summary .net td{background:#19c99a;color:#fff;font-weight:bold;font-size:11px;border-top:2px solid #19c99a}
+.signatures{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:27px;text-align:center;font-size:9.5px;break-inside:avoid}
+.sign-box{min-height:58px;padding-top:29px;border-bottom:1px solid #65747a}
+.sign-box small{display:block;margin-top:5px;color:#596a70;font-size:8px}
+.footer{margin-top:12px;padding:7px;background:#19c99a;color:#fff;text-align:center;font-size:8px;letter-spacing:.25px}
+.toolbar{max-width:210mm;margin:0 auto 14px;background:#fff;border:1px solid #dce3e5;border-radius:6px;padding:8px 10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.toolbar button{border:1px solid #d6dddf;background:#fff;color:#26363c;border-radius:4px;padding:7px 11px;font-family:inherit;font-size:11px;cursor:pointer}
+.toolbar button.success{background:#176b58;color:#fff;border-color:#176b58}
+@media(max-width:850px){body{padding:12px 8px}.invoice{width:min(210mm,100%);min-height:0;padding:7mm;box-shadow:0 4px 16px rgba(28,45,50,.1)}.header{grid-template-columns:.8fr 1.2fr 1fr;gap:6px}.brand{font-size:17px}.top-info{grid-template-columns:1fr}.toolbar{width:100%}}
+@media print{
+  @page{size:A4 portrait;margin:10mm}
+  html,body{width:auto!important;min-width:0!important;margin:0!important;padding:0!important;background:#fff!important;color:#111!important;font-size:10pt}
+  .toolbar,.archive,.add-row{display:none!important}
+  .invoice{width:190mm!important;max-width:none!important;min-height:277mm;margin:0;padding:0;border:0;box-shadow:none}
+  .items tr,.summary tr,.info-box,.notes,.signatures{break-inside:avoid}
+  input,textarea{color:#111!important;font:inherit!important;box-shadow:none!important}
+  .document-title input,.info-field input,.info-field textarea,.items input{border:0!important;border-bottom:1px solid #9aa5a8!important;border-radius:0!important;background:transparent!important;outline:0!important;resize:none}
+  .info-field input[type=date]{appearance:none;-webkit-appearance:none}
+  #tbody{height:112mm}
+  .items th,.document-title strong,.info-heading,.summary .net td,.footer{background:#19c99a!important;color:#fff!important}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+}
 </style>
 </head>
 <body>
@@ -55,7 +70,7 @@ body{margin:0;padding:20px;background:#e8ecef;color:#20272b;font-family:Tahoma,A
 <div class="toolbar">
   <button onclick="location.href='/'">🏠 หน้าแรก</button>
   <button onclick="if(confirm('ออกจากระบบ?'))API.signOut('/')">ออกจากระบบ</button>
-  <div style="font-weight:700;color:#26343a;margin-right:auto">SME MOVE — INVOICE</div>
+  <div style="font-weight:700;color:#26343a;margin-right:auto">ใบแจ้งหนี้ / INVOICE</div>
   <button onclick="addRow()">+ รายการ</button>
   <button class="success" onclick="manualSave()">บันทึก</button>
   <button onclick="window.print()">พิมพ์ / PDF</button>
@@ -66,11 +81,12 @@ body{margin:0;padding:20px;background:#e8ecef;color:#20272b;font-family:Tahoma,A
 
 <div class="invoice" id="invoice">
   <header class="header">
-    <div class="brand">SME <span>MOVE</span></div>
+    <div class="brand"><img class="brand-logo" data-profile-logo alt="โลโก้บริษัท"></div>
     <div class="company-detail">
-      <strong id="coName">บริษัท [ชื่อบริษัท] จำกัด</strong><br>
-      <span id="coAddr">[ที่อยู่บริษัท] โทร. [เบอร์]</span><br>
-      เลขประจำตัวผู้เสียภาษี <span id="coTax">[เลขผู้เสียภาษี]</span>
+      <strong id="coName" data-profile="coName">บริษัท [ชื่อบริษัท] จำกัด</strong><br>
+      <span id="coAddr" data-profile="coAddr">[ที่อยู่บริษัท]</span><br>
+      โทร. <span id="coPhone" data-profile="coPhone">[เบอร์]</span><br>
+      เลขประจำตัวผู้เสียภาษี <span id="coTax" data-profile="coTax">[เลขผู้เสียภาษี]</span>
     </div>
     <div class="document-title">
       <strong>Tax Invoice / Invoice</strong>
@@ -140,7 +156,7 @@ body{margin:0;padding:20px;background:#e8ecef;color:#20272b;font-family:Tahoma,A
     <div class="sign-box">ผู้มีอำนาจลงนาม / Authorized<br><small>วันที่ ........../........../..........</small></div>
   </section>
 
-  <footer class="footer">SME MOVE | ใบแจ้งหนี้ Tax Invoice | ขอบคุณที่ใช้บริการ</footer>
+  <footer class="footer">ใบแจ้งหนี้ / TAX INVOICE | ขอบคุณที่ใช้บริการ</footer>
 </div>
 
 <script>
@@ -174,12 +190,13 @@ function calc(){
   document.getElementById('words').textContent=bahtText?bahtText(net):String(net);
 }
 function bahtText(n){const w=['','หนึ่ง','สอง','สาม','สี่','ห้า','หก','เจ็ด','แปด','เก้า'];const t=['','สิบ','ร้อย','พัน','หมื่น','แสน','ล้าน'];let s=Math.round(n);if(s===0)return'ศูนย์';let r='';const u=String(s).split('').reverse();for(let i=u.length-1;i>=0;i--){const d=+u[i];if(!d)continue;r+=w[d]+(i>0?t[i]:'');}return r+'บาทถ้วน';}
-function collect(){return{coName:document.getElementById('coName').value,invNo:document.getElementById('invNo').value,invDate:document.getElementById('invDate').value,dueDate:document.getElementById('dueDate').value,cusName:document.getElementById('cusName').value,cusAddr:document.getElementById('cusAddr').value,cusTax:document.getElementById('cusTax').value,prjName:document.getElementById('prjName').value,prjSite:document.getElementById('prjSite').value,prjContract:document.getElementById('prjContract').value,note:document.getElementById('note').innerText,items:[...document.querySelectorAll('#tbody tr')].map(tr=>({desc:tr.querySelectorAll('td')[1].querySelector('input').value,qty:tr.querySelectorAll('td')[2].querySelector('input').value,price:+tr.querySelectorAll('td')[3].querySelector('input').value,unit:'หน่วย',pct:100}))};}
+function collect(){return{coName:document.getElementById('coName').textContent,invNo:document.getElementById('invNo').value,invDate:document.getElementById('invDate').value,dueDate:document.getElementById('dueDate').value,cusName:document.getElementById('cusName').value,cusAddr:document.getElementById('cusAddr').value,cusTax:document.getElementById('cusTax').value,prjName:document.getElementById('prjName').value,prjSite:document.getElementById('prjSite').value,prjContract:document.getElementById('prjContract').value,note:document.getElementById('note').innerText,items:[...document.querySelectorAll('#tbody tr')].map(tr=>({desc:tr.querySelectorAll('td')[1].querySelector('input').value,qty:tr.querySelectorAll('td')[2].querySelector('input').value,price:+tr.querySelectorAll('td')[3].querySelector('input').value,unit:'หน่วย',pct:100}))};}
 function manualSave(){console.log('saved',collect());if(typeof TOAST!=='undefined')TOAST.success('บันทึกแล้ว');}
 function exportJSON(){const d=collect();const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(d,null,2)]));a.download=(d.invNo||'inv')+'.json';a.click();}
 function openQuotationPicker(){alert('ดึงจากใบเสนอราคา (เชื่อมต่อ D1)');}
 function createNew(){if(confirm('สร้างใหม่?')){document.querySelectorAll('input,textarea').forEach(el=>el.value='');document.getElementById('tbody').innerHTML='';addRow();calc();}}
-addRow();calc();
+  addRow();calc();
+  if(typeof PROFILE!=='undefined'&&PROFILE&&typeof PROFILE.apply==='function')PROFILE.apply();
 </script>
 </body>
 </html>
