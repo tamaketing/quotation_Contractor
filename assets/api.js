@@ -14,14 +14,23 @@ const API = (function () {
     const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
     const t = getToken();
     if (t) headers['Authorization'] = 'Bearer ' + t;
-    const res = await fetch(base() + path, { ...opts, headers });
-    let data = null;
-    try { data = await res.json(); } catch {}
-    if (!res.ok) {
-      const msg = (data && data.error) || res.statusText || 'Request failed';
-      throw new Error(msg);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    try {
+      const res = await fetch(base() + path, { ...opts, headers, signal: controller.signal });
+      let data = null;
+      try { data = await res.json(); } catch {}
+      if (!res.ok) {
+        const msg = (data && data.error) || res.statusText || 'Request failed';
+        throw new Error(msg);
+      }
+      return data;
+    } catch (e) {
+      if (e && e.name === 'AbortError') throw new Error('เซิร์ฟเวอร์ใช้เวลานานกว่าปกติ ลองอีกครั้ง');
+      throw e;
+    } finally {
+      clearTimeout(timeout);
     }
-    return data;
   }
 
   return {

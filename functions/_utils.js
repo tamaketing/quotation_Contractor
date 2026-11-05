@@ -147,7 +147,6 @@ export async function requireUser(request, env) {
   const secret = (env && env.JWT_SECRET) || DEFAULT_SECRET;
   const payload = await verifyJwt(token, secret);
   if (!payload || !payload.sub) return null;
-  await ensureAuthSchema(env);
   const row = await env.DB.prepare(
     'SELECT id, email, company_id, role, token_version FROM users WHERE id = ?'
   ).bind(payload.sub).first();

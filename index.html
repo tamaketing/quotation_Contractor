@@ -311,6 +311,7 @@ async function withBtn(btn, fn) {
   if (!btn) return fn();
   const old = btn.textContent;
   btn.disabled = true;
+  btn.textContent = 'กำลังดำเนินการ...';
   try { await fn(); } finally { btn.disabled = false; btn.textContent = old; }
 }
 

@@ -1,4 +1,4 @@
-import { json, err, randomToken, sha256Hex, nowSec, ensureAuthSchema } from '../../_utils.js';
+import { json, err, randomToken, sha256Hex, nowSec } from '../../_utils.js';
 import { sendMail } from '../../_mail.js';
 
 /*
@@ -9,7 +9,6 @@ import { sendMail } from '../../_mail.js';
   - ถ้าไม่ได้ตั้งค่า และ AUTH_DEBUG=1 จะคืน debugLink สำหรับทดสอบ (ห้ามเปิดใน production)
 */
 export async function onRequestPost({ request, env }) {
-  await ensureAuthSchema(env);
   let body;
   try { body = await request.json(); } catch { return err('Invalid JSON'); }
   const email = (body.email || '').trim().toLowerCase();

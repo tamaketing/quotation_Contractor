@@ -1,11 +1,10 @@
-import { json, err, hashPassword, randomSalt, sha256Hex, nowSec, ensureAuthSchema } from '../../_utils.js';
+import { json, err, hashPassword, randomSalt, sha256Hex, nowSec } from '../../_utils.js';
 /*
   POST /api/auth/reset  { token, password }
   - ตรวจ token (เทียบ SHA-256) ว่ามีจริง ยังไม่ใช้ และยังไม่หมดอายุ
   - เปลี่ยนรหัสผ่าน + เพิ่ม token_version เพื่อให้ token ล็อกอินเก่าใช้ไม่ได้
 */
 export async function onRequestPost({ request, env }) {
-  await ensureAuthSchema(env);
   let body;
   try { body = await request.json(); } catch { return err('Invalid JSON'); }
   const token = (body.token || '').trim();

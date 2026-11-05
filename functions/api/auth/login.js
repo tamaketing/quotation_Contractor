@@ -1,7 +1,6 @@
-import { json, err, hashPassword, signJwt, ensureAuthSchema } from '../../_utils.js';
+import { json, err, hashPassword, signJwt } from '../../_utils.js';
 
 export async function onRequestPost({ request, env }) {
-  await ensureAuthSchema(env);
   let body;
   try { body = await request.json(); } catch { return err('Invalid JSON'); }
   const email = (body.email || '').trim().toLowerCase();
