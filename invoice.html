@@ -558,12 +558,31 @@ function collect(){
     __year:(invISO||'').slice(0,4)
   };
 }
+let customerTaxRequest=0;
+async function fillMissingCustomerTax(){
+  const request=++customerTaxRequest;
+  const name=$('cusName').textContent.trim();
+  const address=$('cusAddr').textContent.trim();
+  if(!name||$('cusTax').textContent.trim())return;
+  try{
+    const result=await API.listCustomers();
+    const normalize=v=>String(v||'').trim().replace(/\s+/g,' ').toLowerCase();
+    let matches=(result.items||[]).filter(c=>normalize(c.name)===normalize(name));
+    if(matches.length>1&&address)matches=matches.filter(c=>normalize(c.address)===normalize(address));
+    if(matches.length!==1)return;
+    const tax=String(matches[0].taxId||'').trim();
+    if(tax&&request===customerTaxRequest&&$('cusName').textContent.trim()===name&&$('cusAddr').textContent.trim()===address&&!$('cusTax').textContent.trim()){
+      $('cusTax').textContent=tax;scheduleSave();
+    }
+  }catch(e){console.warn('Unable to load customer tax ID',e);}
+}
 function load(d){
   d=d||{};
   const prof=PROFILE.get();
   const setText=(id,v)=>{const e=$(id);if(e)e.textContent=v==null?'':v;};
   ['invNo','quoteRef','cusName','cusAddr','cusTax','cusPhone','prjName','prjSite','prjContract']
     .forEach(id=>setText(id,d[id]));
+  fillMissingCustomerTax();
   setText('sellerName',d.sellerName||prof.sellerName||'');
   setText('sellerPhone',d.sellerPhone||prof.sellerPhone||prof.coPhone||'');
   setD('invDate',d.invDate);setD('dueDate',d.dueDate);
@@ -710,6 +729,7 @@ async function fillFromQuotation(id,overlay){
     $('cusAddr').textContent=d.cusAddr||'';
     $('cusTax').textContent=d.cusTax||'';
     $('cusPhone').textContent=d.cusPhone||'';
+    fillMissingCustomerTax();
     $('quoteRef').textContent=d.quoteNo||q.docNo||'';
     $('prjName').textContent=d.prjName||'';
     $('prjSite').textContent=d.prjSite||'';
@@ -777,7 +797,8 @@ async function fillFromQuotation(id,overlay){
     onPick:c=>{
       if(c.name)$('cusName').textContent=c.name;
       if(c.address)$('cusAddr').textContent=c.address;
-      if(c.taxId)$('cusTax').textContent=c.taxId;
+      ++customerTaxRequest;
+      $('cusTax').textContent=c.taxId||'';
       if((c.contact||c.phone)&&!$('cusPhone').textContent.trim())$('cusPhone').textContent=c.contact||c.phone;
       if(c.project&&!$('prjName').textContent.trim())$('prjName').textContent=c.project;
       calc();scheduleSave();
