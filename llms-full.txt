@@ -1,0 +1,181 @@
+# Quotation Contractor — Full Reference
+
+> Companion to /llms.txt. Detailed reference for AI systems and crawlers.
+> Site: https://quotation-contractor.pages.dev · Repo: https://github.com/tamaketing/quotation_Contractor
+
+## 1. Overview
+
+"ระบบเอกสารรับเหมา" is a free, browser-based document suite for Thai construction contractors.
+It produces four document types used in Thai construction billing:
+
+1. ใบเสนอราคา (Quotation / Proposal) — `PCC-BEYEAR-###`
+2. ใบแจ้งหนี้ (Tax Invoice) — `INV-BEYEAR-###`
+3. ใบเสร็จรับเงิน / ใบกำกับภาษี (Receipt / Tax Receipt) — `RC-BEYEAR-###`
+4. หนังสือส่งมอบงานจ้าง (Delivery & Payment Request Letter) — references an invoice number
+
+All UI and documents are in Thai. Monetary amounts are rendered both numerically and as Thai baht text
+(e.g. "หนึ่งพันสองร้อยบาทถ้วน"). The app is multi-tenant: each registered company sees only its own
+documents, customers and profile.
+
+## 2. Architecture
+
+- Static front-end: HTML + CSS + vanilla JS, no build step.
+- Hosting: Cloudflare Pages (`pages_build_output_dir = "."`).
+- Back-end: Cloudflare Pages Functions under `/functions`.
+- Database: Cloudflare D1 (SQLite) bound as `DB`.
+- Auth: email + password; passwords stored as salted hashes; JWT signed with `JWT_SECRET`
+  (env var, recommended in production). JWT stored client-side in `localStorage` as `quota_api_token`.
+- Sessions: 30-day; tracked in D1 `sessions` table; password change bumps `token_version`
+  to invalidate all prior tokens.
+- Password reset: Resend email with a 30-minute single-use link; only SHA-256 of token stored in D1.
+- Rate limit: 3 reset requests / 15 minutes per account.
+- File System Access API used (where supported) to auto-write `.json` files to a user-chosen folder.
+
+## 3. Pages & routes
+
+| Route | Purpose |
+|---|---|
+| `/` | Home dashboard + auth (login / register / forgot password) |
+| `/quotation` | Quotation editor |
+| `/invoice` | Tax invoice editor |
+| `/receipt` | Receipt / tax receipt editor |
+| `/delivery-letter` | Delivery & payment request letter editor |
+| `/reset-password` | Password reset landing (`?token=...`) — noindex |
+| `/404` | Not found |
+
+## 4. Document numbering
+
+- Format: `[PREFIX]-BEYEAR-###` (Buddhist Era year), e.g. `PCC-2569-001`.
+- Prefixes: `PCC` (quotation), `INV` (invoice), `RC` (receipt), `HANDOVER-INV` (delivery letter).
+- Counter stored per `(company_id, prefix, year)` in `doc_counters`.
+- System scans existing documents to avoid reusing deleted numbers; manual duplicate triggers a warning.
+
+## 5. Features (detailed)
+
+- Document CRUD on D1, scoped per company.
+- Auto-save on every input change.
+- Duplicate document with a new number.
+- Search by document number / customer name / project.
+- Export all documents as ZIP, grouped by BE year folder.
+- Single-document JSON export / import.
+- PDF export via browser print (A4, no margins, background graphics enabled).
+- File System Access: choose a backup folder once; every save writes a `.json` named
+  `{DOCNO}_{CUSTOMER}.json` into a `{BEYEAR}/` subfolder.
+- Company profile applied to all documents: logo, name, tax ID, branch, address, phone, email, bank info.
+- Customer registry auto-collected from quotations/invoices; reusable picker in new documents.
+- Cross-document import: invoice → receipt; invoice → delivery letter.
+- Thai baht amount in words; VAT; withholding tax; retention; advance payment; net total.
+
+## 6. Database schema (D1 / SQLite)
+
+See `/schema.sql`. Tables:
+
+- `companies(id, name, name_en, branch, tax_id, address, phone, email, bank_info, logo, created_at, updated_at)`
+- `users(id, email UNIQUE, password_hash, salt, company_id FK, role, token_version, created_at)`
+- `password_resets(token_hash PK, user_id FK, expires_at, used, created_at)`
+- `customers(id, company_id FK, name, address, tax_id, contact, phone, email, project, note, created_at, updated_at)`
+- `sessions(token PK, user_id FK, expires_at, created_at)`
+- `quotations(id, company_id FK, quote_no, data JSON, created_at, updated_at)`
+- `invoices(id, company_id FK, invoice_no, data JSON, created_at, updated_at)`
+- `receipts(id, company_id FK, receipt_no, data JSON, created_at, updated_at)`
+- `delivery_letters(id, company_id FK, letter_no, data JSON, created_at, updated_at)`
+- `doc_counters(company_id, prefix, year, seq)` PK `(company_id, prefix, year)`
+
+All tenant tables FK to `companies(id) ON DELETE CASCADE`.
+
+## 7. API reference
+
+Base: same origin. Auth: `Authorization: Bearer <token>` (from `/api/auth/login` or `/register`).
+Content-Type: `application/json`. 15s request timeout.
+
+Auth:
+- `POST /api/auth/register` body `{email, password, companyName}` → `{token, user}`
+- `POST /api/auth/login` body `{email, password}` → `{token, user}`
+- `POST /api/auth/forgot` body `{email}` → `{message, delivery, debugLink?}` (debugLink only if `AUTH_DEBUG=1`)
+- `POST /api/auth/reset` body `{token, password}`
+- `POST /api/auth/change-password` body `{currentPassword, newPassword}`
+
+Profile:
+- `GET /api/profile` → company profile
+- `PUT /api/profile` body profile fields
+
+Documents (type ∈ {quotations, invoices, receipts, delivery-letters}):
+- `GET /api/{type}` → list for company
+- `POST /api/{type}` body document data → created
+- `GET /api/{type}/:id`
+- `PUT /api/{type}/:id` body document data
+- `DELETE /api/{type}/:id`
+
+Customers:
+- `GET /api/customers`
+- `POST /api/customers`
+- `PUT /api/customers/:id`
+- `DELETE /api/customers/:id`
+
+Numbering:
+- `POST /api/docnum/next` body `{prefix, year}` → `{number}` (or seq)
+
+## 8. Environment variables (Cloudflare Pages)
+
+| Var | Required | Purpose |
+|---|---|---|
+| `JWT_SECRET` | recommended (prod) | Sign JWTs |
+| `RESEND_API_KEY` | for email reset | Resend API key |
+| `MAIL_FROM` | recommended | Sender address/name |
+| `APP_ORIGIN` | recommended | Public origin for reset links |
+| `AUTH_DEBUG` | test only | Expose reset link on screen (never in prod) |
+
+D1 binding: `DB` → database `quotation_db`.
+
+## 9. Security notes
+
+- Passwords: salted hash; only hash comparison on login.
+- Reset tokens: only SHA-256 stored; 30-min expiry; single use.
+- Rate limit on forgot-password: 3 / 15 min per account.
+- Forgot-password returns a generic message (does not reveal whether email exists).
+- Password change bumps `token_version`, invalidating all sessions.
+- `/reset-password` is `noindex, nofollow`.
+- Client-side gate (`gate.js`) is a convenience layer, not real security; real auth is server-side JWT.
+
+## 10. Key files
+
+- `/index.html` — home + auth flow
+- `/quotation.html`, `/invoice.html`, `/receipt.html`, `/delivery-letter.html`
+- `/reset-password.html`, `/404.html`
+- `/assets/api.js` — D1 CRUD client (Bearer token, 15s timeout)
+- `/assets/docs-api.js` — async document panel
+- `/assets/docnum.js` — document numbering (BE year)
+- `/assets/gate.js` — client-side auth gate
+- `/assets/profile.js` — company profile manager
+- `/assets/customers.js` — customer registry
+- `/assets/thai.js` — Thai baht text conversion
+- `/assets/toast.js`, `/assets/archive.js`, `/assets/app.css`
+- `/functions/_utils.js` — shared helpers (ensureAuthSchema, hashing, JWT)
+- `/functions/_middleware.js` — request middleware
+- `/functions/_docs.js` — document helpers
+- `/functions/_customers.js` — customer helpers
+- `/functions/_mail.js` — Resend email helper
+- `/functions/api/**` — endpoint handlers
+- `/schema.sql`, `/migrations/*`
+- `/robots.txt`, `/sitemap.xml`, `/_headers`, `/wrangler.toml`, `/package.json`
+
+## 11. SEO / crawling
+
+- `robots.txt`: `Allow: /` for all; disallows `/reset-password`; allows `GPTBot`, `Bingbot`.
+- Sitemap: https://quotation-contractor.pages.dev/sitemap.xml
+- `_headers`: `X-Robots-Tag: index, follow` on all routes.
+- `/reset-password`: `noindex, nofollow`.
+
+## 12. Deployment
+
+- Cloudflare Pages, project `quotation-contractor`, branch `main`.
+- Build command: `exit 0`; build output dir: `/`.
+- D1 binding `DB` → `quotation_db`; run `/schema.sql` once.
+- Optional: `JWT_SECRET`, Resend env vars.
+- Redeploy on push to `main`.
+
+## 13. Contact
+
+- GitHub: https://github.com/tamaketing/quotation_Contractor
+- Deployed: https://quotation-contractor.pages.dev
+- Short reference: /llms.txt

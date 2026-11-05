@@ -227,7 +227,7 @@ const DOCS = (function () {
         const f = zip.folder(y);
         byYear[y].forEach(r => {
           const o = Object.assign({}, r.data); delete o.__year;
-          f.file(opt.safeName(opt.summary(r).no) + '.json', JSON.stringify(o, null, 2));
+          f.file(safeName(opt.summary(r).no) + '.json', JSON.stringify(o, null, 2));
         });
       });
       zip.file('README.txt', 'ส่งออก: ' + new Date().toLocaleString('th-TH') + '\nจำนวน: ' + list.length + ' ฉบับ\n');
