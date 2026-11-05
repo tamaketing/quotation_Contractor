@@ -332,7 +332,37 @@ function summaryOf(rec) {
 }
 
 /* ── นำเข้าจากไฟล์ใบแจ้งหนี้ ── */
-function importInvoice() { $('fiInv').click(); }
+async function importInvoice() {
+  if(document.getElementById('invoicePickerOverlay'))return;
+  const overlay=document.createElement('div');
+  overlay.id='invoicePickerOverlay';overlay.className='x-overlay open';
+  overlay.innerHTML='<div class="x-modal" style="max-width:560px"><div class="x-modal-hd"><h3>???????????????</h3><button class="x-close" type="button">&times;</button></div><div class="x-modal-bd"><input data-search type="search" placeholder="??????????? ?????? ???????????" style="width:100%;padding:9px;margin-bottom:12px"><div data-list style="display:grid;gap:8px;max-height:50vh;overflow:auto">?????????...</div></div><div class="x-modal-ft"><button data-file type="button" class="x-btn">????????????? JSON</button></div></div>';
+  overlay.querySelector('.x-close').onclick=()=>overlay.remove();
+  overlay.querySelector('[data-file]').onclick=()=>{overlay.remove();$('fiInv').click();};
+  document.body.appendChild(overlay);
+  const list=overlay.querySelector('[data-list]'),search=overlay.querySelector('[data-search]');
+  try{
+    const result=await API.listDocs('invoices');
+    const items=result.items||[];
+    const render=()=>{
+      const term=search.value.trim().toLocaleLowerCase();list.replaceChildren();
+      const shown=items.filter(rec=>{const d=rec.data||rec;return [d.invNo,rec.docNo,d.cusName,d.prjName].some(v=>String(v||'').toLocaleLowerCase().includes(term));});
+      if(!shown.length){list.textContent=items.length?'???????????????????????':'??????????????????????????????';return;}
+      shown.forEach(rec=>{
+        const d=rec.data||rec,button=document.createElement('button');button.type='button';
+        button.style.cssText='text-align:left;padding:12px;border:1px solid #dce5e1;border-radius:8px;background:#fff;font:inherit;cursor:pointer';
+        button.textContent=[d.invNo||rec.docNo||'?????????????',d.cusName,d.prjName].filter(Boolean).join(' ? ');
+        button.onclick=async()=>{
+          search.disabled=true;list.querySelectorAll('button').forEach(b=>b.disabled=true);
+          try{const invoice=await API.getDoc('invoices',rec.id);if(!overlay.isConnected)return;fillFromInvoice(invoice.data||invoice);overlay.remove();}
+          catch(e){search.disabled=false;list.querySelectorAll('button').forEach(b=>b.disabled=false);if(typeof TOAST!=='undefined')TOAST.error('????????????????????????????',e.message);}
+        };
+        list.appendChild(button);
+      });
+    };
+    search.oninput=render;render();
+  }catch(e){list.textContent='??????????????????????? ???????????????????????';}
+}
 function fromInvoice(el) {
   const f = el.files[0]; if (!f) return;
   const r = new FileReader();
@@ -345,7 +375,16 @@ function fromInvoice(el) {
   };
   r.readAsText(f);
 }
+function invoiceDeliveryData(inv){
+  const modern=Array.isArray(inv.rows)&&inv.rows.length>0;
+  const items=modern?inv.rows.filter(r=>r.t==='i'):(inv.items||[]);
+  const sub=items.reduce((sum,it)=>sum+(+it.qty||0)*(modern?((+(it.mat??it.pf)||0)+(+(it.lab??it.pd)||0)):(+it.price||0)*((it.pct==null||it.pct==='')?1:(+it.pct||100)/100)),0);
+  const base=sub-Math.min(sub,Math.max(0,+inv.disc||0));
+  const net=base+base*(+inv.vatR||0)/100-base*((+inv.retR||0)+(+inv.advR||0)+(+inv.whtR||0))/100;
+  return {items,net};
+}
 function fillFromInvoice(inv) {
+  inv=inv&&inv.data?inv.data:inv;
   if (!inv || typeof inv !== 'object') throw new Error('bad');
   const p = PROFILE.get();
   if (!p.coName && inv.coName) {
@@ -363,17 +402,11 @@ function fillFromInvoice(inv) {
   write('prjName', inv.prjName || '');
   write('prjSite', inv.prjSite || '');
   write('prjContract', inv.prjContract || '');
-  let net = 0;
-  try {
-    const sub = (inv.items || []).reduce((a, it) => a + (+it.qty || 0) * (+it.price || 0) * ((+it.pct || 100) / 100), 0);
-    const base = sub - (+inv.disc || 0);
-    const gross = base + base * (+inv.vatR || 0) / 100;
-    net = gross - base * ((+inv.retR || 0) + (+inv.advR || 0) + (+inv.whtR || 0)) / 100;
-  } catch (e) { }
-  write('amount', fmt(net));
+  const data=invoiceDeliveryData(inv);
+  write('amount', fmt(data.net));
   $('tb').innerHTML = '';
-  (inv.items || []).forEach(it => addItem({ desc: it.desc, qty: numFmt(it.qty), unit: it.unit }));
-  if (!(inv.items || []).length) addItem({});
+  data.items.forEach(it=>addItem({desc:it.desc,qty:numFmt(it.qty),unit:it.unit}));
+  if(!data.items.length)addItem({});
   renum(); renderText(); save();
   if (typeof TOAST !== 'undefined') TOAST.info('นำข้อมูลจากใบแจ้งหนี้แล้ว', 'ตรวจสอบยอดเงินและรายละเอียดอีกครั้ง');
 }
