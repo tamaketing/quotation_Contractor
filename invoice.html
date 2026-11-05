@@ -110,7 +110,8 @@ body{margin:0;padding:22px 16px;background:#edf1f2;color:#243238;font-family:Tah
       <div class="info-content">
         <div class="info-field"><label>วันที่ / Date</label><div class="value"><input type="date" id="invDate" style="border:1px solid #aeb9be;border-radius:3px;font-size:9px;padding:2px;width:100%"></div></div>
         <div class="info-field"><label>วันครบกำหนด / Due</label><div class="value"><input type="date" id="dueDate" style="border:1px solid #aeb9be;border-radius:3px;font-size:9px;padding:2px;width:100%"></div></div>
-        <div class="info-field"><label>อ้างอิง / Reference</label><div class="value"><input id="prjName" style="border:none;border-bottom:1px dashed #aeb9be;width:100%;font-weight:bold;background:transparent;padding:0;font-size:9px" placeholder="[เลขที่อ้างอิง]"></div></div>
+        <div class="info-field"><label>โครงการ / Project</label><div class="value"><input id="prjName" style="border:none;border-bottom:1px dashed #aeb9be;width:100%;font-weight:bold;background:transparent;padding:0;font-size:9px" placeholder="[ชื่อโครงการ]"></div></div>
+        <div class="info-field"><label>อ้างอิงใบเสนอราคา / Quotation No.</label><div class="value"><input id="quoteRef" style="border:none;border-bottom:1px dashed #aeb9be;width:100%;font-weight:bold;background:transparent;padding:0;font-size:9px" placeholder="[เลขที่ใบเสนอราคา]"></div></div>
         <div class="info-field"><label>สถานที่ / Site</label><div class="value"><input id="prjSite" style="border:none;border-bottom:1px dashed #aeb9be;width:100%;font-weight:bold;background:transparent;padding:0;font-size:9px" placeholder="[สถานที่ให้บริการ]"></div></div>
         <div class="info-field"><label>สัญญา / Contract</label><div class="value"><input id="prjContract" style="border:none;border-bottom:1px dashed #aeb9be;width:100%;font-weight:bold;background:transparent;padding:0;font-size:9px" placeholder="[เลขที่สัญญา]"></div></div>
       </div>
@@ -164,7 +165,9 @@ body{margin:0;padding:22px 16px;background:#edf1f2;color:#243238;font-family:Tah
 const KEY='constr_invoice_v1';
 function addRow(d={}){
   const tr=document.createElement('tr');
-  tr.innerHTML=`<td class="no"></td><td><input style="border:none;border-bottom:1px dashed #aeb9be;width:100%;font-size:9px;background:transparent;padding:2px" value="${(d.desc||'').replace(/"/g,'&quot;')}"></td><td><input style="border:1px solid #aeb9be;border-radius:3px;font-size:9px;padding:2px;width:100%;text-align:center" value="${d.qty??1}"></td><td><input style="border:1px solid #aeb9be;border-radius:3px;font-size:9px;padding:2px;width:100%;text-align:right" value="${d.price??0}"></td><td><input style="border:1px solid #aeb9be;border-radius:3px;font-size:9px;padding:2px;width:100%;text-align:right" value="${d.discount??0}"></td><td style="font-weight:600;text-align:right;font-variant-numeric:tabular-nums">0.00</td>`;
+  const escAttr=v=>String(v??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;');
+  const num=(v,fallback)=>Number.isFinite(Number(v))?Number(v):fallback;
+  tr.innerHTML=`<td class="no"></td><td><input style="border:none;border-bottom:1px dashed #aeb9be;width:100%;font-size:9px;background:transparent;padding:2px" value="${escAttr(d.desc||'')}"></td><td><input style="border:1px solid #aeb9be;border-radius:3px;font-size:9px;padding:2px;width:100%;text-align:center" value="${num(d.qty,1)}"></td><td><input style="border:1px solid #aeb9be;border-radius:3px;font-size:9px;padding:2px;width:100%;text-align:right" value="${num(d.price,0)}"></td><td><input style="border:1px solid #aeb9be;border-radius:3px;font-size:9px;padding:2px;width:100%;text-align:right" value="${num(d.discount,0)}"></td><td style="font-weight:600;text-align:right;font-variant-numeric:tabular-nums">0.00</td>`;
   document.getElementById('tbody').appendChild(tr);
   tr.querySelectorAll('input').forEach(e=>e.addEventListener('input',()=>calc()));
   calc();
@@ -181,8 +184,9 @@ function calc(){
     sub+=val;
   });
   document.getElementById('sSub').textContent=sub.toFixed(2);
-  document.getElementById('sDisc').textContent=(sub*0).toFixed(2);
-  const base=sub,vat=base*7/100,net=base+vat;
+  const discount=Math.min(sub,Math.max(0,+document.getElementById('disc').value||0));
+  document.getElementById('sDisc').textContent=discount.toFixed(2);
+  const base=sub-discount,vatRate=Math.max(0,+document.getElementById('vatR').value||0),vat=base*vatRate/100,net=base+vat;
   document.getElementById('sBase').textContent=base.toFixed(2);
   document.getElementById('sVat').textContent=vat.toFixed(2);
   document.getElementById('sGross').innerHTML='<b>'+net.toFixed(2)+'</b>';
@@ -190,10 +194,70 @@ function calc(){
   document.getElementById('words').textContent=bahtText?bahtText(net):String(net);
 }
 function bahtText(n){const w=['','หนึ่ง','สอง','สาม','สี่','ห้า','หก','เจ็ด','แปด','เก้า'];const t=['','สิบ','ร้อย','พัน','หมื่น','แสน','ล้าน'];let s=Math.round(n);if(s===0)return'ศูนย์';let r='';const u=String(s).split('').reverse();for(let i=u.length-1;i>=0;i--){const d=+u[i];if(!d)continue;r+=w[d]+(i>0?t[i]:'');}return r+'บาทถ้วน';}
-function collect(){return{coName:document.getElementById('coName').textContent,invNo:document.getElementById('invNo').value,invDate:document.getElementById('invDate').value,dueDate:document.getElementById('dueDate').value,cusName:document.getElementById('cusName').value,cusAddr:document.getElementById('cusAddr').value,cusTax:document.getElementById('cusTax').value,prjName:document.getElementById('prjName').value,prjSite:document.getElementById('prjSite').value,prjContract:document.getElementById('prjContract').value,note:document.getElementById('note').innerText,items:[...document.querySelectorAll('#tbody tr')].map(tr=>({desc:tr.querySelectorAll('td')[1].querySelector('input').value,qty:tr.querySelectorAll('td')[2].querySelector('input').value,price:+tr.querySelectorAll('td')[3].querySelector('input').value,unit:'หน่วย',pct:100}))};}
+function collect(){return{coName:document.getElementById('coName').textContent,invNo:document.getElementById('invNo').value,invDate:document.getElementById('invDate').value,dueDate:document.getElementById('dueDate').value,cusName:document.getElementById('cusName').value,cusAddr:document.getElementById('cusAddr').value,cusTax:document.getElementById('cusTax').value,cusPhone:document.getElementById('cusPhone').value,quoteRef:document.getElementById('quoteRef').value,prjName:document.getElementById('prjName').value,prjSite:document.getElementById('prjSite').value,prjContract:document.getElementById('prjContract').value,vatR:+document.getElementById('vatR').value||0,disc:+document.getElementById('disc').value||0,note:document.getElementById('note').innerText,items:[...document.querySelectorAll('#tbody tr')].map(tr=>({desc:tr.querySelectorAll('td')[1].querySelector('input').value,qty:+tr.querySelectorAll('td')[2].querySelector('input').value,price:+tr.querySelectorAll('td')[3].querySelector('input').value,discount:+tr.querySelectorAll('td')[4].querySelector('input').value,unit:'หน่วย',pct:100}))};}
 function manualSave(){console.log('saved',collect());if(typeof TOAST!=='undefined')TOAST.success('บันทึกแล้ว');}
 function exportJSON(){const d=collect();const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(d,null,2)]));a.download=(d.invNo||'inv')+'.json';a.click();}
-function openQuotationPicker(){alert('ดึงจากใบเสนอราคา (เชื่อมต่อ D1)');}
+async function openQuotationPicker(){
+  const overlay=document.createElement('div');
+  overlay.className='x-overlay open';
+  overlay.innerHTML='<div class="x-modal" style="max-width:520px"><div class="x-modal-hd"><h3>เลือกใบเสนอราคา</h3><button type="button" class="x-close" data-close aria-label="ปิด">&times;</button></div><div class="x-modal-bd"><input class="docs-search" data-search placeholder="ค้นหาเลขที่ ลูกค้า หรือโครงการ" style="width:100%;margin-bottom:10px"><div data-list aria-live="polite" style="display:grid;gap:8px"></div></div><div class="x-modal-ft"><button type="button" class="x-btn" data-close>ปิด</button></div></div>';
+  document.body.appendChild(overlay);
+  const listEl=overlay.querySelector('[data-list]'),search=overlay.querySelector('[data-search]');
+  const close=()=>overlay.remove();
+  overlay.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',close));
+  overlay.addEventListener('click',e=>{if(e.target===overlay)close();});
+  listEl.textContent='กำลังโหลดใบเสนอราคา...';
+  try{
+    const res=await API.listDocs('quotations');
+    const items=(res.items||[]).slice();
+    if(!items.length){listEl.textContent='ยังไม่มีใบเสนอราคาในระบบ';return;}
+    const render=()=>{
+      const q=search.value.trim().toLocaleLowerCase();
+      const shown=items.filter(d=>[d.quoteNo,d.cusName,d.prjName].some(v=>String(v||'').toLocaleLowerCase().includes(q)));
+      listEl.replaceChildren();
+      if(!shown.length){listEl.textContent='ไม่พบใบเสนอราคาที่ค้นหา';return;}
+      shown.forEach(d=>{
+        const b=document.createElement('button');b.type='button';b.dataset.id=d.id;
+        b.style.cssText='text-align:left;padding:10px 12px;border:1px solid #dce3e5;border-radius:6px;background:#fff;font:inherit;cursor:pointer';
+        const title=document.createElement('strong');title.textContent=d.quoteNo||d.docNo||'ไม่ระบุเลขที่';
+        const customer=document.createElement('span');customer.style.cssText='display:block;margin-top:3px;color:#415159';customer.textContent=d.cusName||'ไม่ระบุลูกค้า';
+        const project=document.createElement('small');project.style.cssText='display:block;margin-top:2px;color:#718087';project.textContent=d.prjName||'';
+        b.append(title,customer,project);listEl.appendChild(b);
+      });
+    };
+    search.addEventListener('input',render);
+    listEl.addEventListener('click',e=>{const b=e.target.closest('button[data-id]');if(b)fillFromQuotation(b.dataset.id,overlay);});
+    render();
+  }catch(e){listEl.textContent='โหลดใบเสนอราคาไม่สำเร็จ: '+(e.message||'กรุณาลองอีกครั้ง');}
+}
+async function fillFromQuotation(id,overlay){
+  const listEl=overlay.querySelector('[data-list]');
+  listEl.textContent='กำลังดึงข้อมูลใบเสนอราคา...';
+  try{
+    const q=await API.getDoc('quotations',id),d=q.data||q;
+    document.getElementById('cusName').value=d.cusName||'';
+    document.getElementById('cusAddr').value=d.cusAddr||'';
+    document.getElementById('cusTax').value=d.cusTax||'';
+    document.getElementById('cusPhone').value=d.cusPhone||'';
+    document.getElementById('quoteRef').value=d.quoteNo||q.docNo||'';
+    document.getElementById('prjName').value=d.prjName||'';
+    document.getElementById('prjSite').value=d.prjSite||'';
+    document.getElementById('prjContract').value=d.prjContract||'';
+    document.getElementById('vatR').value=d.vatR??7;
+    document.getElementById('disc').value='0';
+    const rows=[];let category='';
+    (d.rows||[]).forEach(r=>{
+      if(r.t==='c'){category=r.label||'';return;}
+      if(r.t!=='i')return;
+      const desc=[category,r.desc].filter(Boolean).join(' / ');
+      rows.push({desc,qty:r.qty??1,price:(+r.mat||0)+(+r.lab||0),discount:0});
+    });
+    const tbody=document.getElementById('tbody');tbody.innerHTML='';
+    (rows.length?rows:[{}]).forEach(addRow);
+    calc();overlay.remove();
+    if(typeof TOAST!=='undefined')TOAST.success('ดึงข้อมูลจากใบเสนอราคาแล้ว',d.quoteNo||q.docNo||'');
+  }catch(e){listEl.textContent='ดึงข้อมูลไม่สำเร็จ: '+(e.message||'กรุณาลองอีกครั้ง');}
+}
 function createNew(){if(confirm('สร้างใหม่?')){document.querySelectorAll('input,textarea').forEach(el=>el.value='');document.getElementById('tbody').innerHTML='';addRow();calc();}}
   addRow();calc();
   if(typeof PROFILE!=='undefined'&&PROFILE&&typeof PROFILE.apply==='function')PROFILE.apply();
