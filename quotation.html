@@ -428,7 +428,7 @@ function collect(){
   return{custTitle:tx('custTitle'),cusName:tx('cusName'),cusAddr:tx('cusAddr'),prjName:tx('prjName'),
     quoteNo:tx('quoteNo'),quoteDate,sellerName:tx('sellerName'),sellerPhone:tx('sellerPhone'),validDays:tx('validDays'),
     vatR:$('vatR').value,terms:$('terms').value,notes:$('notes').value,rows,
-    __year:(THAI.beToISO(quoteDate)||'').slice(0,4)};
+    __year:THAI.dateYearBE(quoteDate)};
 }
 function load(d){
   d=d||{};

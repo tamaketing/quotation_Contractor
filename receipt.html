@@ -617,7 +617,7 @@ function collect() {
     qty: tr.querySelector('.qty').value,
     price: tr.querySelector('.price').value
   }));
-  o.__year = (THAI.beToISO(o.issueDate) || '').slice(0, 4);
+  o.__year = THAI.dateYearBE(o.issueDate);
   return o;
 }
 

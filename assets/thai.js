@@ -45,7 +45,13 @@ const THAI = (function () {
   }
 
   /* ── วันที่ ── */
-  function todayParts() { const n = new Date(); return { y: n.getFullYear(), m: n.getMonth(), d: n.getDate() }; }
+  function todayParts(date = new Date()) {
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Asia/Bangkok', calendar: 'gregory', year: 'numeric', month: 'numeric', day: 'numeric'
+    }).formatToParts(date);
+    const value = type => +parts.find(p => p.type === type).value;
+    return { y: value('year'), m: value('month') - 1, d: value('day') };
+  }
   function fmtDateBE(y, m, d) { return d + '/' + (m + 1) + '/' + (y + BE); }
   function fmtDateBEFull(y, m, d) { return d + ' ' + MONTH[m + 1] + ' ' + (y + BE); }
 
@@ -53,9 +59,9 @@ const THAI = (function () {
     const mt = /^\s*(\d{1,2})\s*\/\s*(\d{1,2})\s*\/\s*(\d{2,4})\s*$/.exec(s || '');
     if (!mt) return null;
     let d = +mt[1], m = +mt[2] - 1, y = +mt[3];
-    if (y < 100) y = y > 2500 ? y : (y < 2200 ? y + 2500 : y + BE);
+    if (y < 100) y += 2500;
     if (y >= 2500) y -= BE;
-    if (m < 0 || m > 11 || d < 1 || d > 31) return null;
+    if (m < 0 || m > 11 || d < 1 || d > new Date(y, m + 1, 0).getDate()) return null;
     return { y, m, d };
   }
 
@@ -63,14 +69,22 @@ const THAI = (function () {
   function isoToBE(iso) {
     const m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec((iso || '').trim());
     if (!m) return '';
-    return (+m[3]) + '/' + (+m[2]) + '/' + (+m[1] + BE);
+    // Older invoices stored a Buddhist year in an ISO-shaped value.
+    const y = +m[1] >= 2500 ? +m[1] - BE : +m[1];
+    const p = parseDateBE(+m[3] + '/' + +m[2] + '/' + y);
+    return p ? fmtDateBE(p.y, p.m, p.d) : '';
   }
-  /* "3/9/2569" → "2569-09-03" */
+  /* "3/9/2569" → "2026-09-03" (ISO uses Gregorian years) */
   function beToISO(s) {
     const p = parseDateBE(s);
     if (!p) return '';
     const pad = n => String(n).padStart(2, '0');
-    return (p.y + BE) + '-' + pad(p.m + 1) + '-' + pad(p.d);
+    return p.y + '-' + pad(p.m + 1) + '-' + pad(p.d);
+  }
+
+  function dateYearBE(s) {
+    const p = parseDateBE(s);
+    return p ? String(p.y + BE) : '';
   }
 
   /* ══════════════════════════════════════════════════════════════
@@ -188,5 +202,5 @@ const THAI = (function () {
     });
   }
 
-  return { BE, MONTH, SHORT, fmt, thNum, bahtText, todayParts, fmtDateBE, fmtDateBEFull, parseDateBE, isoToBE, beToISO, setDate, init, openCal, closeCal };
+  return { BE, MONTH, SHORT, fmt, thNum, bahtText, todayParts, fmtDateBE, fmtDateBEFull, parseDateBE, isoToBE, beToISO, dateYearBE, setDate, init, openCal, closeCal };
 })();

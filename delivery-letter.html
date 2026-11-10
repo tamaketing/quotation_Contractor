@@ -285,7 +285,7 @@ const KEYS = ['letterDate', 'toTitle', 'toName', 'toCo', 'toCoEn', 'workType', '
 function collect() {
   const d = {};
   KEYS.forEach(k => { d[k] = read(k); });
-  d.__year = (THAI.beToISO(d.letterDate) || '').slice(0, 4);
+  d.__year = THAI.dateYearBE(d.letterDate);
   d.items = [...$('tb').children].map(tr => ({
     desc: tr.querySelector('[data-k="desc"]').value,
     qty: tr.querySelector('[data-k="qty"]').value,
@@ -322,7 +322,7 @@ function blankDoc() {
     letterDate: THAI.fmtDateBE(t.y, t.m, t.d),
     toTitle: 'กรรมการผู้จัดการ', toName: '', toCo: '', toCoEn: '',
     workType: 'ก่อสร้าง', invNo: '', invDate: '', prjName: '', prjSite: '', prjContract: '',
-    dueDate: THAI.fmtDateBE(due.getFullYear(), due.getMonth(), due.getDate()),
+    dueDate: THAI.fmtDateBE(...Object.values(THAI.todayParts(due))),
     amount: '0.00', items: []
   };
 }

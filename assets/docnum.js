@@ -11,7 +11,7 @@ window.DOCNUM = (function () {
   var STORE = 'docnum_v1_';
 
   function yearBE() {
-    return BE + new Date().getFullYear();
+    return BE + THAI.todayParts().y;
   }
 
   function listOf(src) {
