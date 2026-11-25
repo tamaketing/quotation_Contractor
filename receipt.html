@@ -281,7 +281,7 @@
   <button onclick="if(confirm('ออกจากระบบ?'))API.signOut('/')" style="background:#fff;color:#b91c1c;border-color:#fecaca">ออกจากระบบ</button>
   <div class="brand"><i></i> ใบเสร็จรับเงิน / ใบกำกับภาษี <span style="font-weight:500;color:#94a3b8;font-size:10.5px">v1.0</span></div>
   <button onclick="addRow()">+ รายการ</button>
-  <button onclick="document.getElementById('fiInv').click()">นำเข้าจากใบแจ้งหนี้</button>
+  <button onclick="openInvoicePicker()">นำเข้าจากใบแจ้งหนี้</button>
   <button class="ok" onclick="saveNow()">บันทึก</button>
   <button onclick="exportJSON()">Export</button>
   <button onclick="document.getElementById('fi').click()">Import</button>
@@ -733,6 +733,73 @@ function importJSON(el) {
 }
 
 /* ── Import from Invoice JSON ── */
+async function openInvoicePicker() {
+  if ($('invoicePickerOverlay')) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'invoicePickerOverlay';
+  overlay.className = 'x-overlay open';
+  overlay.innerHTML = '<div class="x-modal" role="dialog" aria-modal="true" aria-labelledby="invoicePickerTitle" style="max-width:560px"><div class="x-modal-hd"><h3 id="invoicePickerTitle">เลือกใบแจ้งหนี้จากคลาวด์</h3><button type="button" class="x-close" data-close aria-label="ปิด">&times;</button></div><div class="x-modal-bd"><input data-search type="search" aria-label="ค้นหาใบแจ้งหนี้" placeholder="ค้นหาเลขที่ ลูกค้า หรือโครงการ" style="width:100%;padding:9px;margin-bottom:12px"><div data-list aria-live="polite" style="display:grid;gap:8px;max-height:50vh;overflow:auto"></div></div><div class="x-modal-ft"><button data-file type="button" class="x-btn">นำเข้าจากไฟล์ JSON</button><button data-close type="button" class="x-btn">ปิด</button></div></div>';
+  const trigger = document.activeElement;
+  const close = () => { overlay.remove(); if (trigger) trigger.focus(); };
+  overlay.querySelectorAll('[data-close]').forEach(b => b.onclick = close);
+  overlay.onclick = e => { if (e.target === overlay) close(); };
+  overlay.onkeydown = e => {
+    if (e.key === 'Escape') close();
+    if (e.key === 'Tab') {
+      const controls = [...overlay.querySelectorAll('button,input')].filter(el => !el.disabled);
+      const first = controls[0], last = controls[controls.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  };
+  overlay.querySelector('[data-file]').onclick = () => { close(); $('fiInv').click(); };
+  document.body.appendChild(overlay);
+  const list = overlay.querySelector('[data-list]'), search = overlay.querySelector('[data-search]');
+  list.textContent = 'กำลังโหลดใบแจ้งหนี้...';
+  search.focus();
+  try {
+    const result = await API.listDocs('invoices');
+    if (!overlay.isConnected) return;
+    const items = result.items || [];
+    const render = () => {
+      const term = search.value.trim().toLocaleLowerCase();
+      list.replaceChildren();
+      const shown = items.filter(rec => {
+        const d = rec.data || rec;
+        return [d.invNo, rec.docNo, d.cusName, d.prjName].some(v => String(v || '').toLocaleLowerCase().includes(term));
+      });
+      if (!shown.length) { list.textContent = items.length ? 'ไม่พบใบแจ้งหนี้ที่ค้นหา' : 'ยังไม่มีใบแจ้งหนี้ที่บันทึกไว้บนคลาวด์'; return; }
+      shown.forEach(rec => {
+        const d = rec.data || rec, button = document.createElement('button');
+        button.type = 'button';
+        button.style.cssText = 'text-align:left;padding:12px;border:1px solid #dce5e1;border-radius:8px;background:#fff;font:inherit;cursor:pointer';
+        button.textContent = [d.invNo || rec.docNo || 'ไม่ระบุเลขที่', d.cusName, d.prjName].filter(Boolean).join(' • ');
+        button.onclick = async () => {
+          search.disabled = true;
+          list.querySelectorAll('button').forEach(b => b.disabled = true);
+          try {
+            const result = await API.getDoc('invoices', rec.id);
+            if (!overlay.isConnected) return;
+            const invoice = result.data || result;
+            if (!confirm('นำข้อมูลจากใบแจ้งหนี้ ' + (invoice.invNo || result.docNo || '') + ' มาทับใบเสร็จที่เปิดอยู่?')) return;
+            fillFromInvoice(invoice);
+            close();
+          } catch (e) {
+            if (typeof TOAST !== 'undefined') TOAST.error('โหลดใบแจ้งหนี้ไม่สำเร็จ', e.message);
+          } finally {
+            search.disabled = false;
+            list.querySelectorAll('button').forEach(b => b.disabled = false);
+          }
+        };
+        list.appendChild(button);
+      });
+    };
+    search.oninput = render;
+    render();
+  } catch (e) {
+    list.textContent = 'โหลดใบแจ้งหนี้ไม่สำเร็จ: ' + (e.message || 'กรุณาปิดแล้วลองอีกครั้ง');
+  }
+}
 function importInvoiceFile(el) {
   const f = el.files[0]; if (!f) return;
   const r = new FileReader();
