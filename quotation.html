@@ -279,7 +279,7 @@ tr:hover .row-del{display:inline-block;vertical-align:middle}
       </tr>
       <tr class="r-vat">
         <td colspan="4" class="terms-c"></td>
-        <td colspan="2" class="lbl-c">ภาษีมูลค่าเพิ่ม <input type="number" id="vatR" value="7" class="tw num" style="width:26px;text-align:center;display:inline-block" oninput="calc()">%</td>
+        <td colspan="2" class="lbl-c"><label style="display:inline-flex;align-items:center;gap:5px"><input id="vatEnabled" type="checkbox" checked style="width:16px;height:16px;min-width:16px;margin:0" onchange="VAT.toggle();calc();scheduleSave()"> คิด VAT</label> ภาษีมูลค่าเพิ่ม <input type="number" id="vatR" value="7" class="tw num" style="width:26px;text-align:center;display:inline-block" oninput="calc()">%</td>
         <td class="val-c" id="tVat">0.00</td>
       </tr>
       <tr class="r-total grand">
@@ -320,6 +320,7 @@ tr:hover .row-del{display:inline-block;vertical-align:middle}
 <script src="assets/profile.js"></script>
 <script src="assets/archive.js"></script>
 <script src="assets/docs-api.js"></script>
+<script src="assets/vat.js"></script>
 <script>
 const $=id=>document.getElementById(id);
 const fmt=THAI.fmt;
@@ -396,6 +397,7 @@ function renumber(){
 
 /* calc — matches reference: amount = qty × (full + discount) */
 function calc(){
+  VAT.sync();
   let sub=0;
   $('tb').querySelectorAll('tr.r-item').forEach(tr=>{
     const g=k=>tr.querySelector('[data-k="'+k+'"]');

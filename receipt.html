@@ -19,6 +19,7 @@
 <script src="assets/profile.js"></script>
 <script src="assets/archive.js"></script>
 <script src="assets/docs-api.js"></script>
+<script src="assets/vat.js"></script>
 <style>
   :root{
     --dark:#0f172a;--accent:#0f766e;--accent2:#115e59;--accent-soft:#ecfdf5;
@@ -399,7 +400,7 @@
         <tr><td>รวมมูลค่า — Subtotal</td><td id="sSub">0.00</td></tr>
         <tr id="rowDisc"><td>ส่วนลด — Discount <input id="disc" class="money" inputmode="decimal" value="0.00"> บาท</td><td id="sDisc">0.00</td></tr>
         <tr class="sep"><td>มูลค่าสินค้า/บริการ — Taxable Base</td><td id="sBase">0.00</td></tr>
-        <tr><td>ภาษีมูลค่าเพิ่ม — VAT <input id="vatR" type="number" value="7" step="any">%</td><td id="sVat">0.00</td></tr>
+        <tr><td><label style="display:inline-flex;align-items:center;gap:5px"><input id="vatEnabled" type="checkbox" checked style="width:16px;height:16px;min-width:16px;margin:0" onchange="VAT.toggle();calc();scheduleSave()"> คิด VAT</label> ภาษีมูลค่าเพิ่ม — VAT <input id="vatR" type="number" value="7" step="any">%</td><td id="sVat">0.00</td></tr>
         <tr class="grand"><td>รวมทั้งสิ้น — Total</td><td id="sGrand">0.00</td></tr>
         <tr id="rowWht"><td>หัก ภาษี ณ ที่จ่าย — WHT <input id="whtR" type="number" value="3" step="any">%</td><td id="sWht">0.00</td></tr>
         <tr id="rowRet"><td>หัก ประกันผลงาน — Retention <input id="retR" type="number" value="0" step="any">%</td><td id="sRet">0.00</td></tr>
@@ -536,6 +537,7 @@ function fitCardText() {
 
 /* ── Calculate ── */
 function calc() {
+  VAT.sync();
   let sub = 0;
   document.querySelectorAll('#tbody tr').forEach((tr, i) => {
     const no = tr.querySelector('.no'); if (no) no.textContent = i + 1;
